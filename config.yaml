@@ -53,10 +53,10 @@ pairwise:
     - gpt-5.5
     - gemini-3.5-flash
     - deepseek-v4-pro
-  both_orders: false
+  both_orders: true   # round 2: judge every pair in the reversed order too
   # opus-4-8 at effort max burned a 16k cap on thinking alone for close
   # comparisons (28/66 returned zero text); 32k gives deliberation headroom
-  max_output_tokens: 32000
+  max_output_tokens: 32000  # 5 pathological near-ties needed a one-off 64k resubmission
 
 models:
   # --- Anthropic: highest thinking = adaptive + effort max (spec: max for fable-5).
