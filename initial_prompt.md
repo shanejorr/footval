@@ -36,7 +36,7 @@ seed: 42                  # where the provider supports it
 criteria_weights: [1, 1, 1]   # soundness, priors, code — equal weight for composite
 interval_tol: 0.10        # relative tolerance for parameter-reproduction check
 ```
-Use the highest level of thinking available for both candidate and judge models.
+Use the highest level of thinking available for both candidate and judge models. Except use `max` for `claude-fable-5`.
 
 Pin the exact API snapshot ID for every model at run time and store it (the version strings above will drift).
 

@@ -1,0 +1,162 @@
+# Footbench run configuration — spec section 1 values + per-model API registry.
+#
+# Model IDs and API params WILL drift; fix them HERE, never in code.
+# `make probe` makes one cheap call per model and prints resolved snapshot IDs.
+# `params:` is merged verbatim into the provider call (config wins on conflict).
+
+candidate_models:
+  - claude-fable-5
+  - claude-opus-4-8
+  - claude-sonnet-4-6
+  - claude-haiku-4-5-20251001
+  - gpt-5.5-pro
+  - gpt-5.5
+  - gpt-5.4-mini
+  - gemini-3.1-pro-preview
+  - gemini-3.5-flash
+  - gemini-3.1-flash-lite
+  - deepseek-v4-pro
+  - deepseek-v4-flash
+
+judge_models:
+  - claude-fable-5
+  - gpt-5.5-pro
+  - gemini-3.1-pro-preview
+  - deepseek-v4-pro
+
+n_samples: 1              # responses generated per candidate
+gen_temperature: 1.0      # fixed for all candidates (where the API accepts it)
+judge_temperature: 0.0    # judges run as deterministically as the APIs allow
+seed: 42                  # where the provider supports it
+criteria_weights: [1, 1, 1]   # soundness, priors, code
+interval_tol: 0.10        # relative tolerance for parameter-reproduction check
+
+sandbox:
+  image: footbench-sandbox
+  timeout_seconds: 60
+  memory: 1g
+  cpus: 1
+  pids: 256
+
+generation:
+  max_output_tokens: 64000
+judging:
+  max_output_tokens: 16000
+  max_format_retries: 2
+
+models:
+  # --- Anthropic: highest thinking = adaptive + effort max (spec: max for fable-5).
+  # Fable 5 / Opus 4.8 reject temperature/top_p/top_k (400); thinking-enabled
+  # models can't take temperature either, so it is omitted for all four.
+  claude-fable-5:
+    provider: anthropic
+    family: anthropic
+    supports_temperature: false
+    supports_seed: false
+    supports_images: true
+    params:
+      thinking: {type: adaptive}
+      output_config: {effort: max}
+  claude-opus-4-8:
+    provider: anthropic
+    family: anthropic
+    supports_temperature: false
+    supports_seed: false
+    supports_images: true
+    params:
+      thinking: {type: adaptive}
+      output_config: {effort: max}
+  claude-sonnet-4-6:
+    provider: anthropic
+    family: anthropic
+    supports_temperature: false
+    supports_seed: false
+    supports_images: true
+    params:
+      # Adaptive thinking at effort max AND high both made Sonnet think past
+      # its 64k output ceiling and return ZERO text (see the preserved
+      # response.effort-{max,high}-attempt.json files). The transitional
+      # budget_tokens cap bounds thinking so an answer can emerge — the
+      # highest thinking configuration this model can complete. Documented
+      # deviation from "adaptive everywhere".
+      thinking: {type: enabled, budget_tokens: 32000}
+  claude-haiku-4-5-20251001:
+    provider: anthropic
+    family: anthropic
+    supports_temperature: false
+    supports_seed: false
+    supports_images: true
+    params:
+      thinking: {type: enabled, budget_tokens: 32000}  # no adaptive/effort on Haiku 4.5
+
+  # --- OpenAI (Responses API). Reasoning models reject sampling params; no seed
+  # on the Responses API. Raise reasoning.effort here if a higher tier exists.
+  gpt-5.5-pro:
+    provider: openai
+    family: openai
+    supports_temperature: false
+    supports_seed: false
+    supports_images: true
+    params:
+      reasoning: {effort: high}
+  gpt-5.5:
+    provider: openai
+    family: openai
+    supports_temperature: false
+    supports_seed: false
+    supports_images: true
+    params:
+      reasoning: {effort: high}
+  gpt-5.4-mini:
+    provider: openai
+    family: openai
+    supports_temperature: false
+    supports_seed: false
+    supports_images: true
+    params:
+      reasoning: {effort: high}
+
+  # --- Google Gemini (google-genai SDK). params merge into GenerateContentConfig.
+  gemini-3.1-pro-preview:
+    provider: gemini
+    family: google
+    supports_temperature: true
+    supports_seed: true
+    supports_images: true
+    params:
+      thinking_config: {thinking_level: HIGH}
+  gemini-3.5-flash:
+    provider: gemini
+    family: google
+    supports_temperature: true
+    supports_seed: true
+    supports_images: true
+    params:
+      thinking_config: {thinking_level: HIGH}
+  gemini-3.1-flash-lite:
+    provider: gemini
+    family: google
+    supports_temperature: true
+    supports_seed: true
+    supports_images: true
+    params:
+      thinking_config: {thinking_level: HIGH}
+
+  # --- DeepSeek (OpenAI-compatible chat completions). Vision unverified, so
+  # supports_images=false: the judge falls back to text-only and records it.
+  deepseek-v4-pro:
+    provider: deepseek
+    family: deepseek
+    base_url: https://api.deepseek.com
+    supports_temperature: true
+    supports_seed: false
+    supports_images: false
+    params: {}
+  deepseek-v4-flash:
+    provider: deepseek
+    family: deepseek
+    base_url: https://api.deepseek.com
+    supports_temperature: true
+    supports_seed: false
+    supports_images: false
+    params: {}

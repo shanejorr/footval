@@ -4,12 +4,12 @@ Guidance for Claude Code working in the `footbench` folder. Keep this file curre
 
 ## What this is
 
-Footbench is a subjective, multi-model LLM evaluation. Twelve candidate models answer a fixed prompt (NFL strategy recommendations + Bayesian priors + a plotting script). Their responses are executed, auto-checked, scored by four LLM judges on a 1–5 rubric, aggregated by mean, and published as a non-technical web page with an interrater-reliability report.
+Footbench is a subjective, multi-model LLM evaluation. Twelve candidate models answer a fixed prompt (NFL strategy recommendations + Bayesian priors + a plotting script). Their responses are executed, auto-checked, scored by four LLM judges on a 1–5 rubric, and aggregated by mean with an interrater-reliability report. Final outputs are a long-form scores CSV and two summary plots (per-judge scores; prior comparison).
 
 ## Source-of-truth documents
 
 - `footbench.prompt.md` — the exact prompt sent to every candidate. **Do not edit casually**; changing it invalidates prior runs.
-- `docs/footbench_implementation_spec.md` — full methodology (stages, rubric anchors, IRR, data schema, website). This is authoritative. If code and spec disagree, fix the code or update the spec deliberately — don't let them drift.
+- `initial_prompt.md` — full methodology (stages, rubric anchors, IRR, data schema). This is authoritative, with one deliberate deviation: stage 6 (spec §9, a web page) was replaced by the owner's decision with static outputs — `outputs/scores.csv` (long form: one row per judge×candidate, one column per criterion), a judge×candidate score plot, and a prior-comparison plot. If code and spec disagree elsewhere, fix the code or update the spec deliberately — don't let them drift.
 
 When asked to implement something, read the spec first; this file is only a fast orientation.
 
@@ -24,7 +24,7 @@ Six stages, each reading/writing structured artifacts so they run independently 
 | 3 Check | `footbench/checks.py` | Deterministic JSON/structure/parameter checks |
 | 4 Judge | `footbench/judge.py` | 4 judges score each instance 1–5 on 3 criteria |
 | 5 Aggregate | `footbench/aggregate.py` | Mean scores, rankings, interrater reliability, bias diagnostic |
-| 6 Publish | `footbench/publish.py` | Build the static page from artifacts |
+| 6 Publish | `footbench/publish.py` | Build `outputs/` (scores CSV + the two plots) from artifacts |
 
 The unit of analysis everywhere is the **response instance** = (model, sample_idx).
 
@@ -60,12 +60,16 @@ Stages are resumable: each reads the previous stage's artifacts, so re-run a sin
 
 ## Data & artifacts
 
-Stored under `artifacts/` (gitignored; optionally synced to S3). Tables: `responses`, `exec_results`, `checks`, `judgments`, `model_scores`, `reliability`, `bias`. Schema is in the spec. The website reads only from these — no logic in the page itself.
+Stored under `artifacts/` (gitignored; optionally synced to S3). Tables: `responses`, `exec_results`, `checks`, `judgments`, `model_scores`, `reliability`, `bias`. Schema is in the spec. Stage 6 reads only from these — no recomputation in the publish step.
 
 ## Secrets
 
 API keys come from environment variables / a gitignored `.env`. Never commit keys, raw responses, or rendered images.
 
-## Publishing
+## Publishing (stage 6 outputs)
 
-The page targets `shaneorr.me` → Other Writings, written for a **non-technical** audience: plain-language explainer of priors/intervals, a leaderboard that shows judge-agreement plainly so it isn't read as more precise than it is, a per-model response viewer (plot rendered, source collapsed, graceful "failed to render" state), and the prior-comparison view. Include a methodology/limitations section that discloses the judges-are-also-contestants caveat.
+Written to `outputs/` (not auto-committed; owner reviews first):
+
+- `scores.csv` — long form: columns `judge, candidate, soundness, priors, code`; one row per judge×candidate pair; empty cells where a judge failed to return valid scores.
+- `scores_by_judge.png` — annotated heatmaps (one panel per criterion) of each judge's integer score for each candidate, candidates sorted by composite.
+- `priors_comparison.png` — 2×3 grid (one subplot per strategy cell) overlaying every model's prior pdf, re-rendered from the **reported parameters** via the canonical routine in `distributions.py` — never from the candidates' scripts — on shared per-cell axes.
