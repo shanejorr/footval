@@ -84,7 +84,6 @@ idempotent and safe to re-run.
 - **Judges see anonymized responses.** Strip any model-identifying text before a response reaches a judge. Each judge scores one instance at a time (independent scoring, not a 12-way ranking).
 - **Scoring is locked:** integers 1–5 per criterion; aggregate is the arithmetic mean; composite is the equal-weighted mean of the three criteria. Don't introduce a different scale or weighting without updating the spec.
 - **Reliability:** Krippendorff's α (ordinal) is primary; ICC(2,k) secondary; both per criterion. Collect the full judges × instances matrix (including self- and same-family judgments, tagged) so the matrix stays complete.
-- **Prior-comparison plots are re-rendered from the reported parameters**, not from the candidates' own scripts. Parse family + params from the JSON and draw with one canonical routine on shared axes.
 - **Objective vs. subjective split:** "does it run / is the grid complete / do parameters reproduce the interval" come from Stages 2–3, not from judge opinion. Judges score only the subjective quality, using those reports as ground truth.
 - **Pin model snapshots.** The version strings in `config.yaml` will drift and some may not exist yet — resolve and record the exact API snapshot ID at run time. Never hardcode API keys.
 
@@ -101,5 +100,3 @@ API keys come from environment variables / a gitignored `.env`. Never commit key
 Written to `outputs/` (not auto-committed; owner reviews first):
 
 - `scores.csv` — long form: columns `judge, candidate, soundness, priors, code`; one row per judge×candidate pair; empty cells where a judge failed to return valid scores.
-- `scores_by_judge.png` — annotated heatmaps (one panel per criterion) of each judge's integer score for each candidate, candidates sorted by composite.
-- `priors_comparison.png` — 2×3 grid (one subplot per strategy cell) overlaying every model's prior pdf, re-rendered from the **reported parameters** via the canonical routine in `distributions.py` — never from the candidates' scripts — on shared per-cell axes.

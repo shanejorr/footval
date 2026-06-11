@@ -133,7 +133,7 @@ def test_table_columns_match_spec(tmp_path):
 def test_run_on_synthetic_artifacts_tree(tmp_path):
     cfg = make_cfg(tmp_path, ["mA", "mB"], ["j1", "j2"], FAMILIES)
     store = Store(cfg.artifacts_dir)
-    for model, scores_by_judge in {
+    for model, judge_scores in {
         "mA": {"j1": (4, 3, 5), "j2": (2, 3, 3)},
         "mB": {"j1": (5, 5, 5), "j2": (1, 1, 1)},
     }.items():
@@ -154,7 +154,7 @@ def test_run_on_synthetic_artifacts_tree(tmp_path):
                 "parsed_json": {},
             },
         )
-        for judge, (s, p, c) in scores_by_judge.items():
+        for judge, (s, p, c) in judge_scores.items():
             store.write_json(
                 store.judgment_path(iid, judge),
                 {
