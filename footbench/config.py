@@ -74,6 +74,10 @@ class Config:
         return self.root / "outputs"
 
     @property
+    def outputs_data_dir(self) -> Path:
+        return self.outputs_dir / "data"
+
+    @property
     def prompt_path(self) -> Path:
         return self.root / "footbench.prompt.md"
 

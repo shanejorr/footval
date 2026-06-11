@@ -301,7 +301,7 @@ def test_write_csv_winner_mapping(tmp_path, capsys):
     pairwise.write_csv(cfg)
     import csv as csvmod
 
-    rows = list(csvmod.reader(open(cfg.outputs_dir / "pairwise_results.csv")))
+    rows = list(csvmod.reader(open(cfg.outputs_data_dir / "pairwise_results.csv")))
     assert rows[0] == ["judge", "model_a", "model_b", "criterion", "winner"]
     assert len(rows) == 1 + 2 * 2  # 2 comparisons x 2 criteria
     by_key = {(r[1], r[2], r[3]): r[4] for r in rows[1:]}
@@ -325,6 +325,6 @@ def test_write_csv_blank_winner_for_null_verdicts(tmp_path):
     pairwise.write_csv(cfg)
     import csv as csvmod
 
-    rows = list(csvmod.reader(open(cfg.outputs_dir / "pairwise_results.csv")))
+    rows = list(csvmod.reader(open(cfg.outputs_data_dir / "pairwise_results.csv")))
     assert len(rows) == 3
     assert all(r[4] == "" for r in rows[1:])

@@ -598,8 +598,8 @@ def write_csv(cfg: Config) -> None:
     store = artifacts.Store(cfg.artifacts_dir)
     manifest = load_or_write_manifest(cfg, store)
     cids = sorted(manifest["comparisons"], key=parse_custom_id)
-    out_path = cfg.outputs_dir / "pairwise_results.csv"
-    cfg.outputs_dir.mkdir(parents=True, exist_ok=True)
+    out_path = cfg.outputs_data_dir / "pairwise_results.csv"
+    cfg.outputs_data_dir.mkdir(parents=True, exist_ok=True)
     missing = 0
     wins: dict[tuple[str, str], int] = {}
     with open(out_path, "w", newline="") as fh:

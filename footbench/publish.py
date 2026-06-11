@@ -1,6 +1,6 @@
 """Stage 6 — final deliverables, read from artifacts only.
 
-Writes to ``outputs/``:
+Writes to ``outputs/data/``:
   - scores.csv            long form: judge, candidate, soundness, priors, code
 """
 
@@ -19,15 +19,15 @@ def run(cfg: Config) -> None:
     model_scores = store.read_json(store.table_path("model_scores")) or []
     if not judgments:
         raise SystemExit("no judgments table found — run `make aggregate` first")
-    cfg.outputs_dir.mkdir(parents=True, exist_ok=True)
+    cfg.outputs_data_dir.mkdir(parents=True, exist_ok=True)
 
     model_order = composite_model_order(model_scores, cfg.candidate_models)
     judge_order = list(cfg.judge_models)
 
-    csv_path = cfg.outputs_dir / "scores.csv"
+    csv_path = cfg.outputs_data_dir / "scores.csv"
     write_scores_csv(judgments, model_order, judge_order, csv_path)
 
-    print(f"outputs written to {cfg.outputs_dir}: scores.csv")
+    print(f"data outputs written to {cfg.outputs_data_dir}: scores.csv")
 
 
 def composite_model_order(model_scores: list[dict], candidates: tuple[str, ...]) -> list[str]:

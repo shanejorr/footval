@@ -9,7 +9,7 @@ Footbench is a subjective, multi-model LLM evaluation. Twelve candidate models a
 ## Source-of-truth documents
 
 - `footbench.prompt.md` — the exact prompt sent to every candidate. **Do not edit casually**; changing it invalidates prior runs.
-- `initial_prompt.md` — full methodology (stages, rubric anchors, IRR, data schema). This is authoritative, with one deliberate deviation: stage 6 (spec §9, a web page) was replaced by the owner's decision with static outputs — `outputs/scores.csv` (long form: one row per judge×candidate, one column per criterion), a judge×candidate score plot, and a prior-comparison plot. If code and spec disagree elsewhere, fix the code or update the spec deliberately — don't let them drift.
+- `initial_prompt.md` — full methodology (stages, rubric anchors, IRR, data schema). This is authoritative, with one deliberate deviation: stage 6 (spec §9, a web page) was replaced by the owner's decision with static outputs — `outputs/data/scores.csv` (long form: one row per judge×candidate, one column per criterion), a judge×candidate score plot, and a prior-comparison plot. If code and spec disagree elsewhere, fix the code or update the spec deliberately — don't let them drift.
 
 When asked to implement something, read the spec first; this file is only a fast orientation.
 
@@ -60,7 +60,7 @@ make pairwise-submit     # submit batches (resubmission IS the retry mechanism)
 make pairwise-deepseek   # run the DeepSeek judge synchronously (anytime)
 make pairwise-status     # poll batch states
 make pairwise-collect    # fetch ended batches -> verdict files; failures stay outstanding
-make pairwise-csv        # outputs/pairwise_results.csv (judge, model_a, model_b, criterion, winner)
+make pairwise-csv        # outputs/data/pairwise_results.csv (judge, model_a, model_b, criterion, winner)
 ```
 
 State lives under `artifacts/pairwise/`: `manifest.json` (custom_id -> pair mapping; drift
@@ -97,6 +97,6 @@ API keys come from environment variables / a gitignored `.env`. Never commit key
 
 ## Publishing (stage 6 outputs)
 
-Written to `outputs/` (not auto-committed; owner reviews first):
+Written to `outputs/` (not auto-committed; owner reviews first). CSV data files live in `outputs/data/`:
 
 - `scores.csv` — long form: columns `judge, candidate, soundness, priors, code`; one row per judge×candidate pair; empty cells where a judge failed to return valid scores.
