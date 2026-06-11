@@ -44,6 +44,20 @@ judging:
   max_output_tokens: 16000
   max_format_retries: 2
 
+# Pairwise comparison stage (criteria 1-2 only, text-only, batch APIs where
+# available). both_orders=true would judge every pair in both presentation
+# orders (doubles cost; default off — A/B is seeded-random per pair instead).
+pairwise:
+  judges:
+    - claude-opus-4-8
+    - gpt-5.5
+    - gemini-3.5-flash
+    - deepseek-v4-pro
+  both_orders: false
+  # opus-4-8 at effort max burned a 16k cap on thinking alone for close
+  # comparisons (28/66 returned zero text); 32k gives deliberation headroom
+  max_output_tokens: 32000
+
 models:
   # --- Anthropic: highest thinking = adaptive + effort max (spec: max for fable-5).
   # Fable 5 / Opus 4.8 reject temperature/top_p/top_k (400); thinking-enabled

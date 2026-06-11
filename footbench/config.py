@@ -57,6 +57,13 @@ class Config:
     judging_max_output_tokens: int
     judge_max_format_retries: int
     models: dict[str, ModelCfg]
+    pairwise_judges: tuple[str, ...] = ()
+    pairwise_both_orders: bool = False
+    pairwise_max_output_tokens: int | None = None  # None -> judging_max_output_tokens
+
+    @property
+    def pairwise_output_cap(self) -> int:
+        return self.pairwise_max_output_tokens or self.judging_max_output_tokens
 
     @property
     def artifacts_dir(self) -> Path:
@@ -91,7 +98,9 @@ def load_config(root: Path | None = None) -> Config:
             base_url=m.get("base_url"),
             params=m.get("params") or {},
         )
-    for name in list(raw["candidate_models"]) + list(raw["judge_models"]):
+    pairwise = raw.get("pairwise") or {}
+    pairwise_judges = tuple(pairwise.get("judges") or ())
+    for name in [*raw["candidate_models"], *raw["judge_models"], *pairwise_judges]:
         if name not in models:
             raise ValueError(f"model {name!r} has no entry under models: in config.yaml")
         if models[name].provider not in PROVIDER_ENV_KEYS:
@@ -125,6 +134,11 @@ def load_config(root: Path | None = None) -> Config:
         judging_max_output_tokens=int(judging.get("max_output_tokens", 16000)),
         judge_max_format_retries=int(judging.get("max_format_retries", 2)),
         models=models,
+        pairwise_judges=pairwise_judges,
+        pairwise_both_orders=bool(pairwise.get("both_orders", False)),
+        pairwise_max_output_tokens=(
+            int(pairwise["max_output_tokens"]) if pairwise.get("max_output_tokens") else None
+        ),
     )
 
 

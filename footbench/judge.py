@@ -19,26 +19,33 @@ from .config import CRITERIA, Config, ModelCfg
 _MAX_IMAGES = 8
 
 # Spec section 6.3, verbatim. Do not paraphrase — judges anchor on this text.
-RUBRIC = """\
+# Split per criterion so the pairwise stage can reuse criteria 1-2; RUBRIC
+# must recompose byte-identically (golden test pins it).
+RUBRIC_SOUNDNESS = """\
 **Criterion 1 — Soundness of recommendations**
 
 - **5** — All six picks are genuinely underutilized *and* credibly win-positive; rationales are specific and football-literate; analytics vs. intuition buckets correctly distinguished (intuition picks are not just restated analytics consensus); picks distinct and correctly slotted in their grid cell.
 - **3** — Mixed: several solid picks, but some are mainstream rather than underutilized, weakly justified, or misfiled.
-- **1** — Most picks are generic/already standard, implausible, duplicative, or misattributed; rationales vague or wrong.
+- **1** — Most picks are generic/already standard, implausible, duplicative, or misattributed; rationales vague or wrong."""
 
+RUBRIC_PRIORS = """\
 **Criterion 2 — Reasonableness of Bayesian priors**
 
 - **5** — Family matches the stated shape/tails and the signed support; most-plausible values and 95% intervals are football-realistic in magnitude (neither overconfident nor absurdly wide); conversions correct; honest treatment of weak cells (near-zero center, wider interval).
 - **3** — Generally reasonable but with notable issues: an implausible magnitude or two, an over-tight or over-wide interval, a family that doesn't match the stated shape, or a conversion slip.
-- **1** — Largely unreasonable: invalid/wrong family for signed data, badly mis-scaled intervals, inconsistent parameters, or identical boilerplate priors copy-pasted across differing strategies.
+- **1** — Largely unreasonable: invalid/wrong family for signed data, badly mis-scaled intervals, inconsistent parameters, or identical boilerplate priors copy-pasted across differing strategies."""
 
+RUBRIC_CODE = """\
 **Criterion 3 — Python code quality** (treat the execution result as ground truth for whether it runs)
 
 - **5** — Runs cleanly and produces all six correct plots; code is clear, efficient, parameterized as the prompt requires, uses the correct scipy distribution per family, and does what it claims.
 - **3** — Runs but rough: inefficiency, partial plotting, minor mismatch between code and reported parameters, or sloppy structure.
-- **1** — Fails to run or produces wrong/empty plots, or does not implement the stated distributions/parameters.
+- **1** — Fails to run or produces wrong/empty plots, or does not implement the stated distributions/parameters."""
 
-Interpolate scores of 4 and 2 between these anchors."""
+RUBRIC = (
+    f"{RUBRIC_SOUNDNESS}\n\n{RUBRIC_PRIORS}\n\n{RUBRIC_CODE}\n\n"
+    "Interpolate scores of 4 and 2 between these anchors."
+)
 
 SYSTEM = f"""You are an impartial evaluator scoring one model's response to a fixed task. \
 You see exactly one anonymized response per call — score it on its own merits against the \
@@ -144,7 +151,7 @@ def build_judge_parts(
         "=== TASK GIVEN TO THE MODEL ===\n" + prompt_md,
         f"=== RESPONSE UNDER REVIEW ===\n{body_label}\n\n{redacted_body}",
         "=== EXECUTION RESULT (ground truth) ===\n" + _exec_summary(exec_result),
-        "=== AUTOMATED CHECK REPORT (ground truth) ===\n" + _check_summary(checks),
+        "=== AUTOMATED CHECK REPORT (ground truth) ===\n" + check_summary(checks),
     ]
     parts = [providers.ContentPart(kind="text", text="\n\n".join(sections))]
 
@@ -257,7 +264,7 @@ def _exec_summary(exec_result: dict[str, Any] | None) -> str:
     return "\n".join(lines)
 
 
-def _check_summary(checks: dict[str, Any] | None) -> str:
+def check_summary(checks: dict[str, Any] | None) -> str:
     if checks is None:
         return "No automated check report available."
     summary: dict[str, Any] = {

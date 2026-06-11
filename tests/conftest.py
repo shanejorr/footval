@@ -28,6 +28,8 @@ def make_cfg(
     judges: list[str],
     families: dict[str, str],
     weights: tuple[float, ...] = (1.0, 1.0, 1.0),
+    pairwise_judges: tuple[str, ...] = (),
+    pairwise_both_orders: bool = False,
 ) -> Config:
     models = {
         name: ModelCfg(name=name, provider=_FAMILY_PROVIDER.get(fam, "openai"), family=fam)
@@ -48,6 +50,8 @@ def make_cfg(
         judging_max_output_tokens=1000,
         judge_max_format_retries=2,
         models=models,
+        pairwise_judges=pairwise_judges,
+        pairwise_both_orders=pairwise_both_orders,
     )
 
 

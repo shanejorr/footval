@@ -11,13 +11,28 @@ def main(argv: list[str] | None = None) -> None:
     parser = argparse.ArgumentParser(prog="footbench", description="Footbench evaluation pipeline")
     parser.add_argument(
         "command",
-        choices=["probe", "generate", "sandbox", "check", "judge", "aggregate", "publish", "run"],
+        choices=[
+            "probe",
+            "generate",
+            "sandbox",
+            "check",
+            "judge",
+            "aggregate",
+            "publish",
+            "pairwise",
+            "run",
+        ],
+    )
+    parser.add_argument(
+        "subcommand",
+        nargs="?",
+        help="pairwise only: estimate | submit | deepseek | status | collect | csv",
     )
     parser.add_argument(
         "--only",
         action="append",
         metavar="MODEL",
-        help="restrict probe/generate (candidates) or judge (judges) to these model names",
+        help="restrict probe/generate (candidates) or judge/pairwise (judges) to these model names",
     )
     parser.add_argument("--instance", metavar="ID", help="restrict to one instance id")
     parser.add_argument(
@@ -62,6 +77,10 @@ def main(argv: list[str] | None = None) -> None:
             from . import publish
 
             publish.run(cfg)
+        elif command == "pairwise":
+            from . import pairwise
+
+            pairwise.run_cli(cfg, args.subcommand, only=args.only, dump_prompt=args.dump_prompt)
 
     if args.command == "run":
         for step in ("generate", "sandbox", "check", "judge", "aggregate", "publish"):

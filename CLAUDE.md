@@ -40,6 +40,36 @@ make lint           # ruff check + format
 
 Stages are resumable: each reads the previous stage's artifacts, so re-run a single stage without redoing the whole pipeline.
 
+## Pairwise comparison stage
+
+`footbench/pairwise.py` compares every unordered pair of response instances (66 pairs for 12
+candidates) on criteria 1–2 only (soundness, priors) — forced A/B choice, text-only. Judges
+and the `both_orders` flag live under `pairwise:` in config.yaml. Which model is shown as
+"Response A" is a deterministic per-pair coin flip from the run seed; presentation order is
+recorded so position bias is analyzable.
+
+Cost design: Anthropic/OpenAI/Gemini go through their 50%-off batch APIs; DeepSeek has no
+batch API and runs synchronously. Prompts share byte-stable prefixes
+(`[system][task][bundle A][bundle B]`), with explicit `cache_control` breakpoints for
+Anthropic and automatic prefix caching elsewhere; requests are sorted so same-candidate-A
+calls are adjacent.
+
+```bash
+make pairwise-estimate   # offline: outstanding counts + token estimate
+make pairwise-submit     # submit batches (resubmission IS the retry mechanism)
+make pairwise-deepseek   # run the DeepSeek judge synchronously (anytime)
+make pairwise-status     # poll batch states
+make pairwise-collect    # fetch ended batches -> verdict files; failures stay outstanding
+make pairwise-csv        # outputs/pairwise_results.csv (judge, model_a, model_b, criterion, winner)
+```
+
+State lives under `artifacts/pairwise/`: `manifest.json` (custom_id -> pair mapping; drift
+hard-fails), `batches.json` (submitted batch ids + submission order), `attempts.json`
+(format-failure counts; after `judging.max_format_retries` an item gets a terminal
+`verdicts: null` file), `verdicts/{judge}/{custom_id}.json`, and `raw/` (verbatim batch
+output for audit). `outstanding = expected − verdict files`, so every subcommand is
+idempotent and safe to re-run.
+
 ## Conventions
 
 - Python 3.12+, managed with `uv`. Type-hint public functions. Lint/format with `ruff`.

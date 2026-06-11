@@ -70,6 +70,33 @@ class Store:
     def judgment_path(self, iid: str, judge: str) -> Path:
         return self.judgments_dir(iid) / f"{judge}.json"
 
+    # --- pairwise stage ----------------------------------------------------
+    @property
+    def pairwise_dir(self) -> Path:
+        return self.root / "pairwise"
+
+    @property
+    def pairwise_manifest_path(self) -> Path:
+        return self.pairwise_dir / "manifest.json"
+
+    @property
+    def pairwise_batches_path(self) -> Path:
+        return self.pairwise_dir / "batches.json"
+
+    @property
+    def pairwise_attempts_path(self) -> Path:
+        return self.pairwise_dir / "attempts.json"
+
+    @property
+    def pairwise_raw_dir(self) -> Path:
+        return self.pairwise_dir / "raw"
+
+    def pairwise_verdict_path(self, judge: str, custom_id: str) -> Path:
+        return self.pairwise_dir / "verdicts" / judge / f"{custom_id}.json"
+
+    def load_pairwise_verdict(self, judge: str, custom_id: str) -> dict[str, Any] | None:
+        return self.read_json(self.pairwise_verdict_path(judge, custom_id))
+
     def table_path(self, name: str) -> Path:
         return self.tables_dir / f"{name}.json"
 
