@@ -29,13 +29,14 @@ judge_models:
   - gemini-3.1-pro-preview
   - deepseek-v4-pro
 
-n_samples: 3              # responses generated per candidate
+n_samples: 1              # responses generated per candidate
 gen_temperature: 1.0      # fixed for all candidates
 judge_temperature: 0.0    # judges run as deterministically as possible
 seed: 42                  # where the provider supports it
 criteria_weights: [1, 1, 1]   # soundness, priors, code — equal weight for composite
 interval_tol: 0.10        # relative tolerance for parameter-reproduction check
 ```
+Use the highest level of thinking available for both candidate and judge models.
 
 Pin the exact API snapshot ID for every model at run time and store it (the version strings above will drift).
 
@@ -220,7 +221,7 @@ Audience is non-technical. The page reads from the Stage 8 artifacts.
 **Sections:**
 
 1. **Plain-language intro** — what the test asked the models to do, in one short paragraph. Explain "prior" and "uncertainty interval" with a one-line analogy (e.g., a prior is the model's best guess plus an honest statement of how unsure it is).
-2. **Leaderboard** — composite ranking, with a toggle to view each of the three criteria. Show the interrater-reliability value beside each criterion with a plain label ("judges agreed strongly / moderately / weakly here") so the ranking isn't read as more precise than it is.
+2. **Leaderboard** — composite ranking, with a toggle to view each of the three criteria. Show the interrater-reliability value beside each criterion with a plain label ("judges agreed strongly / moderately / weakly here") so the ranking isn't read as more precise than it is. Use visualizations.
 3. **Per-model response viewer** — each model's full response, with the `plot_script` **rendered as its plot image and the source code collapsed by default**. Show a clear "failed to render" state for instances where `ran_ok` is false.
 4. **Prior comparison** — **re-plot from the reported parameters, not the models' scripts.** Parse each model's family + parameters from the JSON and redraw every prior with one canonical routine on shared axes and shared styling. Lay out as small multiples by grid cell (6 cells) with the ability to overlay or toggle models within a cell. This is the clean payoff of the structured footbench schema; it sidesteps 12 inconsistent matplotlib styles.
 5. **Methodology & limitations** — disclose: judges are also contestants (self-preference risk, with the Section 7.3 gap shown); single-vendor judge pool; `n_samples` is small; "underutilized" is a subjective, time-sensitive call partly reflecting the judges' own football knowledge.
