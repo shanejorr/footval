@@ -85,8 +85,15 @@ class Config:
         return self.models[name]
 
 
+def _default_root() -> Path:
+    cwd = Path.cwd()
+    if (cwd / "config.yaml").is_file() and (cwd / "footbench.prompt.md").is_file():
+        return cwd
+    return Path(__file__).resolve().parent.parent
+
+
 def load_config(root: Path | None = None) -> Config:
-    root = root or Path(__file__).resolve().parent.parent
+    root = root or _default_root()
     load_dotenv(root / ".env")
     raw = yaml.safe_load((root / "config.yaml").read_text())
 
