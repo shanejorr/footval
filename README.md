@@ -1,0 +1,451 @@
+# Footbench — a football-coaching evaluation for large language models
+
+Footbench is a small, opinionated test of how well today's leading AI models can think
+**like a football coach**. Every model is handed the exact same assignment: play the role of
+an NFL head coach, recommend smart-but-underused strategies, and — crucially — say honestly
+how *sure* it is about each one. The models' answers are then graded, partly by computer and
+partly by a panel of other AI models acting as judges.
+
+This document explains what the test asks, who takes it, who grades it, and how the grading
+works. It does **not** report who won — it only describes the evaluation itself.
+
+> **A note on jargon.** Two words show up a lot:
+> - A **prior** is just a best guess stated *before* you've seen the outcome — a coach's
+>   honest hunch about how much a strategy will help.
+> - An **uncertainty interval** is the range the model is fairly confident the true answer
+>   falls inside. A narrow range means "I'm pretty sure"; a wide range means "I really don't
+>   know." Forcing each model to state this range is how Footbench measures *confidence*, not
+>   just opinion.
+
+---
+
+## The assignment, in one paragraph
+
+Each model is told: *"You are a modern NFL head coach known for bucking convention and
+accepting calculated risk. Your record is .500. Your only goal is to win more games."* From
+there it must recommend exactly **six** underutilized strategies — laid out on a strict grid
+(explained below) — and for each one attach a number describing how many points per game it
+thinks the strategy is worth, **plus** an honest statement of how uncertain it is about that
+number. Finally, it must write a short Python program that draws all six of those
+uncertainty curves. The full, word-for-word prompt every model receives lives in
+[`footbench.prompt.md`](footbench.prompt.md).
+
+---
+
+## Types of questions
+
+Footbench deliberately mixes three different *kinds* of thinking. A model can be great at one
+and weak at another, and the test is designed to pull those apart.
+
+### 1. Reasoning with evidence (the "analytics" row)
+
+Half the recommendations must be **backed by public football analytics** — win-probability
+models, expected-points research, published findings. The model is asked to surface ideas
+that the data supports but that real coaches still underuse (the classic example being
+"go for it on 4th down more often"). This rewards models that actually know the football
+analytics literature and can reason from it.
+
+### 2. Reasoning on intuition (the "intuition" row)
+
+The other half must come from the coach's **own judgment in areas where public analytics is
+absent, silent, or mixed**. The model has to briefly justify *why* the idea qualifies as
+intuition rather than settled analytics — and it is explicitly told **not** to just restate
+the analytics consensus in different words. This tests whether a model can form an original,
+defensible opinion when the data won't hand it the answer.
+
+### 3. Measuring confidence in its beliefs (the "priors")
+
+For every one of the six strategies, the model must quantify its uncertainty as a **Bayesian
+prior** over a single, precisely defined quantity:
+
+> the change in the team's **expected single-game scoring margin** (your points minus the
+> opponent's), in **points**, caused by adopting the strategy versus not — on average, not in
+> any one game. Positive means it helps; negative means it backfires.
+
+To express that belief the model must provide:
+
+- a **most-plausible value** (its single best guess, and it's told *not* to default to round
+  numbers);
+- a **95% interval** — the low/high range it's ~95% sure contains the true effect;
+- the **shape** of its belief (symmetric, or skewed toward the upside or downside) and how
+  **heavy the tails** are (how much chance it gives to a surprisingly large effect);
+- a matching **probability distribution family** — `normal`, `student_t`, or `skew_normal` —
+  with the actual parameters, *and the math showing how it converted its plain-English belief
+  into those parameters.*
+
+This is the heart of the test: it's easy to have opinions, harder to attach calibrated,
+internally consistent confidence to them. A weak idea is supposed to be reported *honestly* —
+a near-zero best guess with a wide interval — not dressed up to look strong.
+
+---
+
+## Categories of questions
+
+Cutting across those two rows are three **phases of football**. The model must produce a
+recommendation in each phase for *both* the evidence row and the intuition row — so the six
+strategies form a rigid **2 × 3 grid**, one idea per cell, all six distinct:
+
+|                                  | **Game management** | **Offense** | **Defense** |
+|----------------------------------|:------------------:|:-----------:|:-----------:|
+| **Analytics** (reasoning w/ evidence) | ✔ | ✔ | ✔ |
+| **Intuition** (reasoning on judgment) | ✔ | ✔ | ✔ |
+
+- **Game management** — clock and timeout use, challenges, 4th-down and 2-point decisions, and
+  similar in-game choices.
+- **Offense** — play-calling, scheme, personnel groupings, tempo.
+- **Defense** — play-calling, scheme, coverage, personnel.
+
+If a particular cell only yields a weak idea, the model is told to **pick it anyway and be
+honest about the weakness** in its prior, rather than inflate a mediocre pick to fill the
+grid. Filling the grid without cheating is itself part of what's being measured.
+
+---
+
+## What the prompt actually asks for
+
+The prompt is split into three parts and a strict output format. In full it asks each model to:
+
+**Part 1 — Strategy recommendations.** Exactly six strategies, one per grid cell, all
+distinct. For each: a 1–3 sentence recommendation and a rationale tied directly to winning
+games. Analytics picks must be genuinely supported by public analytics and underused;
+intuition picks must be the coach's own judgment, with a short note on why it isn't just
+analytics consensus.
+
+**Part 2 — A prior over each strategy's effect.** For all six, the belief summaries, the
+distribution family, the parameters with the conversion math shown, a self-consistency check
+(best guess sits inside the interval; the distribution allows negative values), and an honesty
+note. The prompt gives the exact conversion formulas — for example, for a normal distribution,
+σ = (high − low) / 3.92 — so a model's arithmetic can be checked.
+
+**Part 3 — One plotting script.** A single self-contained Python script (using only `numpy`,
+`scipy.stats`, and `matplotlib`) that holds all six strategies' parameters in an editable list,
+draws each distribution's curve, marks the most-plausible value, shades the 95% interval it
+computes *from the distribution itself*, labels the x-axis "Change in own scoring margin
+(points)," and prints each strategy's family and parameters.
+
+**Output format.** Everything must come back as a single JSON object with a fixed shape — a
+`quantity` block, a `strategies` array of six objects (each with `bucket`, `type`, `title`,
+`recommendation`, `rationale`, and a structured `prior`), and the `plot_script` as one escaped
+string. Requiring a rigid structure is what makes hundreds of answers comparable and machine-
+checkable.
+
+---
+
+## Candidate models (the test-takers)
+
+Twelve models take the test — four "families" of three or four models each, spanning flagship,
+mid-tier, and lightweight options:
+
+| Family | Models |
+|---|---|
+| Anthropic (Claude) | `claude-fable-5`, `claude-opus-4-8`, `claude-sonnet-4-6`, `claude-haiku-4-5-20251001` |
+| OpenAI (GPT) | `gpt-5.5-pro`, `gpt-5.5`, `gpt-5.4-mini` |
+| Google (Gemini) | `gemini-3.1-pro-preview`, `gemini-3.5-flash`, `gemini-3.1-flash-lite` |
+| DeepSeek | `deepseek-v4-pro`, `deepseek-v4-flash` |
+
+Every candidate answers the **identical** prompt, with the highest level of reasoning ("thinking")
+each model supports turned on, at a fixed creativity setting (temperature 1.0). Each model
+answers once. Whatever it returns is taken as-is: **malformed or broken answers are never
+repaired or re-requested** — a botched answer is treated as real signal about the model, not a
+bug to fix.
+
+---
+
+## Judge models (the graders)
+
+Footbench is a **subjective** evaluation, so the grading is done by other AI models acting as
+judges. There are two separate grading rounds, each with its own four-model panel:
+
+**Scoring panel** (1–5 ratings, described next):
+`claude-fable-5`, `gpt-5.5-pro`, `gemini-3.1-pro-preview`, `deepseek-v4-pro`.
+
+**Head-to-head panel** (A/B comparisons, described next):
+`claude-opus-4-8`, `gpt-5.5`, `gemini-3.5-flash`, `deepseek-v4-pro`.
+
+Two facts about the judges are important and are disclosed as limitations:
+
+- **The judges are also contestants.** Every judge is itself one of the candidate families, so
+  a judge will sometimes grade its own or a sibling model's answer. Rather than throw that data
+  away, Footbench *keeps* it, *labels* it ("is this the judge's own answer? its own family?"),
+  and separately measures whether judges favor their own family.
+- **Judges never see who wrote an answer.** Before any answer reaches a judge, every brand and
+  model name (Claude, GPT, Gemini, DeepSeek, etc.) is automatically stripped out and replaced
+  with `[redacted]`, so judging is blind.
+
+Judges run as deterministically as their APIs allow (temperature 0).
+
+---
+
+## Scoring
+
+### Objective checks come first (no judging required)
+
+Some things are simply facts, not opinions, so a computer settles them before any judge weighs
+in. Footbench runs two automated stages:
+
+- **Execution.** Each model's Python plotting script is actually run — inside a locked-down
+  sandbox with no internet, capped memory and CPU, and a hard 60-second timeout (the code is
+  untrusted, model-written code). Whether it ran, and the images it produced, are recorded.
+- **Structural checks.** The JSON is checked for: valid format; a complete 6-cell grid with
+  distinct titles; sane intervals (low < best guess < high); a valid distribution family; and —
+  the clever one — **parameter reproduction**: Footbench recomputes the 95% interval from the
+  model's own reported parameters and confirms it matches the interval the model claimed.
+
+These objective results are handed to the judges as **ground truth**, so judges don't have to
+guess whether code ran or whether the math is consistent — they spend their judgment on quality.
+
+### Round 1 — Independent 1–5 scoring
+
+Each judge sees **one anonymized answer at a time** (never a side-by-side ranking) along with
+the original task, the rubric, the rendered plot images, and the objective check results. It
+scores three criteria as an **integer from 1 to 5**:
+
+1. **Soundness of recommendations** — Are all six picks genuinely underused *and* credibly
+   win-positive? Are rationales specific and football-literate? Are analytics-vs-intuition picks
+   correctly distinguished (intuition isn't just recycled analytics)? Are the six distinct and
+   correctly slotted?
+2. **Reasonableness of the Bayesian priors** — Does the chosen distribution match the stated
+   shape and allow negative values? Are the magnitudes and intervals football-realistic (neither
+   overconfident nor absurdly wide)? Is the conversion math right? Are weak cells handled
+   honestly?
+3. **Python code quality** — Does it run cleanly and produce all six correct plots? Is the code
+   clear, efficient, and faithful to the stated parameters? (The execution result is the ground
+   truth for "does it run.")
+
+Each criterion comes with explicit anchor descriptions for a 5, a 3, and a 1, and judges
+interpolate 4 and 2. Scores are then aggregated:
+
+- **Per-criterion score** = the average of the four judges' ratings.
+- **Composite score** = the equal-weighted average of the three criteria.
+- **Leaderboards** = models ranked per criterion and on the composite, with a **second
+  leaderboard that drops every judge's score of its own model** so readers can see how much
+  self-grading mattered.
+- **Reliability** = how much the four judges actually agreed, reported per criterion
+  (Krippendorff's α as the primary measure, ICC as a secondary one), so a ranking is never read
+  as more precise than the judges' agreement justifies.
+- **Bias diagnostic** = for each judge, the average score it gave its own family versus everyone
+  else, flagging self-preference.
+
+### Round 2 — Pairwise (head-to-head) competitions
+
+The independent 1–5 scores can bunch up — lots of 4s — which makes close calls hard to separate.
+So Footbench adds a **tournament**: every model's answer is compared directly against every other
+model's answer.
+
+- **Every unordered pair** of the 12 answers is compared. That's **66 pairs**.
+- Comparisons cover **only the first two criteria — soundness and priors** (the head-to-head
+  round is text-only, so the code/plots criterion is left to Round 1).
+- Each comparison is a **forced choice**: for each criterion the judge *must* pick "A" or "B" —
+  **ties are not allowed**. Judges are told to judge each criterion independently, so the same
+  answer needn't win both.
+- **Position bias is controlled for.** Which answer is labeled "A" versus "B" is decided by a
+  fixed, reproducible coin-flip tied to the run's random seed. On top of that, every pair is
+  judged in **both orders** (A-vs-B *and* B-vs-A), and the presentation order is recorded — so
+  any tendency to favor whichever answer is shown first can be detected and measured.
+- The **head-to-head judge panel** (the four models listed above) each renders every comparison.
+
+Putting that together: 66 pairs × 2 presentation orders × 4 judges = **528 head-to-head
+verdicts per criterion.** As with Round 1, judges see only anonymized answers and are handed the
+objective check report as ground truth for the mechanical facts.
+
+The output of this round is a simple tally — for each model, how many head-to-head matchups it
+won on soundness and on priors — giving a ranking that's robust to the score-bunching problem.
+
+> **Cost note.** Because this round is large, comparisons are sent through the model providers'
+> 50%-off batch processing where available (Anthropic, OpenAI, Google), and run synchronously for
+> DeepSeek, which has no batch option. The prompts are also built to be byte-stable so providers'
+> prompt caching kicks in.
+
+---
+
+## How a run flows
+
+The pipeline runs in stages, each reading and writing structured files so the whole run is
+reproducible and any single stage can be re-run on its own:
+
+| Stage | What it does |
+|---|---|
+| 1. Generate | Each candidate answers the prompt |
+| 2. Execute | Each plot script runs in the sandbox; images are rendered |
+| 3. Check | The objective structural/numeric checks run |
+| 4. Judge | The scoring panel rates every answer 1–5 |
+| 5. Aggregate | Means, rankings, reliability, and the bias diagnostic are computed |
+| 6. Publish | Final score tables are written out |
+| (+) Pairwise | The head-to-head tournament round |
+
+---
+
+## Where things live
+
+- [`footbench.prompt.md`](footbench.prompt.md) — the exact prompt every candidate receives.
+- [`initial_prompt.md`](initial_prompt.md) — the full methodology specification.
+- [`config.yaml`](config.yaml) — the candidate list, judge panels, and per-model settings.
+- [`CLAUDE.md`](CLAUDE.md) — orientation for developers working on the code.
+- `footbench/` — the Python implementation, one module per stage.
+- `artifacts/` — the structured per-stage outputs (not committed).
+- `outputs/data/` — the final score tables.
+
+---
+
+## Limitations, gaps, and ways this could mislead
+
+Footbench is a fun, carefully built experiment — but it is an experiment, and a skeptical
+reader should treat its rankings as *suggestive, not authoritative*. The honest case against
+taking the numbers at face value is below, roughly in order of how much it should worry you.
+
+### 1. The judges are the contestants — the whole thing is somewhat circular
+
+Every judge is itself one of the model families being tested, and there is **no human, no
+expert, and no external ground truth anywhere in the loop**. That creates two distinct
+problems:
+
+- **Self-preference.** A model grading (a disguised copy of) its own answer has an obvious
+  conflict of interest. Footbench mitigates this — judging is blind, there's a self-excluded
+  leaderboard, and a per-judge own-family-vs-others bias gap is reported — but mitigation isn't
+  elimination. With only four judges, two of which come from the largest families, a shared
+  family lean can still tilt results.
+- **Shared blind spots masquerading as agreement.** If the judges absorbed the same popular
+  football takes from the same internet during training, they will agree *with each other* and
+  *with candidates that echo those takes* — even if those takes are wrong. High inter-rater
+  agreement would then look like reliability when it's really shared bias. **Agreement is not
+  the same as correctness.** Footbench measures the former and silently hopes it implies the
+  latter.
+
+### 2. "Blind" judging is only partly blind
+
+Anonymization is a regular-expression scrub of brand and model names (`claude`, `gpt`,
+`gemini`, `deepseek`, etc.). It cannot remove a model's **stylistic fingerprint** — house JSON
+formatting, characteristic phrasings, the way it hedges, even its favorite distribution family.
+Frontier models are fairly good at recognizing each other's writing, so a judge may *infer*
+authorship (including its own) despite the scrub. The redaction also can't catch an identity
+the regex doesn't list, and could over-redact ordinary football words that happen to match.
+
+### 3. There is no ground truth for the thing actually being scored
+
+Two of the three criteria reward judgments that **cannot be checked against reality**:
+
+- **"Soundness / underutilized."** Whether a strategy is genuinely underused *and*
+  win-positive is a contested, opinion-laden call. Tellingly, the four judges agreed only
+  weakly on this criterion (Krippendorff's α ≈ 0.29) — so the soundness ranking is the noisiest
+  part of the whole exercise, and small score gaps there are close to meaningless.
+- **"Reasonable priors."** There is no true number for "how many points per game does adopting
+  this strategy add." Judges reward priors whose *magnitude feels football-realistic to them* —
+  i.e., priors that match the judges' own (unverified) intuitions. A model that is genuinely
+  well-calibrated to reality could be marked down by judges with miscalibrated intuitions, and
+  vice versa. Notably, agreement on priors was very high — but that may partly reflect judges
+  anchoring on the same auto-check report (see §7) rather than independently assessing realism.
+
+In short, Footbench can tell you which answers *other LLMs like*, not which answers are
+*actually good coaching*.
+
+### 4. "Underutilized" drifts with time and training data
+
+What counts as underused in the NFL moves every season — fourth-down aggression was a daring
+analytics pick a decade ago and is closer to mainstream now. A model with a later training
+cutoff has a different picture of "the current meta" than one with an earlier cutoff, both as a
+*candidate* (what it proposes) and as a *judge* (what it considers underused). The evaluation
+therefore partly rewards recency of training data, which has nothing to do with reasoning
+quality.
+
+### 5. One sample, at maximum randomness
+
+Each model answers **exactly once**, at temperature 1.0 (high creativity/randomness). A single
+sample is one noisy draw from the model's distribution of possible answers, not its best or its
+typical answer — and there is no measure of within-model variance. A re-run with a different
+draw could reorder the leaderboard, especially among closely matched models. The pairwise round
+adds resolution but is still built on those same single answers.
+
+### 6. The models are not run under equal conditions
+
+Despite the "identical prompt" framing, the playing field is not perfectly level:
+
+- **Thinking budgets differ by necessity.** The spec asks for "the highest thinking available,"
+  but that means different things per model. Some models run with adaptive/maximum reasoning
+  effort; Sonnet had to be capped at a fixed thinking budget because higher settings made it
+  think past its output limit and return *nothing*; Haiku uses yet another setting. So part of
+  what's being compared is reasoning *budget and configuration*, not just model quality.
+- **Temperature isn't actually uniform.** Reasoning models that reject a temperature setting
+  simply don't get the 1.0 the others do, so "all at temperature 1.0" is aspirational.
+- **Some judges are blind to the plots.** The DeepSeek judge has no verified vision support, so
+  in the 1–5 round it scores the *code/plot* criterion from the text execution report only,
+  while the other three judges actually see the rendered images. Different judges grading the
+  same criterion on **different evidence** mechanically depresses agreement and can advantage or
+  penalize candidates inconsistently.
+- **Uneven outputs reach the judges.** Scripts that produced a different number of figures
+  (one model emitted two, others one) hand judges visibly different artifacts for the same task.
+
+### 7. The auto-checks are treated as ground truth but aren't infallible
+
+Judges are explicitly told to trust the execution and structural-check reports as fact and not
+re-litigate them. That's good for objectivity — but it means **any error or arbitrary choice in
+those checks propagates straight into the scores**. The parameter-reproduction check in
+particular relies on a 10%-of-interval tolerance and, for skew-normal priors, on an approximate
+mode computation the spec itself flags as approximate; it flips to "fail" for most candidates,
+and judges anchor on that verdict. A miscalibrated tolerance would systematically punish or
+excuse the same models across every judge.
+
+### 8. Instruction-following is blended into "reasoning"
+
+The prompt is long and demanding: exact JSON, an exact six-cell grid, explicit conversion math,
+and a Python script encoded as an escaped string. A model with brilliant football ideas but
+sloppy formatting can fail to parse and crater across *all* criteria, while a mediocre thinker
+with immaculate JSON sails through the mechanical checks. The benchmark therefore conflates
+**format compliance** with **domain reasoning**, and partly rewards the former.
+
+### 9. The grid is artificial — and partly gameable
+
+Forcing exactly one pick per (analytics/intuition × phase) cell is a clean design but an
+unnatural one: real coaching priorities aren't evenly distributed across a 2×3 matrix, and the
+format can force a model to manufacture a weak pick to fill a cell. Worse, the
+analytics-vs-intuition label is **self-assigned** — the automated grid check only confirms that
+each cell is *labeled*, not that the strategy truly belongs there. A model can park an analytics
+consensus pick in an "intuition" cell, and catching that mislabel is left entirely to judges who
+may not.
+
+### 10. The two scoring rounds measure different things, and forced choices add noise
+
+- The pairwise tournament covers **only soundness and priors** (it's text-only, so code is
+  excluded). The 1–5 round and the head-to-head round therefore are not directly comparable, and
+  there's no single coherent ranking that uses all the evidence.
+- Pairwise forbids ties. When two answers are genuinely equal, the judge is forced to flip a
+  coin, and that coin flip is recorded as a real "win." Across a field of closely clustered
+  frontier models, a meaningful share of the head-to-head record can be essentially noise dressed
+  up as signal. (Judging both presentation orders detects *position* bias, but doesn't fix the
+  tie problem.)
+
+### 11. The summary statistics are themselves shaky, and the weights are arbitrary
+
+- Reliability figures (Krippendorff's α, ICC) are computed from **12 instances and 4 raters** —
+  tiny samples whose own uncertainty is wide and isn't reported. Read the bands ("strong /
+  moderate / weak"), not the decimals.
+- The composite score weights soundness, priors, and code **equally (1:1:1)** with no principled
+  justification. Code quality — arguably the most mechanical of the three — counts for a full
+  third. Reweighting would move the leaderboard, and no weighting is "correct."
+- On a 1–5 integer scale, frontier models tend to bunch near the top (ceiling/compression), so
+  small composite gaps may reflect rounding and judge mood more than real differences.
+
+### 12. Narrow scope and single configuration
+
+Everything runs from **one random seed, one prompt, in one narrow domain (NFL strategy), in
+English**. Results say nothing about other sports, other tasks, or robustness to rephrasing the
+prompt or reshuffling the A/B coin flips. Football knowledge on the public internet is abundant,
+so models may be **recalling popular analytics discourse rather than reasoning** — the intuition
+cells push against this, but can't guarantee it.
+
+### 13. Operational fragility
+
+The run depends on live, drifting third-party APIs and paid balances — during setup, DeepSeek
+briefly failed with an "insufficient balance" error before being topped up and included. Model
+snapshots move, batch APIs change, and a vendor outage on the wrong day could quietly shrink the
+field. The pipeline is carefully made reproducible *given the stored artifacts*, but the
+*generation* of those artifacts is at the mercy of external services.
+
+### Bottom line
+
+Footbench is best read as **"which answers did a small panel of frontier LLMs prefer, on one
+quirky football task, on one day"** — an interesting lens on model behavior and a nice showcase
+of structured-output evaluation, not a definitive verdict on which model is the better reasoner.
+The most trustworthy outputs are the *objective* ones (did the code run, is the JSON
+well-formed, do the parameters reproduce the interval); the *subjective* rankings deserve the
+most skepticism, and the design's own weak agreement on "soundness" is the clearest evidence of
+that.
