@@ -154,12 +154,9 @@ bug to fix.
 ## Judge models (the graders)
 
 Footbench is a **subjective** evaluation, so the grading is done by other AI models acting as
-judges. There are two separate grading rounds, each with its own four-model panel:
+judges. A single four-model panel renders every head-to-head comparison (described under
+[Scoring](#scoring)):
 
-**Scoring panel** (1–5 ratings, described next):
-`claude-fable-5`, `gpt-5.5-pro`, `gemini-3.1-pro-preview`, `deepseek-v4-pro`.
-
-**Head-to-head panel** (A/B comparisons, described next):
 `claude-opus-4-8`, `gpt-5.5`, `gemini-3.5-flash`, `deepseek-v4-pro`.
 
 Two facts about the judges are important and are disclosed as limitations:
@@ -194,47 +191,16 @@ in. Footbench runs two automated stages:
 These objective results are handed to the judges as **ground truth**, so judges don't have to
 guess whether code ran or whether the math is consistent — they spend their judgment on quality.
 
-### Round 1 — Independent 1–5 scoring
+### How the judges grade — pairwise (head-to-head) competitions
 
-Each judge sees **one anonymized answer at a time** (never a side-by-side ranking) along with
-the original task, the rubric, the rendered plot images, and the objective check results. It
-scores three criteria as an **integer from 1 to 5**:
-
-1. **Soundness of recommendations** — Are all six picks genuinely underused *and* credibly
-   win-positive? Are rationales specific and football-literate? Are analytics-vs-intuition picks
-   correctly distinguished (intuition isn't just recycled analytics)? Are the six distinct and
-   correctly slotted?
-2. **Reasonableness of the Bayesian priors** — Does the chosen distribution match the stated
-   shape and allow negative values? Are the magnitudes and intervals football-realistic (neither
-   overconfident nor absurdly wide)? Is the conversion math right? Are weak cells handled
-   honestly?
-3. **Python code quality** — Does it run cleanly and produce all six correct plots? Is the code
-   clear, efficient, and faithful to the stated parameters? (The execution result is the ground
-   truth for "does it run.")
-
-Each criterion comes with explicit anchor descriptions for a 5, a 3, and a 1, and judges
-interpolate 4 and 2. Scores are then aggregated:
-
-- **Per-criterion score** = the average of the four judges' ratings.
-- **Composite score** = the equal-weighted average of the three criteria.
-- **Leaderboards** = models ranked per criterion and on the composite, with a **second
-  leaderboard that drops every judge's score of its own model** so readers can see how much
-  self-grading mattered.
-- **Reliability** = how much the four judges actually agreed, reported per criterion
-  (Krippendorff's α as the primary measure, ICC as a secondary one), so a ranking is never read
-  as more precise than the judges' agreement justifies.
-- **Bias diagnostic** = for each judge, the average score it gave its own family versus everyone
-  else, flagging self-preference.
-
-### Round 2 — Pairwise (head-to-head) competitions
-
-The independent 1–5 scores can bunch up — lots of 4s — which makes close calls hard to separate.
-So Footbench adds a **tournament**: every model's answer is compared directly against every other
-model's answer.
+The grading is a **tournament**: every model's answer is compared directly against every other
+model's answer, and judges pick a winner each time. There are **no 1–5 ratings** — only
+head-to-head wins.
 
 - **Every unordered pair** of the 12 answers is compared. That's **66 pairs**.
-- Comparisons cover **only the first two criteria — soundness and priors** (the head-to-head
-  round is text-only, so the code/plots criterion is left to Round 1).
+- Comparisons cover **two criteria — soundness and priors** (the round is text-only, so a
+  code/plots criterion isn't judged). For each, judges are given a plain description of what a
+  *stronger* versus a *weaker* answer looks like and pick the better one — no numeric scale.
 - Each comparison is a **forced choice**: for each criterion the judge *must* pick "A" or "B" —
   **ties are not allowed**. Judges are told to judge each criterion independently, so the same
   answer needn't win both.
@@ -242,14 +208,18 @@ model's answer.
   fixed, reproducible coin-flip tied to the run's random seed. On top of that, every pair is
   judged in **both orders** (A-vs-B *and* B-vs-A), and the presentation order is recorded — so
   any tendency to favor whichever answer is shown first can be detected and measured.
-- The **head-to-head judge panel** (the four models listed above) each renders every comparison.
+- The **four-model judge panel** (listed above) each renders every comparison.
 
 Putting that together: 66 pairs × 2 presentation orders × 4 judges = **528 head-to-head
-verdicts per criterion.** As with Round 1, judges see only anonymized answers and are handed the
-objective check report as ground truth for the mechanical facts.
+verdicts per criterion.** Judges see only anonymized answers and are handed the objective check
+report as ground truth for the mechanical facts.
 
-The output of this round is a simple tally — for each model, how many head-to-head matchups it
-won on soundness and on priors — giving a ranking that's robust to the score-bunching problem.
+The output is a simple tally — for each model, its **win percentage** (head-to-head wins ÷
+comparisons), overall and split by soundness and priors. Two judge-agreement diagnostics ride
+alongside it: how decisively the four-judge panel agreed on each comparison (unanimous / 3–1 /
+2–2 split), and whether each judge kept the same winner when the two answers were swapped. A
+**self-preference** read — each judge's win rate for its own family versus the rest — flags
+conflicts of interest.
 
 > **Cost note.** Because this round is large, comparisons are sent through the model providers'
 > 50%-off batch processing where available (Anthropic, OpenAI, Google), and run synchronously for
@@ -268,10 +238,9 @@ reproducible and any single stage can be re-run on its own:
 | 1. Generate | Each candidate answers the prompt |
 | 2. Execute | Each plot script runs in the sandbox; images are rendered |
 | 3. Check | The objective structural/numeric checks run |
-| 4. Judge | The scoring panel rates every answer 1–5 |
-| 5. Aggregate | Means, rankings, reliability, and the bias diagnostic are computed |
-| 6. Publish | Final score tables are written out |
-| (+) Pairwise | The head-to-head tournament round |
+| 4. Tables | The objective per-instance results are consolidated into tables |
+| (judge) Pairwise | The head-to-head tournament: every pair compared on soundness and priors |
+| Publish | Win-percentage results and charts are written out |
 
 ---
 
@@ -279,11 +248,17 @@ reproducible and any single stage can be re-run on its own:
 
 - [`footbench.prompt.md`](footbench.prompt.md) — the exact prompt every candidate receives.
 - [`initial_prompt.md`](initial_prompt.md) — the full methodology specification.
-- [`config.yaml`](config.yaml) — the candidate list, judge panels, and per-model settings.
+- [`config.yaml`](config.yaml) — the candidate list, the pairwise judge panel, and per-model settings.
 - [`CLAUDE.md`](CLAUDE.md) — orientation for developers working on the code.
 - `footbench/` — the Python implementation, one module per stage.
 - `artifacts/` — the structured per-stage outputs (not committed).
-- `outputs/data/` — the final score tables.
+- `outputs/data/` — the final results (`pairwise_results.csv`), plus an optional hierarchical
+  Bayesian Bradley-Terry ranking with uncertainty bands and judge-bias estimates
+  (`bradley_terry_rankings.csv`, `bradley_terry_judge_effects.csv`, `bradley_terry.json`).
+- `outputs/blog_output.ipynb` — builds the published charts (Bayesian leaderboards with 50% / 95%
+  HDIs, posterior-predictive per-judge charts, and the prior/agreement diagnostics).
+- `outputs/model_diagnostics.ipynb` — ArviZ convergence diagnostics for the Bradley-Terry fit.
+- `artifacts/bradley_terry/*.nc` — the persisted PyMC posterior traces both notebooks read (not committed).
 
 ---
 
@@ -300,10 +275,10 @@ expert, and no external ground truth anywhere in the loop**. That creates two di
 problems:
 
 - **Self-preference.** A model grading (a disguised copy of) its own answer has an obvious
-  conflict of interest. Footbench mitigates this — judging is blind, there's a self-excluded
-  leaderboard, and a per-judge own-family-vs-others bias gap is reported — but mitigation isn't
-  elimination. With only four judges, two of which come from the largest families, a shared
-  family lean can still tilt results.
+  conflict of interest. Footbench mitigates this — judging is blind, every pair is judged in both
+  presentation orders, and a per-judge own-family-vs-others win-rate gap is reported — but
+  mitigation isn't elimination. With only four judges, two of which come from the largest
+  families, a shared family lean can still tilt results.
 - **Shared blind spots masquerading as agreement.** If the judges absorbed the same popular
   football takes from the same internet during training, they will agree *with each other* and
   *with candidates that echo those takes* — even if those takes are wrong. High inter-rater
@@ -320,19 +295,20 @@ Frontier models are fairly good at recognizing each other's writing, so a judge 
 authorship (including its own) despite the scrub. The redaction also can't catch an identity
 the regex doesn't list, and could over-redact ordinary football words that happen to match.
 
-### 3. There is no ground truth for the thing actually being scored
+### 3. There is no ground truth for the thing actually being judged
 
-Two of the three criteria reward judgments that **cannot be checked against reality**:
+Both judged criteria reward judgments that **cannot be checked against reality**:
 
 - **"Soundness / underutilized."** Whether a strategy is genuinely underused *and*
-  win-positive is a contested, opinion-laden call. Tellingly, the four judges agreed only
-  weakly on this criterion (Krippendorff's α ≈ 0.29) — so the soundness ranking is the noisiest
-  part of the whole exercise, and small score gaps there are close to meaningless.
+  win-positive is a contested, opinion-laden call. Tellingly, the four-judge panel reached
+  unanimous verdicts least often on this criterion (the most 3–1 and 2–2 splits) — so the
+  soundness ranking is the noisiest part of the whole exercise, and narrow win-percentage gaps
+  there are close to meaningless.
 - **"Reasonable priors."** There is no true number for "how many points per game does adopting
   this strategy add." Judges reward priors whose *magnitude feels football-realistic to them* —
   i.e., priors that match the judges' own (unverified) intuitions. A model that is genuinely
   well-calibrated to reality could be marked down by judges with miscalibrated intuitions, and
-  vice versa. Notably, agreement on priors was very high — but that may partly reflect judges
+  vice versa. Notably, the panel agreed most often on priors — but that may partly reflect judges
   anchoring on the same auto-check report (see §7) rather than independently assessing realism.
 
 In short, Footbench can tell you which answers *other LLMs like*, not which answers are
@@ -352,8 +328,8 @@ quality.
 Each model answers **exactly once**, at temperature 1.0 (high creativity/randomness). A single
 sample is one noisy draw from the model's distribution of possible answers, not its best or its
 typical answer — and there is no measure of within-model variance. A re-run with a different
-draw could reorder the leaderboard, especially among closely matched models. The pairwise round
-adds resolution but is still built on those same single answers.
+draw could reorder the leaderboard, especially among closely matched models — and the whole
+head-to-head tournament is built on those same single answers.
 
 ### 6. The models are not run under equal conditions
 
@@ -366,19 +342,12 @@ Despite the "identical prompt" framing, the playing field is not perfectly level
   what's being compared is reasoning *budget and configuration*, not just model quality.
 - **Temperature isn't actually uniform.** Reasoning models that reject a temperature setting
   simply don't get the 1.0 the others do, so "all at temperature 1.0" is aspirational.
-- **Some judges are blind to the plots.** The DeepSeek judge has no verified vision support, so
-  in the 1–5 round it scores the *code/plot* criterion from the text execution report only,
-  while the other three judges actually see the rendered images. Different judges grading the
-  same criterion on **different evidence** mechanically depresses agreement and can advantage or
-  penalize candidates inconsistently.
-- **Uneven outputs reach the judges.** Scripts that produced a different number of figures
-  (one model emitted two, others one) hand judges visibly different artifacts for the same task.
 
 ### 7. The auto-checks are treated as ground truth but aren't infallible
 
 Judges are explicitly told to trust the execution and structural-check reports as fact and not
 re-litigate them. That's good for objectivity — but it means **any error or arbitrary choice in
-those checks propagates straight into the scores**. The parameter-reproduction check in
+those checks propagates straight into the verdicts**. The parameter-reproduction check in
 particular relies on a 10%-of-interval tolerance and, for skew-normal priors, on an approximate
 mode computation the spec itself flags as approximate; it flips to "fail" for most candidates,
 and judges anchor on that verdict. A miscalibrated tolerance would systematically punish or
@@ -402,27 +371,27 @@ each cell is *labeled*, not that the strategy truly belongs there. A model can p
 consensus pick in an "intuition" cell, and catching that mislabel is left entirely to judges who
 may not.
 
-### 10. The two scoring rounds measure different things, and forced choices add noise
+### 10. The judging covers only part of the task, and forced choices add noise
 
-- The pairwise tournament covers **only soundness and priors** (it's text-only, so code is
-  excluded). The 1–5 round and the head-to-head round therefore are not directly comparable, and
-  there's no single coherent ranking that uses all the evidence.
+- The pairwise tournament covers **only soundness and priors** — it's text-only, so the Python
+  code/plot work the prompt demands is not judged at all. Two-thirds of what the prompt asks for
+  therefore drives the entire ranking, and code quality goes unscored.
 - Pairwise forbids ties. When two answers are genuinely equal, the judge is forced to flip a
   coin, and that coin flip is recorded as a real "win." Across a field of closely clustered
   frontier models, a meaningful share of the head-to-head record can be essentially noise dressed
   up as signal. (Judging both presentation orders detects *position* bias, but doesn't fix the
   tie problem.)
 
-### 11. The summary statistics are themselves shaky, and the weights are arbitrary
+### 11. The summary statistics are themselves shaky
 
-- Reliability figures (Krippendorff's α, ICC) are computed from **12 instances and 4 raters** —
-  tiny samples whose own uncertainty is wide and isn't reported. Read the bands ("strong /
-  moderate / weak"), not the decimals.
-- The composite score weights soundness, priors, and code **equally (1:1:1)** with no principled
-  justification. Code quality — arguably the most mechanical of the three — counts for a full
-  third. Reweighting would move the leaderboard, and no weighting is "correct."
-- On a 1–5 integer scale, frontier models tend to bunch near the top (ceiling/compression), so
-  small composite gaps may reflect rounding and judge mood more than real differences.
+- Win percentages come from **12 candidates and 4 judges** on a single set of answers — a small
+  sample whose own uncertainty is wide and isn't reported. Read the ordering loosely; narrow gaps
+  are within the noise.
+- The judge-agreement diagnostics (vote splits, order consistency) are panel-consensus readouts,
+  **not** formal reliability statistics — and high agreement can reflect shared bias rather than
+  accuracy (see §1).
+- Overall win percentage pools soundness and priors equally; code quality isn't judged at all
+  (see §10). A different weighting of the two judged criteria would move the leaderboard.
 
 ### 12. Narrow scope and single configuration
 

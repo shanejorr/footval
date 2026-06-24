@@ -1,5 +1,6 @@
-.PHONY: run probe generate sandbox-build sandbox check judge aggregate publish test lint \
-	pairwise-estimate pairwise-submit pairwise-deepseek pairwise-status pairwise-collect pairwise-csv
+.PHONY: run probe generate sandbox-build sandbox check tables test lint \
+	pairwise-estimate pairwise-submit pairwise-deepseek pairwise-status pairwise-collect pairwise-csv \
+	bradley-terry
 
 DOCKER_GUARD = @docker info >/dev/null 2>&1 || { echo "ERROR: Docker daemon is not running. Start Docker Desktop, then retry."; exit 1; }
 
@@ -23,14 +24,8 @@ sandbox:
 check:
 	uv run python -m footbench check
 
-judge:
-	uv run python -m footbench judge
-
-aggregate:
-	uv run python -m footbench aggregate
-
-publish:
-	uv run python -m footbench publish
+tables:
+	uv run python -m footbench tables
 
 pairwise-estimate:
 	uv run python -m footbench pairwise estimate
@@ -49,6 +44,9 @@ pairwise-collect:
 
 pairwise-csv:
 	uv run python -m footbench pairwise csv
+
+bradley-terry:
+	uv run python -m footbench bradley-terry
 
 test:
 	uv run pytest

@@ -1,0 +1,683 @@
+{
+  "hdi_prob": 0.94,
+  "sampler": {
+    "draws": 2000,
+    "tune": 2000,
+    "chains": 4,
+    "target_accept": 0.95
+  },
+  "tracks": {
+    "soundness": {
+      "n_obs": 528,
+      "models": [
+        "claude-fable-5",
+        "claude-haiku-4-5-20251001",
+        "claude-opus-4-8",
+        "claude-sonnet-4-6",
+        "deepseek-v4-flash",
+        "deepseek-v4-pro",
+        "gemini-3.1-flash-lite",
+        "gemini-3.1-pro-preview",
+        "gemini-3.5-flash",
+        "gpt-5.4-mini",
+        "gpt-5.5",
+        "gpt-5.5-pro"
+      ],
+      "judges": [
+        "claude-opus-4-8",
+        "deepseek-v4-pro",
+        "gemini-3.5-flash",
+        "gpt-5.5"
+      ],
+      "rankings": [
+        {
+          "model": "claude-fable-5",
+          "strength_mean": 2.0359116285095045,
+          "strength_sd": 0.39223729895822074,
+          "hdi_low": 1.3182060617270484,
+          "hdi_high": 2.7565794777892503,
+          "rank": 1,
+          "win_prob_vs_field": 0.8593442858508306,
+          "win_prob_hdi_low": 0.7934634549025584,
+          "win_prob_hdi_high": 0.9247003995908368
+        },
+        {
+          "model": "gpt-5.5",
+          "strength_mean": 1.12681405839177,
+          "strength_sd": 0.2574468208114248,
+          "hdi_low": 0.6654530886184229,
+          "hdi_high": 1.6188269287831067,
+          "rank": 2,
+          "win_prob_vs_field": 0.7184583155295603,
+          "win_prob_hdi_low": 0.6538251217679927,
+          "win_prob_hdi_high": 0.7827536894888305
+        },
+        {
+          "model": "gpt-5.5-pro",
+          "strength_mean": 0.9946306230781022,
+          "strength_sd": 0.23166216438057624,
+          "hdi_low": 0.5765689066133329,
+          "hdi_high": 1.4331655776898369,
+          "rank": 3,
+          "win_prob_vs_field": 0.6944982905180682,
+          "win_prob_hdi_low": 0.6322254039937945,
+          "win_prob_hdi_high": 0.7550064846014544
+        },
+        {
+          "model": "claude-opus-4-8",
+          "strength_mean": 0.860636548432617,
+          "strength_sd": 0.2122178320984543,
+          "hdi_low": 0.4642609163401704,
+          "hdi_high": 1.2496617896355127,
+          "rank": 4,
+          "win_prob_vs_field": 0.6694838408678272,
+          "win_prob_hdi_low": 0.6092798678520375,
+          "win_prob_hdi_high": 0.7278555996231334
+        },
+        {
+          "model": "claude-sonnet-4-6",
+          "strength_mean": 0.6930656773443457,
+          "strength_sd": 0.1929639951367064,
+          "hdi_low": 0.34996885841199143,
+          "hdi_high": 1.0641243554312239,
+          "rank": 5,
+          "win_prob_vs_field": 0.6373862971573939,
+          "win_prob_hdi_low": 0.5766826322840521,
+          "win_prob_hdi_high": 0.6932850583934571
+        },
+        {
+          "model": "gemini-3.1-pro-preview",
+          "strength_mean": 0.670267569877231,
+          "strength_sd": 0.19898583391540167,
+          "hdi_low": 0.3007598826251677,
+          "hdi_high": 1.034833497732439,
+          "rank": 6,
+          "win_prob_vs_field": 0.6328855782102749,
+          "win_prob_hdi_low": 0.5712429661388242,
+          "win_prob_hdi_high": 0.6919284918918593
+        },
+        {
+          "model": "gemini-3.5-flash",
+          "strength_mean": -0.2783426543979587,
+          "strength_sd": 0.1606227448118195,
+          "hdi_low": -0.5830009436288786,
+          "hdi_high": 0.020128244176136956,
+          "rank": 7,
+          "win_prob_vs_field": 0.44353815014651254,
+          "win_prob_hdi_low": 0.3891686123174702,
+          "win_prob_hdi_high": 0.5005755877850357
+        },
+        {
+          "model": "gpt-5.4-mini",
+          "strength_mean": -0.4553399855883326,
+          "strength_sd": 0.17915081623612178,
+          "hdi_low": -0.7994509130607568,
+          "hdi_high": -0.13155011203483055,
+          "rank": 8,
+          "win_prob_vs_field": 0.408580386826573,
+          "win_prob_hdi_low": 0.3516921744534139,
+          "win_prob_hdi_high": 0.46990246393005647
+        },
+        {
+          "model": "deepseek-v4-flash",
+          "strength_mean": -1.2499000155744773,
+          "strength_sd": 0.2736917083404082,
+          "hdi_low": -1.7810986653120253,
+          "hdi_high": -0.7667885205399712,
+          "rank": 9,
+          "win_prob_vs_field": 0.2609808819802678,
+          "win_prob_hdi_low": 0.19901886937904154,
+          "win_prob_hdi_high": 0.327270240611604
+        },
+        {
+          "model": "deepseek-v4-pro",
+          "strength_mean": -1.3751346012505634,
+          "strength_sd": 0.28812057834220506,
+          "hdi_low": -1.9523713247431278,
+          "hdi_high": -0.8775520324095868,
+          "rank": 10,
+          "win_prob_vs_field": 0.239713841300104,
+          "win_prob_hdi_low": 0.17588551306305278,
+          "win_prob_hdi_high": 0.30574255182395066
+        },
+        {
+          "model": "claude-haiku-4-5-20251001",
+          "strength_mean": -1.454078237631409,
+          "strength_sd": 0.3041424375927127,
+          "hdi_low": -2.0314237608808297,
+          "hdi_high": -0.9159015878698663,
+          "rank": 11,
+          "win_prob_vs_field": 0.2267737980825794,
+          "win_prob_hdi_low": 0.162023352834985,
+          "win_prob_hdi_high": 0.29409528455355666
+        },
+        {
+          "model": "gemini-3.1-flash-lite",
+          "strength_mean": -1.5685306111908295,
+          "strength_sd": 0.3134056441096165,
+          "hdi_low": -2.144394246553928,
+          "hdi_high": -0.992518755412795,
+          "rank": 12,
+          "win_prob_vs_field": 0.2083563335299983,
+          "win_prob_hdi_low": 0.14593607394019406,
+          "win_prob_hdi_high": 0.2731453899973055
+        }
+      ],
+      "judge_effects": [
+        {
+          "judge": "claude-opus-4-8",
+          "kappa_mean": 3.1209407840699854,
+          "kappa_hdi_low": 1.588151015451912,
+          "kappa_hdi_high": 4.821197529279816,
+          "gamma_mean": 1.564736380315538,
+          "gamma_hdi_low": 0.860869507582896,
+          "gamma_hdi_high": 2.218679015921301,
+          "delta_mean": -0.07583466250970648,
+          "delta_hdi_low": -1.1124608485874399,
+          "delta_hdi_high": 0.9756325368537957
+        },
+        {
+          "judge": "deepseek-v4-pro",
+          "kappa_mean": 1.5082125564489413,
+          "kappa_hdi_low": 0.8294189949921568,
+          "kappa_hdi_high": 2.2958779259848345,
+          "gamma_mean": 2.1294641439711133,
+          "gamma_hdi_low": 1.388440835801193,
+          "gamma_hdi_high": 2.9356391042471213,
+          "delta_mean": -0.23833706160248974,
+          "delta_hdi_low": -1.3103200442268388,
+          "delta_hdi_high": 0.8163757383541369
+        },
+        {
+          "judge": "gemini-3.5-flash",
+          "kappa_mean": 2.4251558382201543,
+          "kappa_hdi_low": 1.336448957524767,
+          "kappa_hdi_high": 3.5838654048891314,
+          "gamma_mean": 1.7366828333792785,
+          "gamma_hdi_low": 1.0788836340436176,
+          "gamma_hdi_high": 2.3722645436202043,
+          "delta_mean": 1.3445611547306966,
+          "delta_hdi_low": 0.37861848514812,
+          "delta_hdi_high": 2.3711369809527625
+        },
+        {
+          "judge": "gpt-5.5",
+          "kappa_mean": 2.7928099405295996,
+          "kappa_hdi_low": 1.4082628735603642,
+          "kappa_hdi_high": 4.22839588651419,
+          "gamma_mean": 1.4940135577238811,
+          "gamma_hdi_low": 0.8193937863100845,
+          "gamma_hdi_high": 2.1810636633182883,
+          "delta_mean": 1.633929289407337,
+          "delta_hdi_low": 0.46364207581552347,
+          "delta_hdi_high": 2.862321937347615
+        }
+      ],
+      "population": {
+        "mu_gamma": {
+          "mean": 1.272691418953835,
+          "hdi_low": 0.4560908374683818,
+          "hdi_high": 1.951055824572026
+        },
+        "mu_delta": {
+          "mean": 0.3917253789445882,
+          "hdi_low": -0.3395881372776438,
+          "hdi_high": 1.0471576916883187
+        }
+      },
+      "diagnostics": {
+        "max_r_hat": 1.0,
+        "min_ess_bulk": 1779.0,
+        "n_divergences": 0
+      }
+    },
+    "priors": {
+      "n_obs": 528,
+      "models": [
+        "claude-fable-5",
+        "claude-haiku-4-5-20251001",
+        "claude-opus-4-8",
+        "claude-sonnet-4-6",
+        "deepseek-v4-flash",
+        "deepseek-v4-pro",
+        "gemini-3.1-flash-lite",
+        "gemini-3.1-pro-preview",
+        "gemini-3.5-flash",
+        "gpt-5.4-mini",
+        "gpt-5.5",
+        "gpt-5.5-pro"
+      ],
+      "judges": [
+        "claude-opus-4-8",
+        "deepseek-v4-pro",
+        "gemini-3.5-flash",
+        "gpt-5.5"
+      ],
+      "rankings": [
+        {
+          "model": "claude-fable-5",
+          "strength_mean": 1.5972596459368718,
+          "strength_sd": 0.32135322249026266,
+          "hdi_low": 1.0064783214985418,
+          "hdi_high": 2.2086734854630157,
+          "rank": 1,
+          "win_prob_vs_field": 0.8000396790809275,
+          "win_prob_hdi_low": 0.7390798064090686,
+          "win_prob_hdi_high": 0.8684829344162753
+        },
+        {
+          "model": "gpt-5.5",
+          "strength_mean": 1.4195692018781567,
+          "strength_sd": 0.2819686246971678,
+          "hdi_low": 0.8866302967840487,
+          "hdi_high": 1.938746979301668,
+          "rank": 2,
+          "win_prob_vs_field": 0.7715630953347928,
+          "win_prob_hdi_low": 0.7119784456061292,
+          "win_prob_hdi_high": 0.8311690648994599
+        },
+        {
+          "model": "gpt-5.5-pro",
+          "strength_mean": 1.3104258871808832,
+          "strength_sd": 0.26427750201972994,
+          "hdi_low": 0.8302026835126838,
+          "hdi_high": 1.808889091357737,
+          "rank": 3,
+          "win_prob_vs_field": 0.7531096918644496,
+          "win_prob_hdi_low": 0.6960661672619269,
+          "win_prob_hdi_high": 0.8121039316672479
+        },
+        {
+          "model": "claude-opus-4-8",
+          "strength_mean": 0.8387744560199675,
+          "strength_sd": 0.19707907561895496,
+          "hdi_low": 0.47285676565702217,
+          "hdi_high": 1.202284532984018,
+          "rank": 4,
+          "win_prob_vs_field": 0.6671742595717284,
+          "win_prob_hdi_low": 0.6127350030503419,
+          "win_prob_hdi_high": 0.7178627150913073
+        },
+        {
+          "model": "gpt-5.4-mini",
+          "strength_mean": 0.5349119142393877,
+          "strength_sd": 0.16215467691723945,
+          "hdi_low": 0.24174691846553592,
+          "hdi_high": 0.842400598388173,
+          "rank": 5,
+          "win_prob_vs_field": 0.607853856534703,
+          "win_prob_hdi_low": 0.5568302482430807,
+          "win_prob_hdi_high": 0.6559072808954173
+        },
+        {
+          "model": "gemini-3.1-pro-preview",
+          "strength_mean": 0.4670838999453638,
+          "strength_sd": 0.15606600221849973,
+          "hdi_low": 0.17258333465053613,
+          "hdi_high": 0.7568775584922781,
+          "rank": 6,
+          "win_prob_vs_field": 0.5943593143395217,
+          "win_prob_hdi_low": 0.5465358291259402,
+          "win_prob_hdi_high": 0.644682134161809
+        },
+        {
+          "model": "gemini-3.5-flash",
+          "strength_mean": -0.16240209502234,
+          "strength_sd": 0.16107672400516243,
+          "hdi_low": -0.4876071718238622,
+          "hdi_high": 0.12239456217231542,
+          "rank": 7,
+          "win_prob_vs_field": 0.4669170973504317,
+          "win_prob_hdi_low": 0.4092123639388623,
+          "win_prob_hdi_high": 0.524187448560714
+        },
+        {
+          "model": "gemini-3.1-flash-lite",
+          "strength_mean": -0.875817650545243,
+          "strength_sd": 0.20159293300136497,
+          "hdi_low": -1.2466035829428816,
+          "hdi_high": -0.4906594542157523,
+          "rank": 8,
+          "win_prob_vs_field": 0.32585162166628184,
+          "win_prob_hdi_low": 0.2739853584475115,
+          "win_prob_hdi_high": 0.37910675333377597
+        },
+        {
+          "model": "claude-haiku-4-5-20251001",
+          "strength_mean": -0.9337849509245136,
+          "strength_sd": 0.203132696869456,
+          "hdi_low": -1.3079513202970579,
+          "hdi_high": -0.5524076997640541,
+          "rank": 9,
+          "win_prob_vs_field": 0.3148624429499251,
+          "win_prob_hdi_low": 0.2652099080418489,
+          "win_prob_hdi_high": 0.36588152133905877
+        },
+        {
+          "model": "deepseek-v4-pro",
+          "strength_mean": -1.1756758763808253,
+          "strength_sd": 0.23831570796397658,
+          "hdi_low": -1.6286958602877863,
+          "hdi_high": -0.7452544138624327,
+          "rank": 10,
+          "win_prob_vs_field": 0.2705818745255581,
+          "win_prob_hdi_low": 0.21835486618135638,
+          "win_prob_hdi_high": 0.3252874343737366
+        },
+        {
+          "model": "deepseek-v4-flash",
+          "strength_mean": -1.4818363101708947,
+          "strength_sd": 0.29559996395265126,
+          "hdi_low": -2.0474635424087637,
+          "hdi_high": -0.9405512594045329,
+          "rank": 11,
+          "win_prob_vs_field": 0.21841204883059842,
+          "win_prob_hdi_low": 0.15976767547008575,
+          "win_prob_hdi_high": 0.28037317198730466
+        },
+        {
+          "model": "claude-sonnet-4-6",
+          "strength_mean": -1.5385081221568082,
+          "strength_sd": 0.30518695143217245,
+          "hdi_low": -2.109304968451118,
+          "hdi_high": -0.9840650097087493,
+          "rank": 12,
+          "win_prob_vs_field": 0.20927501795107906,
+          "win_prob_hdi_low": 0.14872768907757727,
+          "win_prob_hdi_high": 0.2728664194574082
+        }
+      ],
+      "judge_effects": [
+        {
+          "judge": "claude-opus-4-8",
+          "kappa_mean": 9.389167712802072,
+          "kappa_hdi_low": 3.2117530519433948,
+          "kappa_hdi_high": 17.057944333264132,
+          "gamma_mean": 0.884303541819238,
+          "gamma_hdi_low": 0.19934150852060858,
+          "gamma_hdi_high": 1.5182706478891834,
+          "delta_mean": -0.05508928027571056,
+          "delta_hdi_low": -1.4594935709676484,
+          "delta_hdi_high": 1.2095073795862843
+        },
+        {
+          "judge": "deepseek-v4-pro",
+          "kappa_mean": 1.9256397454444614,
+          "kappa_hdi_low": 1.067262854333865,
+          "kappa_hdi_high": 2.944643356866225,
+          "gamma_mean": 1.140300047611039,
+          "gamma_hdi_low": 0.6512602190714838,
+          "gamma_hdi_high": 1.722082088225601,
+          "delta_mean": -0.7251751625268271,
+          "delta_hdi_low": -1.8199797750240554,
+          "delta_hdi_high": 0.45429506859105095
+        },
+        {
+          "judge": "gemini-3.5-flash",
+          "kappa_mean": 2.8361607528588753,
+          "kappa_hdi_low": 1.4233563819210342,
+          "kappa_hdi_high": 4.322435272433904,
+          "gamma_mean": 1.0543017924897136,
+          "gamma_hdi_low": 0.524403853260359,
+          "gamma_hdi_high": 1.599075729544494,
+          "delta_mean": 0.0782930457781894,
+          "delta_hdi_low": -0.7517571369741293,
+          "delta_hdi_high": 0.9743608110953201
+        },
+        {
+          "judge": "gpt-5.5",
+          "kappa_mean": 3.552476612304834,
+          "kappa_hdi_low": 1.692012481214356,
+          "kappa_hdi_high": 5.6548657223662175,
+          "gamma_mean": 0.800178760589204,
+          "gamma_hdi_low": 0.2092403959427376,
+          "gamma_hdi_high": 1.3615390678076664,
+          "delta_mean": 1.2873704697475112,
+          "delta_hdi_low": -0.10589078468537869,
+          "delta_hdi_high": 2.677004903367834
+        }
+      ],
+      "population": {
+        "mu_gamma": {
+          "mean": 0.8459912732550606,
+          "hdi_low": 0.3191899667168635,
+          "hdi_high": 1.3497949667687255
+        },
+        "mu_delta": {
+          "mean": 0.0893153937703149,
+          "hdi_low": -0.5865611809473531,
+          "hdi_high": 0.7713761495843415
+        }
+      },
+      "diagnostics": {
+        "max_r_hat": 1.0,
+        "min_ess_bulk": 1600.0,
+        "n_divergences": 0
+      }
+    },
+    "overall": {
+      "n_obs": 1056,
+      "models": [
+        "claude-fable-5",
+        "claude-haiku-4-5-20251001",
+        "claude-opus-4-8",
+        "claude-sonnet-4-6",
+        "deepseek-v4-flash",
+        "deepseek-v4-pro",
+        "gemini-3.1-flash-lite",
+        "gemini-3.1-pro-preview",
+        "gemini-3.5-flash",
+        "gpt-5.4-mini",
+        "gpt-5.5",
+        "gpt-5.5-pro"
+      ],
+      "judges": [
+        "claude-opus-4-8",
+        "deepseek-v4-pro",
+        "gemini-3.5-flash",
+        "gpt-5.5"
+      ],
+      "rankings": [
+        {
+          "model": "claude-fable-5",
+          "strength_mean": 2.1922863573941003,
+          "strength_sd": 0.41147530408654437,
+          "hdi_low": 1.4272638999860026,
+          "hdi_high": 2.9906453038812293,
+          "rank": 1,
+          "win_prob_vs_field": 0.8748271733082149,
+          "win_prob_hdi_low": 0.8133056906826035,
+          "win_prob_hdi_high": 0.9339268407130081
+        },
+        {
+          "model": "gpt-5.5",
+          "strength_mean": 1.4074495485797172,
+          "strength_sd": 0.2824540980108295,
+          "hdi_low": 0.892305777619226,
+          "hdi_high": 1.9456619030783322,
+          "rank": 2,
+          "win_prob_vs_field": 0.7657032972668857,
+          "win_prob_hdi_low": 0.7063296349389301,
+          "win_prob_hdi_high": 0.8241664732161671
+        },
+        {
+          "model": "gpt-5.5-pro",
+          "strength_mean": 1.205217513247704,
+          "strength_sd": 0.2515732983034598,
+          "hdi_low": 0.7433901291783636,
+          "hdi_high": 1.6727837351981334,
+          "rank": 3,
+          "win_prob_vs_field": 0.7323276104509884,
+          "win_prob_hdi_low": 0.6732602125855378,
+          "win_prob_hdi_high": 0.7863019566418221
+        },
+        {
+          "model": "claude-opus-4-8",
+          "strength_mean": 0.8718377863055695,
+          "strength_sd": 0.20198640123465075,
+          "hdi_low": 0.5117869346176187,
+          "hdi_high": 1.263366710671352,
+          "rank": 4,
+          "win_prob_vs_field": 0.6735087042775932,
+          "win_prob_hdi_low": 0.6211682051743446,
+          "win_prob_hdi_high": 0.7280241431266771
+        },
+        {
+          "model": "gemini-3.1-pro-preview",
+          "strength_mean": 0.5939570546484019,
+          "strength_sd": 0.16931028219959324,
+          "hdi_low": 0.2928132689557903,
+          "hdi_high": 0.9136131896980944,
+          "rank": 5,
+          "win_prob_vs_field": 0.6215772059510386,
+          "win_prob_hdi_low": 0.5708810622746538,
+          "win_prob_hdi_high": 0.6711872025713256
+        },
+        {
+          "model": "gpt-5.4-mini",
+          "strength_mean": -0.04112977559114166,
+          "strength_sd": 0.13017719902362754,
+          "hdi_low": -0.2835288842876498,
+          "hdi_high": 0.2027478941989051,
+          "rank": 6,
+          "win_prob_vs_field": 0.4965061040933526,
+          "win_prob_hdi_low": 0.45189519495924896,
+          "win_prob_hdi_high": 0.5440637842977734
+        },
+        {
+          "model": "gemini-3.5-flash",
+          "strength_mean": -0.2453244195766019,
+          "strength_sd": 0.13560727161050176,
+          "hdi_low": -0.5094183333930071,
+          "hdi_high": -0.0027223247830526764,
+          "rank": 7,
+          "win_prob_vs_field": 0.45574473459219583,
+          "win_prob_hdi_low": 0.40832029040351475,
+          "win_prob_hdi_high": 0.49970467424035797
+        },
+        {
+          "model": "claude-sonnet-4-6",
+          "strength_mean": -0.42259731879459655,
+          "strength_sd": 0.14703296490329176,
+          "hdi_low": -0.7039345087766669,
+          "hdi_high": -0.15703615227651457,
+          "rank": 8,
+          "win_prob_vs_field": 0.4203683838794644,
+          "win_prob_hdi_low": 0.37380987707669644,
+          "win_prob_hdi_high": 0.46674979967572905
+        },
+        {
+          "model": "claude-haiku-4-5-20251001",
+          "strength_mean": -1.2517699199153218,
+          "strength_sd": 0.25607207446226504,
+          "hdi_low": -1.7469264601026682,
+          "hdi_high": -0.7977518448101839,
+          "rank": 9,
+          "win_prob_vs_field": 0.26336546155277124,
+          "win_prob_hdi_low": 0.2085218723770681,
+          "win_prob_hdi_high": 0.3242581219810101
+        },
+        {
+          "model": "gemini-3.1-flash-lite",
+          "strength_mean": -1.3276184223882632,
+          "strength_sd": 0.2690171685344446,
+          "hdi_low": -1.8329859291894328,
+          "hdi_high": -0.8339165879017514,
+          "rank": 10,
+          "win_prob_vs_field": 0.250193986940254,
+          "win_prob_hdi_low": 0.19263917030014827,
+          "win_prob_hdi_high": 0.30926216971220244
+        },
+        {
+          "model": "deepseek-v4-pro",
+          "strength_mean": -1.412536410571563,
+          "strength_sd": 0.2792107302667572,
+          "hdi_low": -1.9338943902442354,
+          "hdi_high": -0.8945232155074515,
+          "rank": 11,
+          "win_prob_vs_field": 0.23576717545123535,
+          "win_prob_hdi_low": 0.17933486179351077,
+          "win_prob_hdi_high": 0.29834355087425507
+        },
+        {
+          "model": "deepseek-v4-flash",
+          "strength_mean": -1.569771993337998,
+          "strength_sd": 0.3090204302268701,
+          "hdi_low": -2.1639568557257403,
+          "hdi_high": -0.9994406716966336,
+          "rank": 12,
+          "win_prob_vs_field": 0.21011016223600426,
+          "win_prob_hdi_low": 0.14783684435195674,
+          "win_prob_hdi_high": 0.2723224701217808
+        }
+      ],
+      "judge_effects": [
+        {
+          "judge": "claude-opus-4-8",
+          "kappa_mean": 1.8844476907555496,
+          "kappa_hdi_low": 1.1185746116598718,
+          "kappa_hdi_high": 2.7076137626206958,
+          "gamma_mean": 0.7062519654291369,
+          "gamma_hdi_low": 0.3107865588504183,
+          "gamma_hdi_high": 1.0802419700825974,
+          "delta_mean": -0.09843205004227326,
+          "delta_hdi_low": -0.6847000873549497,
+          "delta_hdi_high": 0.4654255322144091
+        },
+        {
+          "judge": "deepseek-v4-pro",
+          "kappa_mean": 1.388335195115764,
+          "kappa_hdi_low": 0.8408341435994288,
+          "kappa_hdi_high": 2.0041541804330403,
+          "gamma_mean": 1.5990714747672927,
+          "gamma_hdi_low": 1.1412768729593654,
+          "gamma_hdi_high": 2.051822395940606,
+          "delta_mean": -0.5400587103269191,
+          "delta_hdi_low": -1.3740841973591766,
+          "delta_hdi_high": 0.2591154522487245
+        },
+        {
+          "judge": "gemini-3.5-flash",
+          "kappa_mean": 2.465703957041239,
+          "kappa_hdi_low": 1.457067657559259,
+          "kappa_hdi_high": 3.6326802191022396,
+          "gamma_mean": 1.4941747402496592,
+          "gamma_hdi_low": 0.9762140564625478,
+          "gamma_hdi_high": 2.043085184656784,
+          "delta_mean": 0.7810086532386299,
+          "delta_hdi_low": 0.05296305886262868,
+          "delta_hdi_high": 1.5181801156709411
+        },
+        {
+          "judge": "gpt-5.5",
+          "kappa_mean": 1.6460123929745378,
+          "kappa_hdi_low": 0.9939315322253495,
+          "kappa_hdi_high": 2.3570375543827327,
+          "gamma_mean": 0.7508609151182015,
+          "gamma_hdi_low": 0.3710312738683954,
+          "gamma_hdi_high": 1.1430645851378791,
+          "delta_mean": 1.4565340847669102,
+          "delta_hdi_low": 0.6818764682139603,
+          "delta_hdi_high": 2.2282180539835523
+        }
+      ],
+      "population": {
+        "mu_gamma": {
+          "mean": 0.8402190991403018,
+          "hdi_low": 0.2548746534787563,
+          "hdi_high": 1.3806645028494142
+        },
+        "mu_delta": {
+          "mean": 0.2533959277646601,
+          "hdi_low": -0.40350892221785256,
+          "hdi_high": 0.8428729245793505
+        }
+      },
+      "diagnostics": {
+        "max_r_hat": 1.0,
+        "min_ess_bulk": 1467.0,
+        "n_divergences": 0
+      }
+    }
+  }
+}

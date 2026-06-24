@@ -16,10 +16,9 @@ def main(argv: list[str] | None = None) -> None:
             "generate",
             "sandbox",
             "check",
-            "judge",
-            "aggregate",
-            "publish",
+            "tables",
             "pairwise",
+            "bradley-terry",
             "run",
         ],
     )
@@ -32,13 +31,13 @@ def main(argv: list[str] | None = None) -> None:
         "--only",
         action="append",
         metavar="MODEL",
-        help="restrict probe/generate (candidates) or judge/pairwise (judges) to these model names",
+        help="restrict probe/generate (candidates) or pairwise (judges) to these model names",
     )
     parser.add_argument("--instance", metavar="ID", help="restrict to one instance id")
     parser.add_argument(
         "--dump-prompt",
         action="store_true",
-        help="judge: print the assembled prompt instead of calling the API",
+        help="pairwise: print the assembled prompt instead of calling the API",
     )
     args = parser.parse_args(argv)
     cfg = load_config()
@@ -60,30 +59,21 @@ def main(argv: list[str] | None = None) -> None:
             from . import checks
 
             checks.run(cfg, only_instance=args.instance)
-        elif command == "judge":
-            from . import judge
+        elif command == "tables":
+            from . import tables
 
-            judge.run(
-                cfg,
-                only_judges=args.only,
-                only_instance=args.instance,
-                dump_prompt=args.dump_prompt,
-            )
-        elif command == "aggregate":
-            from . import aggregate
-
-            aggregate.run(cfg)
-        elif command == "publish":
-            from . import publish
-
-            publish.run(cfg)
+            tables.run(cfg)
         elif command == "pairwise":
             from . import pairwise
 
             pairwise.run_cli(cfg, args.subcommand, only=args.only, dump_prompt=args.dump_prompt)
+        elif command == "bradley-terry":
+            from . import bradley_terry
+
+            bradley_terry.run(cfg)
 
     if args.command == "run":
-        for step in ("generate", "sandbox", "check", "judge", "aggregate", "publish"):
+        for step in ("generate", "sandbox", "check", "tables"):
             print(f"=== {step} ===")
             do(step)
     else:

@@ -1,6 +1,6 @@
 # Footbench — Implementation Spec
 
-A subjective, multi-model LLM evaluation. Candidate models answer `footbench/footbench.prompt.md`; their responses are executed, auto-checked, scored by LLM judges on a 1–5 rubric, aggregated by mean, and published to a public web page with an interrater-reliability report.
+A subjective, multi-model LLM evaluation. Candidate models answer `footbench/footbench.prompt.md`; their responses are executed, auto-checked, and judged by an LLM panel through a **pairwise head-to-head tournament** (every pair of responses compared on soundness and priors, forced A/B choice), then published to a public web page as win-percentage rankings.
 
 ---
 
@@ -23,17 +23,19 @@ candidate_models:
   - deepseek-v4-pro
   - deepseek-v4-flash
 
-judge_models:
-  - claude-fable-5
-  - gpt-5.5-pro
-  - gemini-3.1-pro-preview
-  - deepseek-v4-pro
+# Pairwise judge panel — the only judging round.
+pairwise:
+  judges:
+    - claude-opus-4-8
+    - gpt-5.5
+    - gemini-3.5-flash
+    - deepseek-v4-pro
+  both_orders: true         # judge every pair in both presentation orders
 
 n_samples: 1              # responses generated per candidate
 gen_temperature: 1.0      # fixed for all candidates
 judge_temperature: 0.0    # judges run as deterministically as possible
 seed: 42                  # where the provider supports it
-criteria_weights: [1, 1, 1]   # soundness, priors, code — equal weight for composite
 interval_tol: 0.10        # relative tolerance for parameter-reproduction check
 ```
 Use the highest level of thinking available for both candidate and judge models. Except use `max` for `claude-fable-5`.
@@ -48,12 +50,14 @@ Pin the exact API snapshot ID for every model at run time and store it (the vers
 Stage 1  Generate     candidate responses  (12 models x n_samples)
 Stage 2  Execute      run each plot_script in a sandbox, render plots
 Stage 3  Auto-check   structural + numeric consistency of the JSON
-Stage 4  Judge        4 judges score each response 1-5 on 3 criteria
-Stage 5  Aggregate    mean scores, rankings, interrater reliability
-Stage 6  Publish      web page on shaneorr.me
+Stage 4  Tables       consolidate the objective per-instance artifacts into tables
+Pairwise Judge        4 judges compare every pair head-to-head on 2 criteria (forced A/B)
+Stage 6  Publish      web page on shaneorr.me (win-percentage rankings)
 ```
 
-Each stage reads and writes structured artifacts (Section 8) so the run is reproducible and the website is a pure view over stored data.
+The pairwise judging round runs on its own batch lifecycle (Section 6), not as part of the
+linear `run`. Each stage reads and writes structured artifacts (Section 8) so the run is
+reproducible and the website is a pure view over stored data.
 
 ---
 
@@ -116,83 +120,89 @@ Store a per-instance check report. These are diagnostics fed to judges, **not** 
 
 ---
 
-## 6. Stage 4 — LLM judging
+## 6. Judging — pairwise head-to-head tournament
 
-### 6.1 Inputs to each judge call
+The only judging round. Every unordered pair of response instances is compared by the four-judge
+panel on two criteria — **soundness** and **priors** — as a forced A/B choice. There is no numeric
+scale and no separate per-response score.
 
-One **response instance at a time** (independent scoring, not a 12-way ranking — this removes position/length bias and matches the 1–5 scale). Each call provides:
+### 6.1 Inputs to each comparison
 
-- `footbench.prompt.md` (the task the candidate was given).
-- The rubric with anchors (Section 6.3).
-- The **anonymized** response JSON (strip any model-identifying text; label only as "Response under review").
-- The Stage 2 execution result and the rendered plot images (judges are multimodal; let them see the actual plots).
-- The Stage 3 check report.
+Each judge call shows **two anonymized responses** ("Response A" and "Response B") for the same
+task. Each call provides:
 
-Randomize nothing across candidates is needed because each is scored in isolation, but still keep the response anonymized.
+- `footbench.prompt.md` (the task both candidates were given).
+- The two **anonymized** response bundles (strip any model-identifying text; label only as
+  "Response A" / "Response B"), each as pretty-printed JSON (or raw text if it failed to parse).
+- The Stage 3 automated check report for each response, as ground truth for the mechanical facts.
 
-### 6.2 Output from each judge call
+The round is **text-only** (no execution result or rendered images), so any code/plot criterion is
+not judged here. Which response is shown as "A" is a deterministic per-pair coin flip from the run
+seed; with `both_orders: true` every pair is also judged in the reversed order so position bias is
+measurable.
+
+### 6.2 Output from each comparison
 
 ```json
 {
-  "soundness":   {"score": 1-5, "justification": "1-2 sentences"},
-  "priors":      {"score": 1-5, "justification": "1-2 sentences"},
-  "code":        {"score": 1-5, "justification": "1-2 sentences"}
+  "soundness": {"winner": "A" | "B", "justification": "1-2 sentences"},
+  "priors":    {"winner": "A" | "B", "justification": "1-2 sentences"}
 }
 ```
 
-Scores are **integers 1–5**. Instruct judges to use the execution and check reports as ground truth for the mechanical facts (does it run, is the grid complete, do parameters reproduce the interval) and to spend their judgment on the subjective quality.
+Forced choice: the judge **must** pick "A" or "B" for each criterion; ties are not allowed.
+Criteria are judged independently (the same response need not win both). Instruct judges to use the
+check reports as ground truth for the mechanical facts and to spend their judgment on subjective
+quality.
 
-### 6.3 Rubric anchors
+### 6.3 Quality descriptions
 
-Give judges these anchors; interpolate 4 and 2.
+Give judges stronger-vs-weaker descriptions (no numeric anchors) for each criterion; the judge
+picks whichever response better fits the "stronger" description.
 
 **Criterion 1 — Soundness of recommendations**
 
-- **5** — All six picks are genuinely underutilized *and* credibly win-positive; rationales are specific and football-literate; analytics vs. intuition buckets correctly distinguished (intuition picks are not just restated analytics consensus); picks distinct and correctly slotted in their grid cell.
-- **3** — Mixed: several solid picks, but some are mainstream rather than underutilized, weakly justified, or misfiled.
-- **1** — Most picks are generic/already standard, implausible, duplicative, or misattributed; rationales vague or wrong.
+- A **stronger** response: all six picks are genuinely underutilized *and* credibly win-positive; rationales are specific and football-literate; analytics vs. intuition buckets correctly distinguished (intuition picks are not just restated analytics consensus); picks distinct and correctly slotted in their grid cell.
+- A **weaker** response: picks generic/already standard, implausible, duplicative, or misattributed; rationales vague or wrong; or buckets misfiled.
 
 **Criterion 2 — Reasonableness of Bayesian priors**
 
-- **5** — Family matches the stated shape/tails and the signed support; most-plausible values and 95% intervals are football-realistic in magnitude (neither overconfident nor absurdly wide); conversions correct; honest treatment of weak cells (near-zero center, wider interval).
-- **3** — Generally reasonable but with notable issues: an implausible magnitude or two, an over-tight or over-wide interval, a family that doesn't match the stated shape, or a conversion slip.
-- **1** — Largely unreasonable: invalid/wrong family for signed data, badly mis-scaled intervals, inconsistent parameters, or identical boilerplate priors copy-pasted across differing strategies.
+- A **stronger** response: family matches the stated shape/tails and the signed support; effect-size magnitudes are free of gross implausibility (no single strategy swinging the per-game scoring margin by several points) and are internally differentiated across the six cells rather than copy-pasted; intervals neither overconfident nor absurdly wide; conversions correct; weak cells handled honestly (near-zero center, wider interval).
+- A **weaker** response: invalid/wrong family for signed data, badly mis-scaled or over-tight/over-wide intervals, inconsistent parameters or conversion slips, a family that doesn't match the stated shape, or boilerplate priors copy-pasted across differing strategies.
 
-**Criterion 3 — Python code quality** (treat the execution result as ground truth for whether it runs)
+### 6.4 Self- and family-comparison
 
-- **5** — Runs cleanly and produces all six correct plots; code is clear, efficient, parameterized as the prompt requires, uses the correct scipy distribution per family, and does what it claims.
-- **3** — Runs but rough: inefficiency, partial plotting, minor mismatch between code and reported parameters, or sloppy structure.
-- **1** — Fails to run or produces wrong/empty plots, or does not implement the stated distributions/parameters.
+All four judges are also candidates, so a judge will sometimes compare its own or a sibling model's
+response. Keep **all** verdicts; tag each with `is_self_a`/`is_self_b` (same exact model) and
+`judge_family`. Handle self-preference as a diagnostic in Section 7 rather than by dropping data here.
 
-### 6.4 Self- and family-judgment
+### 6.5 Cost design
 
-All four judges are also candidates, so judges will sometimes score their own or a sibling model. Collect **all** scores (a complete judges × instances matrix — needed for clean reliability stats), and tag each judgment with `is_self` (same exact model) and `judge_family`. Handle the bias two ways in Stage 5 rather than by dropping data here.
+Comparisons go through the providers' 50%-off batch APIs where available (Anthropic, OpenAI,
+Gemini) and run synchronously for DeepSeek (no batch API). Prompts share byte-stable prefixes so
+provider prompt caching applies. The lifecycle is submit → status → collect → (resubmit
+stragglers) → csv, with `outstanding = expected − verdict files` so every step is idempotent.
 
 ---
 
-## 7. Stage 5 — Aggregate and reliability
+## 7. Aggregate — win tallies and judge diagnostics
 
-### 7.1 Scores and rankings
+### 7.1 Win percentages and rankings
 
-- **Instance score** per criterion = mean of the 4 judges' integer scores.
-- **Model score** per criterion = mean over that model's instances (samples) and judges.
-- **Composite** per model = weighted mean of the three criteria (`criteria_weights`, equal by default).
-- **Rankings** = sort models by score (publish a per-criterion leaderboard and a composite leaderboard).
-- **Self-excluded leaderboard** (secondary) = recompute model scores after dropping `is_self` judgments. Publish alongside the primary so readers can see the effect.
+- **Comparison count** per model = number of head-to-head comparisons it appeared in (across all judges, pairs, and presentation orders), per criterion.
+- **Win count / win percentage** per model = wins ÷ comparisons × 100, per criterion and overall (pooling both criteria).
+- **Rankings** = sort models by win percentage (publish an overall leaderboard and a per-criterion one).
 
-### 7.2 Interrater reliability
+### 7.2 Judge-agreement diagnostics
 
-Compute across all judged instances, **per criterion**, with the 4 judges as raters.
+Reported for the lay audience as panel-consensus readouts rather than formal reliability statistics:
 
-- **Primary: Krippendorff's α (ordinal).** Chosen because the scores are ordinal, there are >2 raters, and it tolerates any missing cells. Interpretation: α ≥ 0.80 strong agreement; 0.667–0.80 tentative; < 0.667 weak.
-- **Secondary: ICC(2,k), two-way random effects, average-measures.** This is the reliability of the 4-judge **mean** — i.e., of the number you actually report. Interpretation (Koo & Li): < 0.50 poor, 0.50–0.75 moderate, 0.75–0.90 good, > 0.90 excellent. Compute on complete cases.
-- **Optional readout: Kendall's W** on each judge's derived ranking, plus pairwise Spearman between judges, for a human-readable "who agrees with whom" view.
+- **Vote splits** — for each pair×criterion, how decisively the four judges agreed (unanimous, 3–1 majority, or 2–2 split).
+- **Order consistency** — whether a judge picked the same canonical winner after the two responses were swapped (A↔B); low consistency flags sensitivity to presentation order.
 
-Report each statistic with its interpretation band. Low reliability on a criterion is itself a publishable finding — it means that criterion is hard to judge, not that the pipeline is broken.
+### 7.3 Self-preference diagnostic
 
-### 7.3 Bias diagnostic
-
-For each judge, report mean score given to **own-family** candidates vs. **other** candidates, per criterion. A large positive gap flags self-preference and belongs in the limitations section.
+For each judge, compare the win rate it awarded to **own-family** candidates vs. **other** candidates. A large positive gap flags self-preference and belongs in the limitations section.
 
 ---
 
@@ -200,15 +210,21 @@ For each judge, report mean score given to **own-family** candidates vs. **other
 
 Store as JSON or a small SQLite DB so every stage is auditable and the website reads from it.
 
+Objective tables (the `tables` stage):
+
 | Table | Key fields |
 |---|---|
 | `responses` | instance_id, model, sample_idx, snapshot_id, ts, temperature, seed, raw_text, parsed_json |
 | `exec_results` | instance_id, ran_ok, n_figures, stderr, figure_paths |
 | `checks` | instance_id, json_valid, grid_complete, intervals_ok, family_ok, params_reproduce_ok, detail |
-| `judgments` | instance_id, judge, judge_family, is_self, criterion, score, justification |
-| `model_scores` | model, criterion, mean_score, rank, mean_score_self_excluded |
-| `reliability` | criterion, krippendorff_alpha, icc2k, kendall_w |
-| `bias` | judge, criterion, own_family_mean, other_mean, gap |
+
+Pairwise judging artifacts (under `artifacts/pairwise/`):
+
+| Artifact | Key fields |
+|---|---|
+| `manifest` | seed, both_orders, judges, instances, comparisons (custom_id → pair, order, instance/model A & B) |
+| `verdicts/{judge}/{custom_id}` | judge, judge_family, model_a, model_b, order, is_self_a, is_self_b, verdicts (winner per criterion), raw_text |
+| `pairwise_results.csv` | judge, model_a, model_b, criterion, winner |
 
 ---
 
@@ -221,7 +237,7 @@ Audience is non-technical. The page reads from the Stage 8 artifacts.
 **Sections:**
 
 1. **Plain-language intro** — what the test asked the models to do, in one short paragraph. Explain "prior" and "uncertainty interval" with a one-line analogy (e.g., a prior is the model's best guess plus an honest statement of how unsure it is).
-2. **Leaderboard** — composite ranking, with a toggle to view each of the three criteria. Show the interrater-reliability value beside each criterion with a plain label ("judges agreed strongly / moderately / weakly here") so the ranking isn't read as more precise than it is. Use visualizations.
+2. **Leaderboard** — win-percentage ranking (head-to-head wins ÷ comparisons), with a toggle to view overall vs. each of the two criteria. Alongside, show the judge-agreement diagnostics (vote-split mix and order consistency) with a plain label so the ranking isn't read as more precise than the panel's agreement justifies. Use visualizations.
 3. **Per-model response viewer** — each model's full response, with the `plot_script` **rendered as its plot image and the source code collapsed by default**. Show a clear "failed to render" state for instances where `ran_ok` is false.
 4. **Prior comparison** — **re-plot from the reported parameters, not the models' scripts.** Parse each model's family + parameters from the JSON and redraw every prior with one canonical routine on shared axes and shared styling. Lay out as small multiples by grid cell (6 cells) with the ability to overlay or toggle models within a cell. This is the clean payoff of the structured footbench schema; it sidesteps 12 inconsistent matplotlib styles.
 5. **Methodology & limitations** — disclose: judges are also contestants (self-preference risk, with the Section 7.3 gap shown); single-vendor judge pool; `n_samples` is small; "underutilized" is a subjective, time-sensitive call partly reflecting the judges' own football knowledge.
@@ -232,5 +248,5 @@ Interactive tabs/toggles are encouraged where they aid clarity (criterion toggle
 
 ## 10. Decisions deliberately left open
 
-- `n_samples`, `gen_temperature`, and the equal criterion weights are set as defaults; adjust to taste and budget.
+- `n_samples` and `gen_temperature` are set as defaults; adjust to taste and budget.
 - The footbench prompt leaves the plausible effect-size **scale** unspecified on purpose, so the priors criterion partly tests whether a model picks sane magnitudes. Keep it that way unless you decide to anchor it.

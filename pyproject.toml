@@ -6,12 +6,15 @@ requires-python = ">=3.12"
 dependencies = [
     "altair>=6.2.1",
     "anthropic>=0.109.1",
+    "arviz>=1.2.0",
     "google-genai>=2.8.0",
-    "krippendorff>=0.8.2",
+    "h5netcdf>=1.8.1",
+    "h5py>=3.16.0",
     "matplotlib>=3.10.9",
     "numpy>=2.4.6",
     "openai>=2.41.1",
     "polars>=1.41.2",
+    "pymc>=6.0.1",
     "python-dotenv>=1.2.2",
     "pyyaml>=6.0.3",
     "scipy>=1.17.1",
@@ -59,9 +62,8 @@ line-length = 100
 select = ["E", "F", "I", "UP", "B"]
 
 [tool.ruff.lint.per-file-ignores]
-# These files embed the spec's rubric anchors / exact JSON shapes verbatim;
+# These files embed the rubric descriptions / exact JSON shapes verbatim;
 # they must not be rewrapped
-"footbench/judge.py" = ["E501"]
 "footbench/pairwise.py" = ["E501"]
 "tests/test_pairwise.py" = ["E501"]
 
@@ -71,6 +73,8 @@ testpaths = ["tests"]
 [dependency-groups]
 dev = [
     "ipykernel>=7.3.0",
+    "nbconvert>=7.17.1",
     "pytest>=9.0.3",
     "ruff>=0.15.16",
+    "vl-convert-python>=1.9.0.post1",
 ]

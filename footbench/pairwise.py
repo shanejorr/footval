@@ -21,7 +21,7 @@ import re
 from itertools import combinations
 from typing import Any
 
-from . import artifacts, judge, parsing, providers
+from . import artifacts, parsing, providers
 from .config import Config, ModelCfg
 
 CRITERIA_PAIRWISE = ("soundness", "priors")
@@ -29,16 +29,30 @@ CRITERIA_PAIRWISE = ("soundness", "priors")
 # Content part index of the candidate-A bundle (Anthropic cache breakpoint).
 CACHE_PART_IDX = 1
 
+# Quality descriptions for the two compared criteria. Stated as stronger-vs-weaker
+# prose (no numeric scale) so the comparison is a pure forced choice.
+RUBRIC_SOUNDNESS = """\
+**Criterion 1 — Soundness of recommendations**
+
+- A **stronger** response: all six picks are genuinely underutilized *and* credibly win-positive; rationales are specific and football-literate; analytics vs. intuition buckets are correctly distinguished (intuition picks are not just restated analytics consensus); picks are distinct and correctly slotted in their grid cell.
+- A **weaker** response: picks are generic/already standard, implausible, duplicative, or misattributed; rationales are vague or wrong; or buckets are misfiled (mainstream ideas labeled underutilized, or restated analytics passed off as intuition)."""
+
+RUBRIC_PRIORS = """\
+**Criterion 2 — Reasonableness of Bayesian priors**
+
+- A **stronger** response: the family matches the stated shape/tails and the signed support; effect-size magnitudes are free of gross implausibility (no single strategy swinging the per-game scoring margin by several points) and are internally differentiated across the six cells rather than copy-pasted; intervals are neither overconfident nor absurdly wide; conversions are correct; weak cells are handled honestly (near-zero center, wider interval).
+- A **weaker** response: an invalid/wrong family for signed data, badly mis-scaled or over-tight/over-wide intervals, inconsistent parameters or conversion slips, a family that does not match the stated shape, or identical boilerplate priors copy-pasted across differing strategies."""
+
 SYSTEM = f"""You are an impartial evaluator comparing two anonymized responses ("Response A" and \
 "Response B") to the same fixed task. For each criterion below, decide which response is BETTER. \
 This is a forced choice: you must answer "A" or "B" for each criterion; ties are not allowed.
 
-{judge.RUBRIC_SOUNDNESS}
+{RUBRIC_SOUNDNESS}
 
-{judge.RUBRIC_PRIORS}
+{RUBRIC_PRIORS}
 
-Use the 5/3/1 anchors as the definition of quality; pick the response closer to a 5 on that \
-criterion.
+Use these descriptions of a stronger versus weaker response as the definition of quality; pick \
+the response that is better on that criterion.
 
 Ground rules:
 - The AUTOMATED CHECK REPORT attached to each response is ground truth for mechanical facts \
@@ -157,6 +171,48 @@ def load_or_write_manifest(cfg: Config, store: artifacts.Store) -> dict[str, Any
 # --- prompt construction -----------------------------------------------------------
 
 
+def check_summary(checks: dict[str, Any] | None) -> str:
+    """Compact, judge-facing summary of one instance's automated check report.
+
+    Ground-truth context handed to judges so they don't re-derive mechanical facts.
+    """
+    if checks is None:
+        return "No automated check report available."
+    summary: dict[str, Any] = {
+        name: checks.get(name)
+        for name in (
+            "json_valid",
+            "grid_complete",
+            "intervals_ok",
+            "family_ok",
+            "params_reproduce_ok",
+        )
+    }
+    detail = checks.get("detail") or {}
+    summary["parse_mode"] = detail.get("parse_mode")
+    grid = detail.get("grid") or {}
+    summary["grid_issues"] = {
+        k: grid.get(k)
+        for k in ("n_strategies", "missing_cells", "duplicate_cells", "duplicate_titles", "issues")
+    }
+    strategies = []
+    for s in detail.get("strategies") or []:
+        strategies.append(
+            {
+                "idx": s.get("idx"),
+                "title": s.get("title"),
+                "cell": s.get("cell"),
+                "interval_sane": s.get("interval_sane"),
+                "family": s.get("family"),
+                "family_valid": s.get("family_valid"),
+                "params_reproduce": s.get("params_ok"),
+                "reason": s.get("reason"),
+            }
+        )
+    summary["per_strategy"] = strategies
+    return json.dumps(summary, indent=2, ensure_ascii=False)
+
+
 def build_bundle(store: artifacts.Store, iid: str, label: str) -> tuple[str, int]:
     """One candidate's full anonymized package. Deterministic from on-disk
     artifacts, so every call sharing this (iid, label) gets identical bytes —
@@ -172,7 +228,7 @@ def build_bundle(store: artifacts.Store, iid: str, label: str) -> tuple[str, int
     text = (
         f"=== RESPONSE {label} ===\n{body_label}\n\n{body}\n\n"
         f"=== AUTOMATED CHECK REPORT FOR RESPONSE {label} (ground truth) ===\n"
-        f"{judge.check_summary(store.load_checks(iid))}"
+        f"{check_summary(store.load_checks(iid))}"
     )
     return parsing.redact(text)
 
