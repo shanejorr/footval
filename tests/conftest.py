@@ -25,9 +25,7 @@ _FAMILY_PROVIDER = {
 def make_cfg(
     root: Path,
     candidates: list[str],
-    judges: list[str],
     families: dict[str, str],
-    weights: tuple[float, ...] = (1.0, 1.0, 1.0),
     pairwise_judges: tuple[str, ...] = (),
     pairwise_both_orders: bool = False,
 ) -> Config:
@@ -38,12 +36,10 @@ def make_cfg(
     return Config(
         root=root,
         candidate_models=tuple(candidates),
-        judge_models=tuple(judges),
         n_samples=1,
         gen_temperature=1.0,
         judge_temperature=0.0,
         seed=42,
-        criteria_weights=tuple(weights),
         interval_tol=0.10,
         sandbox=SandboxCfg(),
         generation_max_output_tokens=1000,
@@ -53,37 +49,6 @@ def make_cfg(
         pairwise_judges=pairwise_judges,
         pairwise_both_orders=pairwise_both_orders,
     )
-
-
-def jrow(
-    model: str,
-    judge: str,
-    criterion: str,
-    score: int | None,
-    judge_family: str = "openai",
-    is_self: bool = False,
-    iid: str | None = None,
-) -> dict[str, Any]:
-    return {
-        "instance_id": iid or f"{model}__s0",
-        "model": model,
-        "judge": judge,
-        "judge_family": judge_family,
-        "is_self": is_self,
-        "criterion": criterion,
-        "score": score,
-        "justification": "because",
-    }
-
-
-def jrows(
-    model: str, judge: str, s: int | None, p: int | None, c: int | None, **kw: Any
-) -> list[dict[str, Any]]:
-    return [
-        jrow(model, judge, "soundness", s, **kw),
-        jrow(model, judge, "priors", p, **kw),
-        jrow(model, judge, "code", c, **kw),
-    ]
 
 
 def strategy(

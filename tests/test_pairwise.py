@@ -3,31 +3,8 @@ import json
 import pytest
 from conftest import make_cfg, valid_response
 
-from footbench import judge, pairwise, providers
+from footbench import pairwise, providers
 from footbench.artifacts import Store
-
-# The spec section 6.3 rubric as shipped with the absolute-scoring stage.
-# Pins the criterion split: recomposition must stay byte-identical.
-GOLDEN_RUBRIC = """\
-**Criterion 1 — Soundness of recommendations**
-
-- **5** — All six picks are genuinely underutilized *and* credibly win-positive; rationales are specific and football-literate; analytics vs. intuition buckets correctly distinguished (intuition picks are not just restated analytics consensus); picks distinct and correctly slotted in their grid cell.
-- **3** — Mixed: several solid picks, but some are mainstream rather than underutilized, weakly justified, or misfiled.
-- **1** — Most picks are generic/already standard, implausible, duplicative, or misattributed; rationales vague or wrong.
-
-**Criterion 2 — Reasonableness of Bayesian priors**
-
-- **5** — Family matches the stated shape/tails and the signed support; most-plausible values and 95% intervals are football-realistic in magnitude (neither overconfident nor absurdly wide); conversions correct; honest treatment of weak cells (near-zero center, wider interval).
-- **3** — Generally reasonable but with notable issues: an implausible magnitude or two, an over-tight or over-wide interval, a family that doesn't match the stated shape, or a conversion slip.
-- **1** — Largely unreasonable: invalid/wrong family for signed data, badly mis-scaled intervals, inconsistent parameters, or identical boilerplate priors copy-pasted across differing strategies.
-
-**Criterion 3 — Python code quality** (treat the execution result as ground truth for whether it runs)
-
-- **5** — Runs cleanly and produces all six correct plots; code is clear, efficient, parameterized as the prompt requires, uses the correct scipy distribution per family, and does what it claims.
-- **3** — Runs but rough: inefficiency, partial plotting, minor mismatch between code and reported parameters, or sloppy structure.
-- **1** — Fails to run or produces wrong/empty plots, or does not implement the stated distributions/parameters.
-
-Interpolate scores of 4 and 2 between these anchors."""
 
 FAMILIES = {"m1": "openai", "m2": "openai", "m3": "google", "j1": "anthropic"}
 IIDS_12 = [f"m{i:02d}__s0" for i in range(12)]
@@ -39,7 +16,6 @@ def pw_cfg(tmp_path, both_orders=False, judges=("j1",)):
     return make_cfg(
         tmp_path,
         candidates=list(families),
-        judges=["j1"],
         families=families,
         pairwise_judges=tuple(judges),
         pairwise_both_orders=both_orders,
@@ -61,17 +37,24 @@ def seeded_store(tmp_path, instance_ids):
     return store
 
 
-# --- rubric sharing --------------------------------------------------------------
-
-
-def test_rubric_recomposes_byte_identically():
-    assert judge.RUBRIC == GOLDEN_RUBRIC
+# --- rubric --------------------------------------------------------------
 
 
 def test_pairwise_system_has_criteria_1_2_only():
-    assert judge.RUBRIC_SOUNDNESS in pairwise.SYSTEM
-    assert judge.RUBRIC_PRIORS in pairwise.SYSTEM
+    assert pairwise.RUBRIC_SOUNDNESS in pairwise.SYSTEM
+    assert pairwise.RUBRIC_PRIORS in pairwise.SYSTEM
     assert "Criterion 3" not in pairwise.SYSTEM
+    assert "code" not in pairwise.SYSTEM
+
+
+def test_pairwise_system_has_no_numeric_scale():
+    # The 1-5 scoring scale was removed everywhere; the comparison is a pure
+    # forced choice with stronger-vs-weaker prose anchors, no numeric anchors.
+    sys = pairwise.SYSTEM
+    assert "closer to a 5" not in sys
+    for anchor in ("**5**", "**3**", "**1**", "5/3/1"):
+        assert anchor not in sys
+    assert "stronger" in sys and "weaker" in sys
 
 
 # --- enumeration & ids -------------------------------------------------------------

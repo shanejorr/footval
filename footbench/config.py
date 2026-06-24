@@ -10,8 +10,6 @@ from typing import Any
 import yaml
 from dotenv import load_dotenv
 
-CRITERIA = ("soundness", "priors", "code")
-
 PROVIDER_ENV_KEYS = {
     "anthropic": "ANTHROPIC_API_KEY",
     "openai": "OPENAI_API_KEY",
@@ -45,12 +43,10 @@ class SandboxCfg:
 class Config:
     root: Path
     candidate_models: tuple[str, ...]
-    judge_models: tuple[str, ...]
     n_samples: int
     gen_temperature: float
     judge_temperature: float
     seed: int
-    criteria_weights: tuple[float, ...]
     interval_tol: float
     sandbox: SandboxCfg
     generation_max_output_tokens: int
@@ -111,15 +107,11 @@ def load_config(root: Path | None = None) -> Config:
         )
     pairwise = raw.get("pairwise") or {}
     pairwise_judges = tuple(pairwise.get("judges") or ())
-    for name in [*raw["candidate_models"], *raw["judge_models"], *pairwise_judges]:
+    for name in [*raw["candidate_models"], *pairwise_judges]:
         if name not in models:
             raise ValueError(f"model {name!r} has no entry under models: in config.yaml")
         if models[name].provider not in PROVIDER_ENV_KEYS:
             raise ValueError(f"model {name!r} has unknown provider {models[name].provider!r}")
-
-    weights = tuple(float(w) for w in raw["criteria_weights"])
-    if len(weights) != len(CRITERIA):
-        raise ValueError(f"criteria_weights must have exactly {len(CRITERIA)} entries")
 
     sb = raw.get("sandbox") or {}
     gen = raw.get("generation") or {}
@@ -127,12 +119,10 @@ def load_config(root: Path | None = None) -> Config:
     return Config(
         root=root,
         candidate_models=tuple(raw["candidate_models"]),
-        judge_models=tuple(raw["judge_models"]),
         n_samples=int(raw["n_samples"]),
         gen_temperature=float(raw["gen_temperature"]),
         judge_temperature=float(raw["judge_temperature"]),
         seed=int(raw["seed"]),
-        criteria_weights=weights,
         interval_tol=float(raw["interval_tol"]),
         sandbox=SandboxCfg(
             image=sb.get("image", "footbench-sandbox"),

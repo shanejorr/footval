@@ -112,12 +112,10 @@ def _record_run_meta(cfg: Config, store: artifacts.Store) -> None:
     meta["config"].update(
         {
             "candidate_models": list(cfg.candidate_models),
-            "judge_models": list(cfg.judge_models),
             "n_samples": cfg.n_samples,
             "gen_temperature": cfg.gen_temperature,
             "judge_temperature": cfg.judge_temperature,
             "seed": cfg.seed,
-            "criteria_weights": list(cfg.criteria_weights),
             "interval_tol": cfg.interval_tol,
         }
     )

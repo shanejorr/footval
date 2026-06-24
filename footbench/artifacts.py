@@ -64,12 +64,6 @@ class Store:
     def checks_path(self, iid: str) -> Path:
         return self.instance_dir(iid) / "checks.json"
 
-    def judgments_dir(self, iid: str) -> Path:
-        return self.instance_dir(iid) / "judgments"
-
-    def judgment_path(self, iid: str, judge: str) -> Path:
-        return self.judgments_dir(iid) / f"{judge}.json"
-
     # --- pairwise stage ----------------------------------------------------
     @property
     def pairwise_dir(self) -> Path:
@@ -127,12 +121,3 @@ class Store:
 
     def load_checks(self, iid: str) -> dict[str, Any] | None:
         return self.read_json(self.checks_path(iid))
-
-    def load_judgment(self, iid: str, judge: str) -> dict[str, Any] | None:
-        return self.read_json(self.judgment_path(iid, judge))
-
-    def judgment_files(self, iid: str) -> list[Path]:
-        d = self.judgments_dir(iid)
-        if not d.exists():
-            return []
-        return sorted(d.glob("*.json"))

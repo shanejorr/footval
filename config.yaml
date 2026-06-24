@@ -18,17 +18,10 @@ candidate_models:
   - deepseek-v4-pro
   - deepseek-v4-flash
 
-judge_models:
-  - claude-fable-5
-  - gpt-5.5-pro
-  - gemini-3.1-pro-preview
-  - deepseek-v4-pro
-
 n_samples: 1              # responses generated per candidate
 gen_temperature: 1.0      # fixed for all candidates (where the API accepts it)
 judge_temperature: 0.0    # judges run as deterministically as the APIs allow
 seed: 42                  # where the provider supports it
-criteria_weights: [1, 1, 1]   # soundness, priors, code
 interval_tol: 0.10        # relative tolerance for parameter-reproduction check
 
 sandbox:

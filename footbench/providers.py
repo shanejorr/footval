@@ -398,7 +398,7 @@ def probe_cli(cfg: Config, only: list[str] | None = None) -> None:
     """
     from . import artifacts
 
-    names = list(dict.fromkeys([*cfg.candidate_models, *cfg.judge_models]))
+    names = list(dict.fromkeys([*cfg.candidate_models, *cfg.pairwise_judges]))
     if only:
         names = [n for n in names if n in only]
     results: dict[str, dict[str, Any]] = {}
