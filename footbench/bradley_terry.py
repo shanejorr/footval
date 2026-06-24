@@ -22,6 +22,7 @@ without the sampling stack.
 from __future__ import annotations
 
 import json
+import os
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -189,7 +190,12 @@ def _fit(design: Design, seed: int):
 
 def _save_trace(path: Path, idata) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
-    idata.to_netcdf(str(path), engine="h5netcdf")
+    # Write to a temp file and atomically swap into place. Avoids HDF5 file-lock
+    # contention (errno 35) when a notebook kernel still holds the trace open for
+    # reading, and never leaves a truncated 0-byte file if the write fails.
+    tmp = path.with_name(path.name + ".tmp")
+    idata.to_netcdf(str(tmp), engine="h5netcdf")
+    os.replace(tmp, path)
 
 
 def _summarize(design: Design, idata) -> dict:
