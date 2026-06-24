@@ -1,0 +1,192 @@
+{
+  "instance_id": "gpt-5.4-mini__s0",
+  "model": "gpt-5.4-mini",
+  "parse_mode": "direct",
+  "parsed_json": {
+    "plot_script": "import numpy as np\nfrom scipy.stats import norm, t, skewnorm\nimport matplotlib.pyplot as plt\n\n# Edit this list to change the priors.\nstrategies = [\n    {'title': 'Aggressive fourth downs', 'family': 'normal', 'most_plausible': 0.25, 'params': {'mu': 0.25, 'sigma': 0.1531}},\n    {'title': 'First-down play-action', 'family': 'normal', 'most_plausible': 0.22, 'params': {'mu': 0.22, 'sigma': 0.1633}},\n    {'title': 'Two-high shells', 'family': 'normal', 'most_plausible': 0.18, 'params': {'mu': 0.18, 'sigma': 0.1429}},\n    {'title': 'Timeout to kill chaos', 'family': 'student_t', 'most_plausible': 0.0, 'params': {'nu': 4, 'mu': 0.0, 'sigma': 0.155}},\n    {'title': 'No-huddle bursts after explosives', 'family': 'student_t', 'most_plausible': 0.08, 'params': {'nu': 4, 'mu': 0.08, 'sigma': 0.137}},\n    {'title': 'Disguise-and-pressure mix', 'family': 'student_t', 'most_plausible': 0.11, 'params': {'nu': 4, 'mu': 0.11, 'sigma': 0.1261}},\n]\n\ndef make_dist(item):\n    fam = item['family']\n    p = item['params']\n    if fam == 'normal':\n        return norm(loc=p['mu'], scale=p['sigma'])\n    if fam == 'student_t':\n        return t(df=p['nu'], loc=p['mu'], scale=p['sigma'])\n    if fam == 'skew_normal':\n        return skewnorm(a=p['alpha'], loc=p['xi'], scale=p['omega'])\n    raise ValueError(f'Unknown family: {fam}')\n\nfig, axes = plt.subplots(2, 3, figsize=(16, 9))\naxes = axes.ravel()\n\nfor ax, item in zip(axes, strategies):\n    dist = make_dist(item)\n    lo = dist.ppf(0.001)\n    hi = dist.ppf(0.999)\n    xs = np.linspace(lo, hi, 800)\n    ys = dist.pdf(xs)\n    q025 = dist.ppf(0.025)\n    q975 = dist.ppf(0.975)\n\n    ax.plot(xs, ys, color='navy', lw=2)\n    ax.axvspan(q025, q975, color='skyblue', alpha=0.25, label='95% interval')\n    mp = item['most_plausible']\n    ax.axvline(mp, color='red', ls='--', lw=1.5, label='most plausible')\n    ax.plot([mp], [dist.pdf(mp)], 'ro')\n    ax.set_title(item['title'])\n    ax.set_xlabel('Change in own scoring margin (points)')\n    ax.set_ylabel('Density')\n    ax.grid(alpha=0.2)\n    ax.legend(fontsize=8)\n\n    print(item['title'], item['family'], item['params'])\n\nplt.tight_layout()\nplt.show()",
+    "quantity": {
+      "description": "Change in own-team expected single-game scoring margin from adopting the strategy",
+      "support": "unbounded real; positive favors own team",
+      "units": "points"
+    },
+    "strategies": [
+      {
+        "bucket": "analytics",
+        "prior": {
+          "belief_summaries": {
+            "interval_95_high": 0.55,
+            "interval_95_low": -0.05,
+            "most_plausible_value": 0.25,
+            "shape": "symmetric",
+            "tails": "moderate"
+          },
+          "consistency_check": "Most plausible value is inside the interval, and the normal family has support on all real numbers, so signed effects are allowed.",
+          "distribution_family": {
+            "justification": "The average effect should be modest and fairly stable across games; I do not expect strong asymmetry, so a normal prior is a clean approximation.",
+            "name": "normal"
+          },
+          "parameters": {
+            "conversion_note": "normal: sigma = (0.55 - (-0.05)) / 3.92 = 0.1531.",
+            "mu": 0.25,
+            "sigma": 0.1531
+          }
+        },
+        "rationale": "Public win-probability and expected-points models say extra possessions are usually worth more than the reputational cost of occasional failure, and many coaches still play too conservatively.",
+        "recommendation": "On 4th-and-manageable and in the gray zone for two-point conversions, default to the analytically favored aggression unless game state clearly changes the math. That means fewer automatic punts and more willingness to take the possession edge when the numbers are close.",
+        "title": "Aggressive fourth downs",
+        "type": "game_management"
+      },
+      {
+        "bucket": "analytics",
+        "prior": {
+          "belief_summaries": {
+            "interval_95_high": 0.54,
+            "interval_95_low": -0.1,
+            "most_plausible_value": 0.22,
+            "shape": "symmetric",
+            "tails": "moderate"
+          },
+          "consistency_check": "Most plausible value is inside the interval, and the normal family has support on all real numbers, so signed effects are allowed.",
+          "distribution_family": {
+            "justification": "I expect a positive but not perfectly uniform gain; execution and quarterback fit matter, but the effect is still centered and roughly symmetric.",
+            "name": "normal"
+          },
+          "parameters": {
+            "conversion_note": "normal: sigma = (0.54 - (-0.10)) / 3.92 = 0.1633.",
+            "mu": 0.22,
+            "sigma": 0.1633
+          }
+        },
+        "rationale": "Public analytics consistently show that early-down passing is more efficient than the standard run-run-pass pattern; many teams still leave EPA on the table by protecting balance instead of winning yards.",
+        "recommendation": "On neutral downs, tilt the menu toward first-down play-action and quick-pass concepts instead of run-first habits. The goal is to stay ahead of the chains and create easier second downs and more explosives.",
+        "title": "First-down play-action",
+        "type": "offensive"
+      },
+      {
+        "bucket": "analytics",
+        "prior": {
+          "belief_summaries": {
+            "interval_95_high": 0.46,
+            "interval_95_low": -0.1,
+            "most_plausible_value": 0.18,
+            "shape": "symmetric",
+            "tails": "moderate"
+          },
+          "consistency_check": "Most plausible value is inside the interval, and the normal family has support on all real numbers, so signed effects are allowed.",
+          "distribution_family": {
+            "justification": "The effect should be positive but not huge, and I do not see a strong directional skew; a normal prior is enough.",
+            "name": "normal"
+          },
+          "parameters": {
+            "conversion_note": "normal: sigma = (0.46 - (-0.10)) / 3.92 = 0.1429.",
+            "mu": 0.18,
+            "sigma": 0.1429
+          }
+        },
+        "rationale": "Tracking-based models reward limiting explosive passes more than squeezing a few extra run stuffs, so the field-position and win-probability trade favors the lighter box more often than coaches admit.",
+        "recommendation": "Use more two-high safety shells on early downs and accept some run efficiency to protect against explosives. Make offenses earn long drives rather than giving up one-play touchdowns.",
+        "title": "Two-high shells",
+        "type": "defensive"
+      },
+      {
+        "bucket": "intuition",
+        "prior": {
+          "belief_summaries": {
+            "interval_95_high": 0.43,
+            "interval_95_low": -0.43,
+            "most_plausible_value": 0.0,
+            "shape": "symmetric",
+            "tails": "heavy"
+          },
+          "consistency_check": "Most plausible value is inside the interval, and the student_t family has support on all real numbers, so signed effects are allowed.",
+          "distribution_family": {
+            "justification": "This is weakly identified and can swing either way depending on matchup and timing, so I want a symmetric heavy-tailed prior rather than a narrow one.",
+            "name": "student_t"
+          },
+          "parameters": {
+            "conversion_note": "student_t with nu = 4, using t_{0.975,4} ≈ 2.776; sigma = (0.43 - (-0.43)) / (2 * 2.776) ≈ 0.155.",
+            "mu": 0.0,
+            "nu": 4,
+            "sigma": 0.155
+          }
+        },
+        "rationale": "This is intuition because the payoff depends on opponent tempo, substitution discipline, and whether your sideline actually uses the timeout to get to the right call; the public evidence is thin and mixed.",
+        "recommendation": "Spend a timeout before a key snap when the opponent is rushing to the line, your defense is misaligned, or a bad personnel matchup is about to get exposed. I am not leaning on clean public analytics here; this is a coaching judgment that a reset can prevent a cheap bust.",
+        "title": "Timeout to kill chaos",
+        "type": "game_management"
+      },
+      {
+        "bucket": "intuition",
+        "prior": {
+          "belief_summaries": {
+            "interval_95_high": 0.46,
+            "interval_95_low": -0.3,
+            "most_plausible_value": 0.08,
+            "shape": "symmetric",
+            "tails": "heavy"
+          },
+          "consistency_check": "Most plausible value is inside the interval, and the student_t family has support on all real numbers, so signed effects are allowed.",
+          "distribution_family": {
+            "justification": "The effect is opponent-specific and can be larger than it looks when the defense is unprepared, so heavy tails are more honest than a tight symmetric guess.",
+            "name": "student_t"
+          },
+          "parameters": {
+            "conversion_note": "student_t with nu = 4, using t_{0.975,4} ≈ 2.776; sigma = (0.46 - (-0.30)) / (2 * 2.776) ≈ 0.137.",
+            "mu": 0.08,
+            "nu": 4,
+            "sigma": 0.137
+          }
+        },
+        "rationale": "This is intuition because public research on tempo is mixed and often confounded by matchup quality; the benefit here is in the specific sequencing, not a blanket hurry-up identity.",
+        "recommendation": "Use short no-huddle bursts right after chunk plays or defensive busts, then return to your base tempo. The aim is to stop substitutions, keep the defense in its worst personnel, and attack before it can fully reset.",
+        "title": "No-huddle bursts after explosives",
+        "type": "offensive"
+      },
+      {
+        "bucket": "intuition",
+        "prior": {
+          "belief_summaries": {
+            "interval_95_high": 0.46,
+            "interval_95_low": -0.24,
+            "most_plausible_value": 0.11,
+            "shape": "symmetric",
+            "tails": "heavy"
+          },
+          "consistency_check": "Most plausible value is inside the interval, and the student_t family has support on all real numbers, so signed effects are allowed.",
+          "distribution_family": {
+            "justification": "The upside can be real when the quarterback is uncomfortable, but the downside is also non-trivial if the disguise fails; a heavy-tailed prior captures that uncertainty.",
+            "name": "student_t"
+          },
+          "parameters": {
+            "conversion_note": "student_t with nu = 4, using t_{0.975,4} ≈ 2.776; sigma = (0.46 - (-0.24)) / (2 * 2.776) ≈ 0.1261.",
+            "mu": 0.11,
+            "nu": 4,
+            "sigma": 0.1261
+          }
+        },
+        "rationale": "This is intuition because the value of disguise depends heavily on quarterback processing speed, protection rules, and opponent study, and public analytics are not definitive on the exact dose.",
+        "recommendation": "Mix late coverage rotation with selective simulated pressure on passing downs so the quarterback does not get the same pre-snap answer every time. The goal is to create hesitation, protection errors, and throwaways without living in all-out blitz.",
+        "title": "Disguise-and-pressure mix",
+        "type": "defensive"
+      }
+    ]
+  },
+  "raw_text": "{\n  \"quantity\": {\n    \"description\": \"Change in own-team expected single-game scoring margin from adopting the strategy\",\n    \"units\": \"points\",\n    \"support\": \"unbounded real; positive favors own team\"\n  },\n  \"strategies\": [\n    {\n      \"bucket\": \"analytics\",\n      \"type\": \"game_management\",\n      \"title\": \"Aggressive fourth downs\",\n      \"recommendation\": \"On 4th-and-manageable and in the gray zone for two-point conversions, default to the analytically favored aggression unless game state clearly changes the math. That means fewer automatic punts and more willingness to take the possession edge when the numbers are close.\",\n      \"rationale\": \"Public win-probability and expected-points models say extra possessions are usually worth more than the reputational cost of occasional failure, and many coaches still play too conservatively.\",\n      \"prior\": {\n        \"belief_summaries\": {\n          \"most_plausible_value\": 0.25,\n          \"interval_95_low\": -0.05,\n          \"interval_95_high\": 0.55,\n          \"shape\": \"symmetric\",\n          \"tails\": \"moderate\"\n        },\n        \"distribution_family\": {\n          \"name\": \"normal\",\n          \"justification\": \"The average effect should be modest and fairly stable across games; I do not expect strong asymmetry, so a normal prior is a clean approximation.\"\n        },\n        \"parameters\": {\n          \"mu\": 0.25,\n          \"sigma\": 0.1531,\n          \"conversion_note\": \"normal: sigma = (0.55 - (-0.05)) / 3.92 = 0.1531.\"\n        },\n        \"consistency_check\": \"Most plausible value is inside the interval, and the normal family has support on all real numbers, so signed effects are allowed.\"\n      }\n    },\n    {\n      \"bucket\": \"analytics\",\n      \"type\": \"offensive\",\n      \"title\": \"First-down play-action\",\n      \"recommendation\": \"On neutral downs, tilt the menu toward first-down play-action and quick-pass concepts instead of run-first habits. The goal is to stay ahead of the chains and create easier second downs and more explosives.\",\n      \"rationale\": \"Public analytics consistently show that early-down passing is more efficient than the standard run-run-pass pattern; many teams still leave EPA on the table by protecting balance instead of winning yards.\",\n      \"prior\": {\n        \"belief_summaries\": {\n          \"most_plausible_value\": 0.22,\n          \"interval_95_low\": -0.1,\n          \"interval_95_high\": 0.54,\n          \"shape\": \"symmetric\",\n          \"tails\": \"moderate\"\n        },\n        \"distribution_family\": {\n          \"name\": \"normal\",\n          \"justification\": \"I expect a positive but not perfectly uniform gain; execution and quarterback fit matter, but the effect is still centered and roughly symmetric.\"\n        },\n        \"parameters\": {\n          \"mu\": 0.22,\n          \"sigma\": 0.1633,\n          \"conversion_note\": \"normal: sigma = (0.54 - (-0.10)) / 3.92 = 0.1633.\"\n        },\n        \"consistency_check\": \"Most plausible value is inside the interval, and the normal family has support on all real numbers, so signed effects are allowed.\"\n      }\n    },\n    {\n      \"bucket\": \"analytics\",\n      \"type\": \"defensive\",\n      \"title\": \"Two-high shells\",\n      \"recommendation\": \"Use more two-high safety shells on early downs and accept some run efficiency to protect against explosives. Make offenses earn long drives rather than giving up one-play touchdowns.\",\n      \"rationale\": \"Tracking-based models reward limiting explosive passes more than squeezing a few extra run stuffs, so the field-position and win-probability trade favors the lighter box more often than coaches admit.\",\n      \"prior\": {\n        \"belief_summaries\": {\n          \"most_plausible_value\": 0.18,\n          \"interval_95_low\": -0.1,\n          \"interval_95_high\": 0.46,\n          \"shape\": \"symmetric\",\n          \"tails\": \"moderate\"\n        },\n        \"distribution_family\": {\n          \"name\": \"normal\",\n          \"justification\": \"The effect should be positive but not huge, and I do not see a strong directional skew; a normal prior is enough.\"\n        },\n        \"parameters\": {\n          \"mu\": 0.18,\n          \"sigma\": 0.1429,\n          \"conversion_note\": \"normal: sigma = (0.46 - (-0.10)) / 3.92 = 0.1429.\"\n        },\n        \"consistency_check\": \"Most plausible value is inside the interval, and the normal family has support on all real numbers, so signed effects are allowed.\"\n      }\n    },\n    {\n      \"bucket\": \"intuition\",\n      \"type\": \"game_management\",\n      \"title\": \"Timeout to kill chaos\",\n      \"recommendation\": \"Spend a timeout before a key snap when the opponent is rushing to the line, your defense is misaligned, or a bad personnel matchup is about to get exposed. I am not leaning on clean public analytics here; this is a coaching judgment that a reset can prevent a cheap bust.\",\n      \"rationale\": \"This is intuition because the payoff depends on opponent tempo, substitution discipline, and whether your sideline actually uses the timeout to get to the right call; the public evidence is thin and mixed.\",\n      \"prior\": {\n        \"belief_summaries\": {\n          \"most_plausible_value\": 0.0,\n          \"interval_95_low\": -0.43,\n          \"interval_95_high\": 0.43,\n          \"shape\": \"symmetric\",\n          \"tails\": \"heavy\"\n        },\n        \"distribution_family\": {\n          \"name\": \"student_t\",\n          \"justification\": \"This is weakly identified and can swing either way depending on matchup and timing, so I want a symmetric heavy-tailed prior rather than a narrow one.\"\n        },\n        \"parameters\": {\n          \"nu\": 4,\n          \"mu\": 0.0,\n          \"sigma\": 0.155,\n          \"conversion_note\": \"student_t with nu = 4, using t_{0.975,4} ≈ 2.776; sigma = (0.43 - (-0.43)) / (2 * 2.776) ≈ 0.155.\"\n        },\n        \"consistency_check\": \"Most plausible value is inside the interval, and the student_t family has support on all real numbers, so signed effects are allowed.\"\n      }\n    },\n    {\n      \"bucket\": \"intuition\",\n      \"type\": \"offensive\",\n      \"title\": \"No-huddle bursts after explosives\",\n      \"recommendation\": \"Use short no-huddle bursts right after chunk plays or defensive busts, then return to your base tempo. The aim is to stop substitutions, keep the defense in its worst personnel, and attack before it can fully reset.\",\n      \"rationale\": \"This is intuition because public research on tempo is mixed and often confounded by matchup quality; the benefit here is in the specific sequencing, not a blanket hurry-up identity.\",\n      \"prior\": {\n        \"belief_summaries\": {\n          \"most_plausible_value\": 0.08,\n          \"interval_95_low\": -0.3,\n          \"interval_95_high\": 0.46,\n          \"shape\": \"symmetric\",\n          \"tails\": \"heavy\"\n        },\n        \"distribution_family\": {\n          \"name\": \"student_t\",\n          \"justification\": \"The effect is opponent-specific and can be larger than it looks when the defense is unprepared, so heavy tails are more honest than a tight symmetric guess.\"\n        },\n        \"parameters\": {\n          \"nu\": 4,\n          \"mu\": 0.08,\n          \"sigma\": 0.137,\n          \"conversion_note\": \"student_t with nu = 4, using t_{0.975,4} ≈ 2.776; sigma = (0.46 - (-0.30)) / (2 * 2.776) ≈ 0.137.\"\n        },\n        \"consistency_check\": \"Most plausible value is inside the interval, and the student_t family has support on all real numbers, so signed effects are allowed.\"\n      }\n    },\n    {\n      \"bucket\": \"intuition\",\n      \"type\": \"defensive\",\n      \"title\": \"Disguise-and-pressure mix\",\n      \"recommendation\": \"Mix late coverage rotation with selective simulated pressure on passing downs so the quarterback does not get the same pre-snap answer every time. The goal is to create hesitation, protection errors, and throwaways without living in all-out blitz.\",\n      \"rationale\": \"This is intuition because the value of disguise depends heavily on quarterback processing speed, protection rules, and opponent study, and public analytics are not definitive on the exact dose.\",\n      \"prior\": {\n        \"belief_summaries\": {\n          \"most_plausible_value\": 0.11,\n          \"interval_95_low\": -0.24,\n          \"interval_95_high\": 0.46,\n          \"shape\": \"symmetric\",\n          \"tails\": \"heavy\"\n        },\n        \"distribution_family\": {\n          \"name\": \"student_t\",\n          \"justification\": \"The upside can be real when the quarterback is uncomfortable, but the downside is also non-trivial if the disguise fails; a heavy-tailed prior captures that uncertainty.\"\n        },\n        \"parameters\": {\n          \"nu\": 4,\n          \"mu\": 0.11,\n          \"sigma\": 0.1261,\n          \"conversion_note\": \"student_t with nu = 4, using t_{0.975,4} ≈ 2.776; sigma = (0.46 - (-0.24)) / (2 * 2.776) ≈ 0.1261.\"\n        },\n        \"consistency_check\": \"Most plausible value is inside the interval, and the student_t family has support on all real numbers, so signed effects are allowed.\"\n      }\n    }\n  ],\n  \"plot_script\": \"import numpy as np\\nfrom scipy.stats import norm, t, skewnorm\\nimport matplotlib.pyplot as plt\\n\\n# Edit this list to change the priors.\\nstrategies = [\\n    {'title': 'Aggressive fourth downs', 'family': 'normal', 'most_plausible': 0.25, 'params': {'mu': 0.25, 'sigma': 0.1531}},\\n    {'title': 'First-down play-action', 'family': 'normal', 'most_plausible': 0.22, 'params': {'mu': 0.22, 'sigma': 0.1633}},\\n    {'title': 'Two-high shells', 'family': 'normal', 'most_plausible': 0.18, 'params': {'mu': 0.18, 'sigma': 0.1429}},\\n    {'title': 'Timeout to kill chaos', 'family': 'student_t', 'most_plausible': 0.0, 'params': {'nu': 4, 'mu': 0.0, 'sigma': 0.155}},\\n    {'title': 'No-huddle bursts after explosives', 'family': 'student_t', 'most_plausible': 0.08, 'params': {'nu': 4, 'mu': 0.08, 'sigma': 0.137}},\\n    {'title': 'Disguise-and-pressure mix', 'family': 'student_t', 'most_plausible': 0.11, 'params': {'nu': 4, 'mu': 0.11, 'sigma': 0.1261}},\\n]\\n\\ndef make_dist(item):\\n    fam = item['family']\\n    p = item['params']\\n    if fam == 'normal':\\n        return norm(loc=p['mu'], scale=p['sigma'])\\n    if fam == 'student_t':\\n        return t(df=p['nu'], loc=p['mu'], scale=p['sigma'])\\n    if fam == 'skew_normal':\\n        return skewnorm(a=p['alpha'], loc=p['xi'], scale=p['omega'])\\n    raise ValueError(f'Unknown family: {fam}')\\n\\nfig, axes = plt.subplots(2, 3, figsize=(16, 9))\\naxes = axes.ravel()\\n\\nfor ax, item in zip(axes, strategies):\\n    dist = make_dist(item)\\n    lo = dist.ppf(0.001)\\n    hi = dist.ppf(0.999)\\n    xs = np.linspace(lo, hi, 800)\\n    ys = dist.pdf(xs)\\n    q025 = dist.ppf(0.025)\\n    q975 = dist.ppf(0.975)\\n\\n    ax.plot(xs, ys, color='navy', lw=2)\\n    ax.axvspan(q025, q975, color='skyblue', alpha=0.25, label='95% interval')\\n    mp = item['most_plausible']\\n    ax.axvline(mp, color='red', ls='--', lw=1.5, label='most plausible')\\n    ax.plot([mp], [dist.pdf(mp)], 'ro')\\n    ax.set_title(item['title'])\\n    ax.set_xlabel('Change in own scoring margin (points)')\\n    ax.set_ylabel('Density')\\n    ax.grid(alpha=0.2)\\n    ax.legend(fontsize=8)\\n\\n    print(item['title'], item['family'], item['params'])\\n\\nplt.tight_layout()\\nplt.show()\"\n}",
+  "request_params": {
+    "max_output_tokens": 64000,
+    "model": "gpt-5.4-mini",
+    "reasoning": {
+      "effort": "high"
+    }
+  },
+  "sample_idx": 0,
+  "seed": null,
+  "snapshot_id": "gpt-5.4-mini-2026-03-17",
+  "stop_reason": "completed",
+  "temperature": null,
+  "ts": "2026-06-11T02:20:32Z",
+  "usage": {
+    "input_tokens": 1690,
+    "output_tokens": 26781
+  }
+}

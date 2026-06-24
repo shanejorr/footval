@@ -1,0 +1,190 @@
+{
+  "instance_id": "deepseek-v4-flash__s0",
+  "model": "deepseek-v4-flash",
+  "parse_mode": "direct",
+  "parsed_json": {
+    "plot_script": "import numpy as np\nimport matplotlib.pyplot as plt\nfrom scipy.stats import norm, t, skewnorm\n\nstrategies = [\n    (\"Late-game 4th down aggression\", \"normal\", {\"mu\":1.2, \"sigma\":0.5102}),\n    (\"Heavy pre-snap motion\", \"normal\", {\"mu\":0.9, \"sigma\":0.4592}),\n    (\"Two-high safeties on early downs\", \"normal\", {\"mu\":0.7, \"sigma\":0.5102}),\n    (\"Intentional safety before punt\", \"skew_normal\", {\"xi\":-0.5, \"omega\":1.5, \"alpha\":2.0}),\n    (\"No-huddle against tired defenses\", \"skew_normal\", {\"xi\":-0.3, \"omega\":1.3, \"alpha\":2.5}),\n    (\"Press-man coverage against slow receivers\", \"student_t\", {\"nu\":4, \"mu\":0.5, \"sigma\":0.5403})\n]\n\nx = np.linspace(-5, 5, 1000)\nfig, axes = plt.subplots(2, 3, figsize=(15, 10))\nfor ax, (title, family, params) in zip(axes.flatten(), strategies):\n    if family == \"normal\":\n        mu = params[\"mu\"]; sigma = params[\"sigma\"]\n        pdf = norm.pdf(x, mu, sigma)\n        low, high = norm.ppf(0.025, mu, sigma), norm.ppf(0.975, mu, sigma)\n        most_plaus = mu\n    elif family == \"student_t\":\n        nu = params[\"nu\"]; mu = params[\"mu\"]; sigma = params[\"sigma\"]\n        pdf = t.pdf(x, nu, mu, sigma)\n        low, high = t.ppf(0.025, nu, mu, sigma), t.ppf(0.975, nu, mu, sigma)\n        most_plaus = mu\n    elif family == \"skew_normal\":\n        xi = params[\"xi\"]; omega = params[\"omega\"]; alpha = params[\"alpha\"]\n        pdf = skewnorm.pdf(x, alpha, xi, omega)\n        low, high = skewnorm.ppf(0.025, alpha, xi, omega), skewnorm.ppf(0.975, alpha, xi, omega)\n        # compute mode numerically from pdf\n        mode_idx = np.argmax(pdf)\n        most_plaus = x[mode_idx]\n    ax.plot(x, pdf)\n    ax.axvline(most_plaus, color='red', linestyle='--', label=f'Most plausible = {most_plaus:.3f}')\n    ax.axvspan(low, high, alpha=0.3, color='gray', label=f'95% interval [{low:.3f}, {high:.3f}]')\n    ax.set_title(title)\n    ax.set_xlabel(\"Change in own scoring margin (points)\")\n    ax.legend(fontsize=8)\nplt.tight_layout()\nplt.show()\n\nfor title, family, params in strategies:\n    print(f\"{title}: family={family}, params={params}\")",
+    "quantity": {
+      "description": "Change in own-team expected single-game scoring margin from adopting the strategy",
+      "support": "unbounded real; positive favors own team",
+      "units": "points"
+    },
+    "strategies": [
+      {
+        "bucket": "analytics",
+        "prior": {
+          "belief_summaries": {
+            "interval_95_high": 2.2,
+            "interval_95_low": 0.2,
+            "most_plausible_value": 1.2,
+            "shape": "symmetric",
+            "tails": "moderate"
+          },
+          "consistency_check": "most_plausible=1.2 lies inside [0.2, 2.2]; normal distribution supports signed values.",
+          "distribution_family": {
+            "justification": "Symmetric effect with moderate tails; no strong reason for skew or extreme outcomes given robust analytics support.",
+            "name": "normal"
+          },
+          "parameters": {
+            "conversion_note": "sigma = (2.2 - 0.2) / 3.92 = 2.0 / 3.92 = 0.5102",
+            "mu": 1.2,
+            "sigma": 0.5102
+          }
+        },
+        "rationale": "Increasing conversion attempts in high-leverage situations directly adds expected points and wins more games, as many coaches still punt too often in these spots.",
+        "recommendation": "On fourth-and-short inside opponent territory (e.g., 30-45 yard line) in the fourth quarter, go for it rather than punt or field goal, even if conventional wisdom favors punting. Analytics models show expected points gained from conversion outweighs field position loss.",
+        "title": "Late-game 4th down aggression",
+        "type": "game_management"
+      },
+      {
+        "bucket": "analytics",
+        "prior": {
+          "belief_summaries": {
+            "interval_95_high": 1.8,
+            "interval_95_low": 0.0,
+            "most_plausible_value": 0.9,
+            "shape": "symmetric",
+            "tails": "moderate"
+          },
+          "consistency_check": "most_plausible=0.9 inside [0.0, 1.8]; normal signed support.",
+          "distribution_family": {
+            "justification": "Symmetric with moderate tails; effect is fairly well-estimated by existing analytics but still some uncertainty.",
+            "name": "normal"
+          },
+          "parameters": {
+            "conversion_note": "sigma = (1.8 - 0.0) / 3.92 = 1.8 / 3.92 = 0.4592",
+            "mu": 0.9,
+            "sigma": 0.4592
+          }
+        },
+        "rationale": "More motion exploits defense's inability to fully disguise and react, generating incremental advantages that compound over a game, raising win probability.",
+        "recommendation": "Use motion on at least 80% of snaps (beyond league average ~60%) to force defenses to adjust alignment, revealing coverage tendencies and creating mismatches. Analytics shows motion increases yards per play and first-down rate.",
+        "title": "Heavy pre-snap motion",
+        "type": "offensive"
+      },
+      {
+        "bucket": "analytics",
+        "prior": {
+          "belief_summaries": {
+            "interval_95_high": 1.7,
+            "interval_95_low": -0.3,
+            "most_plausible_value": 0.7,
+            "shape": "symmetric",
+            "tails": "moderate"
+          },
+          "consistency_check": "most_plausible=0.7 inside [-0.3, 1.7]; normal signed support.",
+          "distribution_family": {
+            "justification": "Symmetric effect with moderate uncertainty; some risk of negative effect if offense dinks and dunks efficiently, but overall expected positive.",
+            "name": "normal"
+          },
+          "parameters": {
+            "conversion_note": "sigma = (1.7 - (-0.3)) / 3.92 = 2.0 / 3.92 = 0.5102",
+            "mu": 0.7,
+            "sigma": 0.5102
+          }
+        },
+        "rationale": "Preventing big plays is a primary driver of defensive success; this conservative approach forces longer drives and more third downs, where defenses have an edge.",
+        "recommendation": "Play Cover-2 or Cover-4 shells on first and second downs, regardless of down and distance, to limit explosive runs and deep passes. Analytics shows reduced explosive plays outweighs the slight increase in short completions.",
+        "title": "Two-high safeties on early downs",
+        "type": "defensive"
+      },
+      {
+        "bucket": "intuition",
+        "prior": {
+          "belief_summaries": {
+            "interval_95_high": 2.0,
+            "interval_95_low": -0.8,
+            "most_plausible_value": 0.3,
+            "shape": "right_skewed",
+            "tails": "heavy"
+          },
+          "consistency_check": "most_plausible=0.3 inside [-0.8, 2.0]; skew_normal supports signed values; note that mode is approximate due to numerical fitting.",
+          "distribution_family": {
+            "justification": "Intuition suggests upside potential (e.g., if blocked punt is avoided) could be larger than downside risks, resulting in a right-skewed distribution with heavier tails due to situational variability.",
+            "name": "skew_normal"
+          },
+          "parameters": {
+            "alpha": 2.0,
+            "conversion_note": "Fitted numerically: xi=-0.5, omega=1.5, alpha=2.0 gives mode ≈0.3 and 95% interval ≈[-0.8, 2.0] (approximate).",
+            "omega": 1.5,
+            "xi": -0.5
+          }
+        },
+        "rationale": "An intentional safety can improve expected net punting yardage by 15-20 yards and eliminate blocked punt risk, potentially increasing win probability in low-scoring games despite giving up points.",
+        "recommendation": "When pinned inside your own 5-yard line with a long punt expected, consider taking an intentional safety (running out of end zone) to give up 2 points but then kick from the 20-yard line. Intuition: the net field position gain and risk of blocked punt outweigh the 2-point cost, but analytics on this is mixed and context-specific.",
+        "title": "Intentional safety before punt",
+        "type": "game_management"
+      },
+      {
+        "bucket": "intuition",
+        "prior": {
+          "belief_summaries": {
+            "interval_95_high": 2.5,
+            "interval_95_low": -0.5,
+            "most_plausible_value": 1.0,
+            "shape": "right_skewed",
+            "tails": "heavy"
+          },
+          "consistency_check": "most_plausible=1.0 inside [-0.5, 2.5]; skew_normal signed support; mode approximate.",
+          "distribution_family": {
+            "justification": "Right-skewed reflects possibility of a large positive effect if defense is truly exhausted, but also chance of negative effect from turnovers; heavy tails capture extreme outcomes.",
+            "name": "skew_normal"
+          },
+          "parameters": {
+            "alpha": 2.5,
+            "conversion_note": "Fitted numerically: xi=-0.3, omega=1.3, alpha=2.5 gives mode ≈1.0 and 95% interval ≈[-0.5, 2.5] (approximate).",
+            "omega": 1.3,
+            "xi": -0.3
+          }
+        },
+        "rationale": "Wearing down a defense that is already fatigued can create scoring opportunities late in drives, boosting overall scoring margin beyond what conventional models capture.",
+        "recommendation": "Employ an up-tempo no-huddle offense even when not trailing, specifically when the defense has been on the field for multiple consecutive drives. Intuition: speed of play prevents defensive substitutions and exhausts players, leading to missed assignments and easier gains. Analytics shows mixed results on turnovers and three-and-outs.",
+        "title": "No-huddle against tired defenses",
+        "type": "offensive"
+      },
+      {
+        "bucket": "intuition",
+        "prior": {
+          "belief_summaries": {
+            "interval_95_high": 2.0,
+            "interval_95_low": -1.0,
+            "most_plausible_value": 0.5,
+            "shape": "symmetric",
+            "tails": "heavy"
+          },
+          "consistency_check": "most_plausible=0.5 inside [-1.0, 2.0]; student_t signed support.",
+          "distribution_family": {
+            "justification": "Heavy tails (ν=4) capture significant uncertainty due to situational factors (down, distance, opponent adjustments) while symmetric reflects no strong directional bias in my intuition.",
+            "name": "student_t"
+          },
+          "parameters": {
+            "conversion_note": "Using ν=4, t_{0.975,4}=2.776; sigma = (2.0 - (-1.0)) / (2*2.776) = 3.0 / 5.552 = 0.5403",
+            "mu": 0.5,
+            "nu": 4,
+            "sigma": 0.5403
+          }
+        },
+        "rationale": "Taking away quick routes with physical coverage can force the offense to hold the ball longer, leading to sacks and stalled drives, increasing win probability.",
+        "recommendation": "Against offenses with slow wide receivers (40-yard dash >4.6), play press-man coverage on early downs to disrupt release and timing. Intuition: press coverage's risk of being beaten deep is mitigated by lack of speed, and disruption forces incompletions or short gains. Analytics studies are mixed and don't account for specific receiver speed thresholds.",
+        "title": "Press-man coverage against slow receivers",
+        "type": "defensive"
+      }
+    ]
+  },
+  "raw_text": "{\n  \"quantity\": {\n    \"description\": \"Change in own-team expected single-game scoring margin from adopting the strategy\",\n    \"units\": \"points\",\n    \"support\": \"unbounded real; positive favors own team\"\n  },\n  \"strategies\": [\n    {\n      \"bucket\": \"analytics\",\n      \"type\": \"game_management\",\n      \"title\": \"Late-game 4th down aggression\",\n      \"recommendation\": \"On fourth-and-short inside opponent territory (e.g., 30-45 yard line) in the fourth quarter, go for it rather than punt or field goal, even if conventional wisdom favors punting. Analytics models show expected points gained from conversion outweighs field position loss.\",\n      \"rationale\": \"Increasing conversion attempts in high-leverage situations directly adds expected points and wins more games, as many coaches still punt too often in these spots.\",\n      \"prior\": {\n        \"belief_summaries\": {\n          \"most_plausible_value\": 1.2,\n          \"interval_95_low\": 0.2,\n          \"interval_95_high\": 2.2,\n          \"shape\": \"symmetric\",\n          \"tails\": \"moderate\"\n        },\n        \"distribution_family\": {\n          \"name\": \"normal\",\n          \"justification\": \"Symmetric effect with moderate tails; no strong reason for skew or extreme outcomes given robust analytics support.\"\n        },\n        \"parameters\": {\n          \"mu\": 1.2,\n          \"sigma\": 0.5102,\n          \"conversion_note\": \"sigma = (2.2 - 0.2) / 3.92 = 2.0 / 3.92 = 0.5102\"\n        },\n        \"consistency_check\": \"most_plausible=1.2 lies inside [0.2, 2.2]; normal distribution supports signed values.\"\n      }\n    },\n    {\n      \"bucket\": \"analytics\",\n      \"type\": \"offensive\",\n      \"title\": \"Heavy pre-snap motion\",\n      \"recommendation\": \"Use motion on at least 80% of snaps (beyond league average ~60%) to force defenses to adjust alignment, revealing coverage tendencies and creating mismatches. Analytics shows motion increases yards per play and first-down rate.\",\n      \"rationale\": \"More motion exploits defense's inability to fully disguise and react, generating incremental advantages that compound over a game, raising win probability.\",\n      \"prior\": {\n        \"belief_summaries\": {\n          \"most_plausible_value\": 0.9,\n          \"interval_95_low\": 0.0,\n          \"interval_95_high\": 1.8,\n          \"shape\": \"symmetric\",\n          \"tails\": \"moderate\"\n        },\n        \"distribution_family\": {\n          \"name\": \"normal\",\n          \"justification\": \"Symmetric with moderate tails; effect is fairly well-estimated by existing analytics but still some uncertainty.\"\n        },\n        \"parameters\": {\n          \"mu\": 0.9,\n          \"sigma\": 0.4592,\n          \"conversion_note\": \"sigma = (1.8 - 0.0) / 3.92 = 1.8 / 3.92 = 0.4592\"\n        },\n        \"consistency_check\": \"most_plausible=0.9 inside [0.0, 1.8]; normal signed support.\"\n      }\n    },\n    {\n      \"bucket\": \"analytics\",\n      \"type\": \"defensive\",\n      \"title\": \"Two-high safeties on early downs\",\n      \"recommendation\": \"Play Cover-2 or Cover-4 shells on first and second downs, regardless of down and distance, to limit explosive runs and deep passes. Analytics shows reduced explosive plays outweighs the slight increase in short completions.\",\n      \"rationale\": \"Preventing big plays is a primary driver of defensive success; this conservative approach forces longer drives and more third downs, where defenses have an edge.\",\n      \"prior\": {\n        \"belief_summaries\": {\n          \"most_plausible_value\": 0.7,\n          \"interval_95_low\": -0.3,\n          \"interval_95_high\": 1.7,\n          \"shape\": \"symmetric\",\n          \"tails\": \"moderate\"\n        },\n        \"distribution_family\": {\n          \"name\": \"normal\",\n          \"justification\": \"Symmetric effect with moderate uncertainty; some risk of negative effect if offense dinks and dunks efficiently, but overall expected positive.\"\n        },\n        \"parameters\": {\n          \"mu\": 0.7,\n          \"sigma\": 0.5102,\n          \"conversion_note\": \"sigma = (1.7 - (-0.3)) / 3.92 = 2.0 / 3.92 = 0.5102\"\n        },\n        \"consistency_check\": \"most_plausible=0.7 inside [-0.3, 1.7]; normal signed support.\"\n      }\n    },\n    {\n      \"bucket\": \"intuition\",\n      \"type\": \"game_management\",\n      \"title\": \"Intentional safety before punt\",\n      \"recommendation\": \"When pinned inside your own 5-yard line with a long punt expected, consider taking an intentional safety (running out of end zone) to give up 2 points but then kick from the 20-yard line. Intuition: the net field position gain and risk of blocked punt outweigh the 2-point cost, but analytics on this is mixed and context-specific.\",\n      \"rationale\": \"An intentional safety can improve expected net punting yardage by 15-20 yards and eliminate blocked punt risk, potentially increasing win probability in low-scoring games despite giving up points.\",\n      \"prior\": {\n        \"belief_summaries\": {\n          \"most_plausible_value\": 0.3,\n          \"interval_95_low\": -0.8,\n          \"interval_95_high\": 2.0,\n          \"shape\": \"right_skewed\",\n          \"tails\": \"heavy\"\n        },\n        \"distribution_family\": {\n          \"name\": \"skew_normal\",\n          \"justification\": \"Intuition suggests upside potential (e.g., if blocked punt is avoided) could be larger than downside risks, resulting in a right-skewed distribution with heavier tails due to situational variability.\"\n        },\n        \"parameters\": {\n          \"xi\": -0.5,\n          \"omega\": 1.5,\n          \"alpha\": 2.0,\n          \"conversion_note\": \"Fitted numerically: xi=-0.5, omega=1.5, alpha=2.0 gives mode ≈0.3 and 95% interval ≈[-0.8, 2.0] (approximate).\"\n        },\n        \"consistency_check\": \"most_plausible=0.3 inside [-0.8, 2.0]; skew_normal supports signed values; note that mode is approximate due to numerical fitting.\"\n      }\n    },\n    {\n      \"bucket\": \"intuition\",\n      \"type\": \"offensive\",\n      \"title\": \"No-huddle against tired defenses\",\n      \"recommendation\": \"Employ an up-tempo no-huddle offense even when not trailing, specifically when the defense has been on the field for multiple consecutive drives. Intuition: speed of play prevents defensive substitutions and exhausts players, leading to missed assignments and easier gains. Analytics shows mixed results on turnovers and three-and-outs.\",\n      \"rationale\": \"Wearing down a defense that is already fatigued can create scoring opportunities late in drives, boosting overall scoring margin beyond what conventional models capture.\",\n      \"prior\": {\n        \"belief_summaries\": {\n          \"most_plausible_value\": 1.0,\n          \"interval_95_low\": -0.5,\n          \"interval_95_high\": 2.5,\n          \"shape\": \"right_skewed\",\n          \"tails\": \"heavy\"\n        },\n        \"distribution_family\": {\n          \"name\": \"skew_normal\",\n          \"justification\": \"Right-skewed reflects possibility of a large positive effect if defense is truly exhausted, but also chance of negative effect from turnovers; heavy tails capture extreme outcomes.\"\n        },\n        \"parameters\": {\n          \"xi\": -0.3,\n          \"omega\": 1.3,\n          \"alpha\": 2.5,\n          \"conversion_note\": \"Fitted numerically: xi=-0.3, omega=1.3, alpha=2.5 gives mode ≈1.0 and 95% interval ≈[-0.5, 2.5] (approximate).\"\n        },\n        \"consistency_check\": \"most_plausible=1.0 inside [-0.5, 2.5]; skew_normal signed support; mode approximate.\"\n      }\n    },\n    {\n      \"bucket\": \"intuition\",\n      \"type\": \"defensive\",\n      \"title\": \"Press-man coverage against slow receivers\",\n      \"recommendation\": \"Against offenses with slow wide receivers (40-yard dash >4.6), play press-man coverage on early downs to disrupt release and timing. Intuition: press coverage's risk of being beaten deep is mitigated by lack of speed, and disruption forces incompletions or short gains. Analytics studies are mixed and don't account for specific receiver speed thresholds.\",\n      \"rationale\": \"Taking away quick routes with physical coverage can force the offense to hold the ball longer, leading to sacks and stalled drives, increasing win probability.\",\n      \"prior\": {\n        \"belief_summaries\": {\n          \"most_plausible_value\": 0.5,\n          \"interval_95_low\": -1.0,\n          \"interval_95_high\": 2.0,\n          \"shape\": \"symmetric\",\n          \"tails\": \"heavy\"\n        },\n        \"distribution_family\": {\n          \"name\": \"student_t\",\n          \"justification\": \"Heavy tails (ν=4) capture significant uncertainty due to situational factors (down, distance, opponent adjustments) while symmetric reflects no strong directional bias in my intuition.\"\n        },\n        \"parameters\": {\n          \"nu\": 4,\n          \"mu\": 0.5,\n          \"sigma\": 0.5403,\n          \"conversion_note\": \"Using ν=4, t_{0.975,4}=2.776; sigma = (2.0 - (-1.0)) / (2*2.776) = 3.0 / 5.552 = 0.5403\"\n        },\n        \"consistency_check\": \"most_plausible=0.5 inside [-1.0, 2.0]; student_t signed support.\"\n      }\n    }\n  ],\n  \"plot_script\": \"import numpy as np\\nimport matplotlib.pyplot as plt\\nfrom scipy.stats import norm, t, skewnorm\\n\\nstrategies = [\\n    (\\\"Late-game 4th down aggression\\\", \\\"normal\\\", {\\\"mu\\\":1.2, \\\"sigma\\\":0.5102}),\\n    (\\\"Heavy pre-snap motion\\\", \\\"normal\\\", {\\\"mu\\\":0.9, \\\"sigma\\\":0.4592}),\\n    (\\\"Two-high safeties on early downs\\\", \\\"normal\\\", {\\\"mu\\\":0.7, \\\"sigma\\\":0.5102}),\\n    (\\\"Intentional safety before punt\\\", \\\"skew_normal\\\", {\\\"xi\\\":-0.5, \\\"omega\\\":1.5, \\\"alpha\\\":2.0}),\\n    (\\\"No-huddle against tired defenses\\\", \\\"skew_normal\\\", {\\\"xi\\\":-0.3, \\\"omega\\\":1.3, \\\"alpha\\\":2.5}),\\n    (\\\"Press-man coverage against slow receivers\\\", \\\"student_t\\\", {\\\"nu\\\":4, \\\"mu\\\":0.5, \\\"sigma\\\":0.5403})\\n]\\n\\nx = np.linspace(-5, 5, 1000)\\nfig, axes = plt.subplots(2, 3, figsize=(15, 10))\\nfor ax, (title, family, params) in zip(axes.flatten(), strategies):\\n    if family == \\\"normal\\\":\\n        mu = params[\\\"mu\\\"]; sigma = params[\\\"sigma\\\"]\\n        pdf = norm.pdf(x, mu, sigma)\\n        low, high = norm.ppf(0.025, mu, sigma), norm.ppf(0.975, mu, sigma)\\n        most_plaus = mu\\n    elif family == \\\"student_t\\\":\\n        nu = params[\\\"nu\\\"]; mu = params[\\\"mu\\\"]; sigma = params[\\\"sigma\\\"]\\n        pdf = t.pdf(x, nu, mu, sigma)\\n        low, high = t.ppf(0.025, nu, mu, sigma), t.ppf(0.975, nu, mu, sigma)\\n        most_plaus = mu\\n    elif family == \\\"skew_normal\\\":\\n        xi = params[\\\"xi\\\"]; omega = params[\\\"omega\\\"]; alpha = params[\\\"alpha\\\"]\\n        pdf = skewnorm.pdf(x, alpha, xi, omega)\\n        low, high = skewnorm.ppf(0.025, alpha, xi, omega), skewnorm.ppf(0.975, alpha, xi, omega)\\n        # compute mode numerically from pdf\\n        mode_idx = np.argmax(pdf)\\n        most_plaus = x[mode_idx]\\n    ax.plot(x, pdf)\\n    ax.axvline(most_plaus, color='red', linestyle='--', label=f'Most plausible = {most_plaus:.3f}')\\n    ax.axvspan(low, high, alpha=0.3, color='gray', label=f'95% interval [{low:.3f}, {high:.3f}]')\\n    ax.set_title(title)\\n    ax.set_xlabel(\\\"Change in own scoring margin (points)\\\")\\n    ax.legend(fontsize=8)\\nplt.tight_layout()\\nplt.show()\\n\\nfor title, family, params in strategies:\\n    print(f\\\"{title}: family={family}, params={params}\\\")\"\n}",
+  "request_params": {
+    "max_tokens": 64000,
+    "model": "deepseek-v4-flash",
+    "temperature": 1.0
+  },
+  "sample_idx": 0,
+  "seed": null,
+  "snapshot_id": "deepseek-v4-flash",
+  "stop_reason": "stop",
+  "temperature": 1.0,
+  "ts": "2026-06-11T02:26:40Z",
+  "usage": {
+    "input_tokens": 1727,
+    "output_tokens": 5686
+  }
+}

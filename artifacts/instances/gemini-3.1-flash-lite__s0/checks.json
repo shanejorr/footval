@@ -1,0 +1,179 @@
+{
+  "detail": {
+    "grid": {
+      "duplicate_cells": [],
+      "duplicate_titles": [],
+      "issues": [],
+      "missing_cells": [],
+      "n_strategies": 6
+    },
+    "json": {
+      "missing_keys": []
+    },
+    "parse_mode": "fenced",
+    "strategies": [
+      {
+        "cell": "analytics/game_management",
+        "errors": {
+          "center": 0.0,
+          "high": 0.00012000000000000899,
+          "low": 0.00012000000000003674
+        },
+        "family": "normal",
+        "family_valid": true,
+        "idx": 0,
+        "interval_sane": true,
+        "params_ok": true,
+        "reason": null,
+        "recomputed": {
+          "center": 0.45,
+          "high": 0.74988,
+          "low": 0.15012000000000003
+        },
+        "reported": {
+          "high": 0.75,
+          "low": 0.15,
+          "most_plausible_value": 0.45
+        },
+        "title": "Hyper-Aggressive 4th-Down Conversion",
+        "tol_abs": 0.06
+      },
+      {
+        "cell": "analytics/offensive",
+        "errors": {
+          "center": 0.0,
+          "high": 8.00000000000245e-05,
+          "low": 7.999999999999674e-05
+        },
+        "family": "normal",
+        "family_valid": true,
+        "idx": 1,
+        "interval_sane": true,
+        "params_ok": true,
+        "reason": null,
+        "recomputed": {
+          "center": 0.3,
+          "high": 0.49992,
+          "low": 0.10008
+        },
+        "reported": {
+          "high": 0.5,
+          "low": 0.1,
+          "most_plausible_value": 0.3
+        },
+        "title": "Maximal Pre-Snap Motion",
+        "tol_abs": 0.04000000000000001
+      },
+      {
+        "cell": "analytics/defensive",
+        "errors": {
+          "center": 0.0,
+          "high": 0.00023988106439720713,
+          "low": 0.00023988106439720713
+        },
+        "family": "student_t",
+        "family_valid": true,
+        "idx": 2,
+        "interval_sane": true,
+        "params_ok": true,
+        "reason": null,
+        "recomputed": {
+          "center": 0.1,
+          "high": 0.5997601189356028,
+          "low": -0.3997601189356028
+        },
+        "reported": {
+          "high": 0.6,
+          "low": -0.4,
+          "most_plausible_value": 0.1
+        },
+        "title": "Red Zone Blitz Intensity",
+        "tol_abs": 0.1
+      },
+      {
+        "cell": "intuition/game_management",
+        "errors": {
+          "center": 0.03268957590224447,
+          "high": 0.11035060522037932,
+          "low": 0.024152740676935777
+        },
+        "family": "skew_normal",
+        "family_valid": true,
+        "idx": 3,
+        "interval_sane": true,
+        "params_ok": false,
+        "reason": "recomputed high deviates from reported by 0.1104 (tolerance 0.06 = 0.1 x interval width)",
+        "recomputed": {
+          "center": 0.18268957590224447,
+          "high": 0.6103506052203793,
+          "low": -0.07584725932306423
+        },
+        "reported": {
+          "high": 0.5,
+          "low": -0.1,
+          "most_plausible_value": 0.15
+        },
+        "title": "The Fatigue Tempo Pivot",
+        "tol_abs": 0.06
+      },
+      {
+        "cell": "intuition/offensive",
+        "errors": {
+          "center": 0.010642494509184836,
+          "high": 0.00343890895817367,
+          "low": 0.3830209166194888
+        },
+        "family": "skew_normal",
+        "family_valid": true,
+        "idx": 4,
+        "interval_sane": true,
+        "params_ok": false,
+        "reason": "recomputed low deviates from reported by 0.383 (tolerance 0.14 = 0.1 x interval width)",
+        "recomputed": {
+          "center": 0.18935750549081518,
+          "high": 0.8965610910418264,
+          "low": -0.11697908338051122
+        },
+        "reported": {
+          "high": 0.9,
+          "low": -0.5,
+          "most_plausible_value": 0.2
+        },
+        "title": "Position-less Chaos Personnel",
+        "tol_abs": 0.13999999999999999
+      },
+      {
+        "cell": "intuition/defensive",
+        "errors": {
+          "center": 0.0,
+          "high": 0.0002716691880156885,
+          "low": 0.0002716691880155775
+        },
+        "family": "student_t",
+        "family_valid": true,
+        "idx": 5,
+        "interval_sane": true,
+        "params_ok": true,
+        "reason": null,
+        "recomputed": {
+          "center": 0.05,
+          "high": 0.7002716691880156,
+          "low": -0.6002716691880156
+        },
+        "reported": {
+          "high": 0.7,
+          "low": -0.6,
+          "most_plausible_value": 0.05
+        },
+        "title": "The Free-Roaming Safety",
+        "tol_abs": 0.12999999999999998
+      }
+    ]
+  },
+  "family_ok": true,
+  "grid_complete": true,
+  "instance_id": "gemini-3.1-flash-lite__s0",
+  "intervals_ok": true,
+  "json_valid": true,
+  "params_reproduce_ok": false
+}

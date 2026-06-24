@@ -1,0 +1,179 @@
+{
+  "detail": {
+    "grid": {
+      "duplicate_cells": [],
+      "duplicate_titles": [],
+      "issues": [],
+      "missing_cells": [],
+      "n_strategies": 6
+    },
+    "json": {
+      "missing_keys": []
+    },
+    "parse_mode": "direct",
+    "strategies": [
+      {
+        "cell": "analytics/game_management",
+        "errors": {
+          "center": 0.0,
+          "high": 8.000000000230045e-06,
+          "low": 7.99999999995249e-06
+        },
+        "family": "normal",
+        "family_valid": true,
+        "idx": 0,
+        "interval_sane": true,
+        "params_ok": true,
+        "reason": null,
+        "recomputed": {
+          "center": 1.2,
+          "high": 2.199992,
+          "low": 0.20000799999999996
+        },
+        "reported": {
+          "high": 2.2,
+          "low": 0.2,
+          "most_plausible_value": 1.2
+        },
+        "title": "Late-game 4th down aggression",
+        "tol_abs": 0.2
+      },
+      {
+        "cell": "analytics/offensive",
+        "errors": {
+          "center": 0.0,
+          "high": 3.199999999980996e-05,
+          "low": 3.199999999992098e-05
+        },
+        "family": "normal",
+        "family_valid": true,
+        "idx": 1,
+        "interval_sane": true,
+        "params_ok": true,
+        "reason": null,
+        "recomputed": {
+          "center": 0.9,
+          "high": 1.8000319999999999,
+          "low": -3.199999999992098e-05
+        },
+        "reported": {
+          "high": 1.8,
+          "low": 0.0,
+          "most_plausible_value": 0.9
+        },
+        "title": "Heavy pre-snap motion",
+        "tol_abs": 0.18000000000000002
+      },
+      {
+        "cell": "analytics/defensive",
+        "errors": {
+          "center": 0.0,
+          "high": 8.000000000008e-06,
+          "low": 7.99999999995249e-06
+        },
+        "family": "normal",
+        "family_valid": true,
+        "idx": 2,
+        "interval_sane": true,
+        "params_ok": true,
+        "reason": null,
+        "recomputed": {
+          "center": 0.7,
+          "high": 1.699992,
+          "low": -0.29999200000000004
+        },
+        "reported": {
+          "high": 1.7,
+          "low": -0.3,
+          "most_plausible_value": 0.7
+        },
+        "title": "Two-high safeties on early downs",
+        "tol_abs": 0.2
+      },
+      {
+        "cell": "intuition/game_management",
+        "errors": {
+          "center": 0.003862544586482053,
+          "high": 0.8621036313222756,
+          "low": 0.45508355593838545
+        },
+        "family": "skew_normal",
+        "family_valid": true,
+        "idx": 3,
+        "interval_sane": true,
+        "params_ok": false,
+        "reason": "recomputed high deviates from reported by 0.8621 (tolerance 0.28 = 0.1 x interval width)",
+        "recomputed": {
+          "center": 0.29613745541351794,
+          "high": 2.8621036313222756,
+          "low": -1.2550835559383855
+        },
+        "reported": {
+          "high": 2.0,
+          "low": -0.8,
+          "most_plausible_value": 0.3
+        },
+        "title": "Intentional safety before punt",
+        "tol_abs": 0.27999999999999997
+      },
+      {
+        "cell": "intuition/offensive",
+        "errors": {
+          "center": 0.645179196137011,
+          "high": 0.11382354508690629,
+          "low": 0.29139603522302127
+        },
+        "family": "skew_normal",
+        "family_valid": true,
+        "idx": 4,
+        "interval_sane": true,
+        "params_ok": false,
+        "reason": "recomputed center deviates from reported by 0.6452 (tolerance 0.3 = 0.1 x interval width)",
+        "recomputed": {
+          "center": 0.354820803862989,
+          "high": 2.6138235450869063,
+          "low": -0.7913960352230213
+        },
+        "reported": {
+          "high": 2.5,
+          "low": -0.5,
+          "most_plausible_value": 1.0
+        },
+        "title": "No-huddle against tired defenses",
+        "tol_abs": 0.30000000000000004
+      },
+      {
+        "cell": "intuition/defensive",
+        "errors": {
+          "center": 0.0,
+          "high": 0.00011329033836782187,
+          "low": 0.00011329033836782187
+        },
+        "family": "student_t",
+        "family_valid": true,
+        "idx": 5,
+        "interval_sane": true,
+        "params_ok": true,
+        "reason": null,
+        "recomputed": {
+          "center": 0.5,
+          "high": 2.000113290338368,
+          "low": -1.0001132903383678
+        },
+        "reported": {
+          "high": 2.0,
+          "low": -1.0,
+          "most_plausible_value": 0.5
+        },
+        "title": "Press-man coverage against slow receivers",
+        "tol_abs": 0.30000000000000004
+      }
+    ]
+  },
+  "family_ok": true,
+  "grid_complete": true,
+  "instance_id": "deepseek-v4-flash__s0",
+  "intervals_ok": true,
+  "json_valid": true,
+  "params_reproduce_ok": false
+}

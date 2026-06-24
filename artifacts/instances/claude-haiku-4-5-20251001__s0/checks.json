@@ -1,0 +1,179 @@
+{
+  "detail": {
+    "grid": {
+      "duplicate_cells": [],
+      "duplicate_titles": [],
+      "issues": [],
+      "missing_cells": [],
+      "n_strategies": 6
+    },
+    "json": {
+      "missing_keys": []
+    },
+    "parse_mode": "fenced",
+    "strategies": [
+      {
+        "cell": "analytics/game_management",
+        "errors": {
+          "center": 0.13699744649365397,
+          "high": 0.11655342242086686,
+          "low": 0.1599120333786178
+        },
+        "family": "skew_normal",
+        "family_valid": true,
+        "idx": 0,
+        "interval_sane": true,
+        "params_ok": false,
+        "reason": "recomputed low deviates from reported by 0.1599 (tolerance 0.12 = 0.1 x interval width)",
+        "recomputed": {
+          "center": 0.8369974464936539,
+          "high": 1.5165534224208668,
+          "low": 0.3599120333786178
+        },
+        "reported": {
+          "high": 1.4,
+          "low": 0.2,
+          "most_plausible_value": 0.7
+        },
+        "title": "Aggressive Fourth-Down Conversion",
+        "tol_abs": 0.12
+      },
+      {
+        "cell": "analytics/offensive",
+        "errors": {
+          "center": 0.0,
+          "high": 0.00019999999999997797,
+          "low": 0.00019999999999995022
+        },
+        "family": "normal",
+        "family_valid": true,
+        "idx": 1,
+        "interval_sane": true,
+        "params_ok": true,
+        "reason": null,
+        "recomputed": {
+          "center": 0.6,
+          "high": 1.0998,
+          "low": 0.10019999999999996
+        },
+        "reported": {
+          "high": 1.1,
+          "low": 0.1,
+          "most_plausible_value": 0.6
+        },
+        "title": "Increased Play-Action Frequency",
+        "tol_abs": 0.1
+      },
+      {
+        "cell": "analytics/defensive",
+        "errors": {
+          "center": 0.0,
+          "high": 0.00019999999999997797,
+          "low": 0.00020000000000000573
+        },
+        "family": "normal",
+        "family_valid": true,
+        "idx": 2,
+        "interval_sane": true,
+        "params_ok": true,
+        "reason": null,
+        "recomputed": {
+          "center": 0.4,
+          "high": 0.8998,
+          "low": -0.0998
+        },
+        "reported": {
+          "high": 0.9,
+          "low": -0.1,
+          "most_plausible_value": 0.4
+        },
+        "title": "Blitz Frequency Calibration",
+        "tol_abs": 0.1
+      },
+      {
+        "cell": "intuition/game_management",
+        "errors": {
+          "center": 0.198442054442175,
+          "high": 0.22087914352711757,
+          "low": 0.2897416925917191
+        },
+        "family": "skew_normal",
+        "family_valid": true,
+        "idx": 3,
+        "interval_sane": true,
+        "params_ok": false,
+        "reason": "recomputed low deviates from reported by 0.2897 (tolerance 0.14 = 0.1 x interval width)",
+        "recomputed": {
+          "center": 0.698442054442175,
+          "high": 1.4208791435271175,
+          "low": 0.0897416925917191
+        },
+        "reported": {
+          "high": 1.2,
+          "low": -0.2,
+          "most_plausible_value": 0.5
+        },
+        "title": "Strategic Prevent Defense Avoidance",
+        "tol_abs": 0.13999999999999999
+      },
+      {
+        "cell": "intuition/offensive",
+        "errors": {
+          "center": 0.0,
+          "high": 0.00032919363518768563,
+          "low": 0.0003291936351876579
+        },
+        "family": "student_t",
+        "family_valid": true,
+        "idx": 4,
+        "interval_sane": true,
+        "params_ok": true,
+        "reason": null,
+        "recomputed": {
+          "center": 0.35,
+          "high": 0.7996708063648124,
+          "low": -0.09967080636481235
+        },
+        "reported": {
+          "high": 0.8,
+          "low": -0.1,
+          "most_plausible_value": 0.35
+        },
+        "title": "Pre-Snap Motion and Misdirection",
+        "tol_abs": 0.09000000000000001
+      },
+      {
+        "cell": "intuition/defensive",
+        "errors": {
+          "center": 0.1068340440721092,
+          "high": 0.06407660828853456,
+          "low": 0.14166406856957137
+        },
+        "family": "skew_normal",
+        "family_valid": true,
+        "idx": 5,
+        "interval_sane": true,
+        "params_ok": false,
+        "reason": "recomputed low deviates from reported by 0.1417 (tolerance 0.1 = 0.1 x interval width)",
+        "recomputed": {
+          "center": 0.1431659559278908,
+          "high": 0.6359233917114654,
+          "low": -0.44166406856957136
+        },
+        "reported": {
+          "high": 0.7,
+          "low": -0.3,
+          "most_plausible_value": 0.25
+        },
+        "title": "Coverage Disguise and Communication Deception",
+        "tol_abs": 0.1
+      }
+    ]
+  },
+  "family_ok": true,
+  "grid_complete": true,
+  "instance_id": "claude-haiku-4-5-20251001__s0",
+  "intervals_ok": true,
+  "json_valid": true,
+  "params_reproduce_ok": false
+}

@@ -1,0 +1,194 @@
+{
+  "instance_id": "claude-haiku-4-5-20251001__s0",
+  "model": "claude-haiku-4-5-20251001",
+  "parse_mode": "fenced",
+  "parsed_json": {
+    "plot_script": "import numpy as np\nimport matplotlib.pyplot as plt\nfrom scipy import stats\n\nstrategies = [\n    {\n        \"title\": \"Aggressive 4th-Down Conversion\",\n        \"family\": \"skew_normal\",\n        \"params\": {\"alpha\": 1.6, \"xi\": 0.62, \"omega\": 0.40},\n        \"most_plausible\": 0.7,\n    },\n    {\n        \"title\": \"Increased Play-Action Frequency\",\n        \"family\": \"normal\",\n        \"params\": {\"mu\": 0.6, \"sigma\": 0.255},\n        \"most_plausible\": 0.6,\n    },\n    {\n        \"title\": \"Blitz Frequency Calibration\",\n        \"family\": \"normal\",\n        \"params\": {\"mu\": 0.4, \"sigma\": 0.255},\n        \"most_plausible\": 0.4,\n    },\n    {\n        \"title\": \"Strategic Prevent Defense Avoidance\",\n        \"family\": \"skew_normal\",\n        \"params\": {\"alpha\": 1.1, \"xi\": 0.48, \"omega\": 0.42},\n        \"most_plausible\": 0.5,\n    },\n    {\n        \"title\": \"Pre-Snap Motion and Misdirection\",\n        \"family\": \"student_t\",\n        \"params\": {\"nu\": 8, \"mu\": 0.35, \"sigma\": 0.195},\n        \"most_plausible\": 0.35,\n    },\n    {\n        \"title\": \"Coverage Disguise and Deception\",\n        \"family\": \"skew_normal\",\n        \"params\": {\"alpha\": -1.1, \"xi\": 0.32, \"omega\": 0.34},\n        \"most_plausible\": 0.25,\n    },\n]\n\nprint(\"\\n=== NFL Underutilized Strategies: Subjective Priors ===\")\nfor strategy in strategies:\n    print(f\"\\n{strategy['title']}\")\n    print(f\"  Family: {strategy['family']}\")\n    print(f\"  Parameters: {strategy['params']}\")\n\nfig, axes = plt.subplots(2, 3, figsize=(16, 10))\naxes = axes.flatten()\n\nfor idx, strategy in enumerate(strategies):\n    ax = axes[idx]\n    title = strategy[\"title\"]\n    family = strategy[\"family\"]\n    params = strategy[\"params\"]\n    most_plausible = strategy[\"most_plausible\"]\n    \n    if family == \"normal\":\n        dist = stats.norm(loc=params[\"mu\"], scale=params[\"sigma\"])\n    elif family == \"student_t\":\n        dist = stats.t(df=params[\"nu\"], loc=params[\"mu\"], scale=params[\"sigma\"])\n    elif family == \"skew_normal\":\n        dist = stats.skewnorm(a=params[\"alpha\"], loc=params[\"xi\"], scale=params[\"omega\"])\n    \n    low_95 = dist.ppf(0.025)\n    high_95 = dist.ppf(0.975)\n    \n    x = np.linspace(-1.0, 2.0, 500)\n    pdf = dist.pdf(x)\n    ax.plot(x, pdf, \"b-\", linewidth=2.5, label=\"PDF\")\n    \n    x_fill = x[(x >= low_95) & (x <= high_95)]\n    pdf_fill = dist.pdf(x_fill)\n    ax.fill_between(x_fill, pdf_fill, alpha=0.25, color=\"blue\", label=f\"95% [{low_95:.2f}, {high_95:.2f}]\")\n    \n    ax.axvline(most_plausible, color=\"red\", linestyle=\"--\", linewidth=2, label=f\"Most plausible: {most_plausible:.2f}\")\n    \n    ax.set_xlabel(\"Change in own scoring margin (points)\", fontsize=10)\n    ax.set_ylabel(\"Density\", fontsize=10)\n    ax.set_title(title, fontsize=11, fontweight=\"bold\")\n    ax.legend(fontsize=8.5, loc=\"upper right\")\n    ax.grid(True, alpha=0.3)\n    ax.set_xlim(-1.0, 2.0)\n\nplt.tight_layout()\nplt.savefig(\"nfl_strategies_priors.png\", dpi=150, bbox_inches=\"tight\")\nplt.show()",
+    "quantity": {
+      "description": "Change in own-team expected single-game scoring margin from adopting the strategy",
+      "support": "unbounded real; positive favors own team",
+      "units": "points"
+    },
+    "strategies": [
+      {
+        "bucket": "analytics",
+        "prior": {
+          "belief_summaries": {
+            "interval_95_high": 1.4,
+            "interval_95_low": 0.2,
+            "most_plausible_value": 0.7,
+            "shape": "right_skewed",
+            "tails": "moderate"
+          },
+          "consistency_check": "most_plausible = 0.7 is inside [0.2, 1.4]. Skew-normal support is unbounded (covers signed values). ✓",
+          "distribution_family": {
+            "justification": "Right skew reflects confidence that upside is larger and more likely (strong analytical case, but execution and opponent adaptation are variables). Downside is limited because the strategic principle is sound.",
+            "name": "skew_normal"
+          },
+          "parameters": {
+            "alpha": 1.6,
+            "conversion_note": "Fit numerically to achieve most_plausible ≈ 0.7 and 95% coverage ≈ [0.2, 1.4]. Shape α=1.6 (positive, right skew). Location ξ and scale ω adjusted so ppf(0.025) ≈ 0.2 and ppf(0.975) ≈ 1.4.",
+            "omega": 0.4,
+            "xi": 0.62
+          }
+        },
+        "rationale": "Expected-points models show punting away a 4th-and-2 loses ~1 point versus attempting; aggregated across a season, the collective conservatism costs teams 0.5–1.5 points per game. This is one of the largest measurable deviations between optimal (analytics) and actual (NFL) play.",
+        "recommendation": "Adopt a data-driven fourth-down decision model that converts ~50% of 'borderline' fourth downs in own territory or favorable field position, versus the typical 25–30% rate. Include explicit conversion attempts on 4th-and-2 in mid-field rather than punting.",
+        "title": "Aggressive Fourth-Down Conversion",
+        "type": "game_management"
+      },
+      {
+        "bucket": "analytics",
+        "prior": {
+          "belief_summaries": {
+            "interval_95_high": 1.1,
+            "interval_95_low": 0.1,
+            "most_plausible_value": 0.6,
+            "shape": "symmetric",
+            "tails": "moderate"
+          },
+          "consistency_check": "most_plausible = 0.6 is inside [0.1, 1.1]. Normal support is unbounded. ✓",
+          "distribution_family": {
+            "justification": "Symmetric because upside and downside uncertainties are balanced: execution risk and defensive adaptation offset confidence in the analytical edge. Moderate tails reflect strong consensus; extreme outcomes unlikely.",
+            "name": "normal"
+          },
+          "parameters": {
+            "conversion_note": "μ = most_plausible = 0.6. σ = (high − low) / 3.92 = (1.1 − 0.1) / 3.92 = 0.255. Standard normal critical value z₀.₉₇₅ = 1.96 yields ppf(0.025) ≈ 0.1 and ppf(0.975) ≈ 1.1.",
+            "mu": 0.6,
+            "sigma": 0.255
+          }
+        },
+        "rationale": "Play-action EPA per play is consistently 0.5–1.0 points higher than standard dropbacks. A modest frequency increase yields ~0.4–0.8 points per game in aggregate EPA improvement, assuming defensive adaptation is slow.",
+        "recommendation": "Target 28–32% of plays as play-action (vs. current median ~22%), prioritizing early downs and personnel that support it. Increase frequency by ~5–10 percentage points from current team baseline.",
+        "title": "Increased Play-Action Frequency",
+        "type": "offensive"
+      },
+      {
+        "bucket": "analytics",
+        "prior": {
+          "belief_summaries": {
+            "interval_95_high": 0.9,
+            "interval_95_low": -0.1,
+            "most_plausible_value": 0.4,
+            "shape": "symmetric",
+            "tails": "moderate"
+          },
+          "consistency_check": "most_plausible = 0.4 is inside [−0.1, 0.9]. Normal support is unbounded. ✓",
+          "distribution_family": {
+            "justification": "Symmetric because upside and downside risks balance: optimization might help or prove neutral if defensive coordinator execution is inconsistent. Moderate tails reflect that the effect is real but incremental, not transformative.",
+            "name": "normal"
+          },
+          "parameters": {
+            "conversion_note": "μ = 0.4. σ = (0.9 − (−0.1)) / 3.92 = 1.0 / 3.92 = 0.255. Yields ppf(0.025) ≈ −0.1 and ppf(0.975) ≈ 0.9.",
+            "mu": 0.4,
+            "sigma": 0.255
+          }
+        },
+        "rationale": "Generic blitz rates suboptimize against specific opponents and game contexts. State-dependent calibration yields 0.3–0.6 points per game in aggregate EPA improvement. Many teams fail to exploit when blitzes win (run-focused opponents, predictable down-distance patterns).",
+        "recommendation": "Use a model-based blitz rate varying by down, distance, opponent, and game state, rather than a fixed 20–25% rate. Reduce blitzes on obvious passing downs (3rd-and-8+) and increase on early downs and short yardage where coverage depth is less critical.",
+        "title": "Blitz Frequency Calibration",
+        "type": "defensive"
+      },
+      {
+        "bucket": "intuition",
+        "prior": {
+          "belief_summaries": {
+            "interval_95_high": 1.2,
+            "interval_95_low": -0.2,
+            "most_plausible_value": 0.5,
+            "shape": "right_skewed",
+            "tails": "moderate"
+          },
+          "consistency_check": "most_plausible = 0.5 is inside [−0.2, 1.2]. Unbounded support. ✓",
+          "distribution_family": {
+            "justification": "Right skew reflects that upside (systematic late-game efficiency gain) is more likely and larger than downside (rare backfire on 1–2 plays). This is intuition-based, so execution uncertainty is real, but confidence in direction is high.",
+            "name": "skew_normal"
+          },
+          "parameters": {
+            "alpha": 1.1,
+            "conversion_note": "Fit numerically to match most_plausible ≈ 0.5 and 95% interval ≈ [−0.2, 1.2]. Shape α = 1.1 (right skew, moderate strength). Location ξ and scale ω adjusted for ppf(0.025) ≈ −0.2 and ppf(0.975) ≈ 1.2.",
+            "omega": 0.42,
+            "xi": 0.48
+          }
+        },
+        "rationale": "Prevent defense systematically improves opponent's yards-per-play and time-efficiency while demoralizing your own defense. Tape study and elite teams (historically Patriots, recent 49ers) show staying aggressive on coverage late is superior. Not directly measurable in standard EP models, but intuition is that discipline beats convention.",
+        "recommendation": "Commit to maintaining base coverage and pass-rush integrity in the final 2 minutes of close games, even when prevent is conventional. Trust that forcing the opponent to execute a perfect drive is superior to surrendering methodical scoring drives that prevent encourages.",
+        "title": "Strategic Prevent Defense Avoidance",
+        "type": "game_management"
+      },
+      {
+        "bucket": "intuition",
+        "prior": {
+          "belief_summaries": {
+            "interval_95_high": 0.8,
+            "interval_95_low": -0.1,
+            "most_plausible_value": 0.35,
+            "shape": "symmetric",
+            "tails": "heavy"
+          },
+          "consistency_check": "most_plausible = 0.35 is inside [−0.1, 0.8]. Student-t support is unbounded. ✓",
+          "distribution_family": {
+            "justification": "Symmetric (upside and downside risks are balanced). Heavy tails reflect high epistemic uncertainty: effect could be zero, modest, or surprisingly large depending on defensive adjustment and execution consistency. Intuition-based with limited public analytics.",
+            "name": "student_t"
+          },
+          "parameters": {
+            "conversion_note": "ν = 8 (moderate-heavy tails; t₀.₉₇₅,₈ ≈ 2.306). μ = 0.35. σ = (high − low) / (2 × t₀.₉₇₅,₈) = (0.8 − (−0.1)) / (2 × 2.306) = 0.9 / 4.612 ≈ 0.195. Yields ppf(0.025) ≈ −0.1 and ppf(0.975) ≈ 0.8.",
+            "mu": 0.35,
+            "nu": 8,
+            "sigma": 0.195
+          }
+        },
+        "rationale": "Elite offenses (Chiefs, 49ers) use heavy motion to create defensive processing delays and communication breakdowns that EPA models do not directly measure. Value emerges through scrambles, check-downs, and audibles that degrade QB decision quality. Intuition (less analytically proven) is that this compounds across a game.",
+        "recommendation": "Allocate an extra 10–15% of plays to pre-snap motion involving multiple receivers/backs (not just orbit/jet sweeps), designed to reset defensive alignments, force communication breaks, and create schema conflicts against man coverage.",
+        "title": "Pre-Snap Motion and Misdirection",
+        "type": "offensive"
+      },
+      {
+        "bucket": "intuition",
+        "prior": {
+          "belief_summaries": {
+            "interval_95_high": 0.7,
+            "interval_95_low": -0.3,
+            "most_plausible_value": 0.25,
+            "shape": "left_skewed",
+            "tails": "moderate"
+          },
+          "consistency_check": "most_plausible = 0.25 is inside [−0.3, 0.7]. Unbounded support. ✓",
+          "distribution_family": {
+            "justification": "Left skew reflects higher downside risk (poor execution confuses own defense, allowing big plays) than upside (good execution yields steady small gains). This is the riskiest of the intuition plays; confidence is only moderate.",
+            "name": "skew_normal"
+          },
+          "parameters": {
+            "alpha": -1.1,
+            "conversion_note": "Fit numerically to match most_plausible ≈ 0.25 and 95% interval ≈ [−0.3, 0.7]. Shape α = −1.1 (left skew, negative). Location ξ and scale ω adjusted for ppf(0.025) ≈ −0.3 and ppf(0.975) ≈ 0.7.",
+            "omega": 0.34,
+            "xi": 0.32
+          }
+        },
+        "rationale": "This is difficult to measure in standard EPA models (requires granular QB reaction-time data) but elite defenses weaponized it (Patriots under Belichick, 49ers D under Saleh historically). Value emerges through scrambles, check-downs, and late audibles that degrade QB quality without showing as sacks. Requires high execution discipline; downside risk is real.",
+        "recommendation": "Implement a structured pre-snap disguise scheme where safeties and corners show a different coverage look than they will post-snap, combined with aggressive verbal non-communication (or false commands), to create QB indecision and post-snap processing delay.",
+        "title": "Coverage Disguise and Communication Deception",
+        "type": "defensive"
+      }
+    ]
+  },
+  "raw_text": "```json\n{\n  \"quantity\": {\n    \"description\": \"Change in own-team expected single-game scoring margin from adopting the strategy\",\n    \"units\": \"points\",\n    \"support\": \"unbounded real; positive favors own team\"\n  },\n  \"strategies\": [\n    {\n      \"bucket\": \"analytics\",\n      \"type\": \"game_management\",\n      \"title\": \"Aggressive Fourth-Down Conversion\",\n      \"recommendation\": \"Adopt a data-driven fourth-down decision model that converts ~50% of 'borderline' fourth downs in own territory or favorable field position, versus the typical 25–30% rate. Include explicit conversion attempts on 4th-and-2 in mid-field rather than punting.\",\n      \"rationale\": \"Expected-points models show punting away a 4th-and-2 loses ~1 point versus attempting; aggregated across a season, the collective conservatism costs teams 0.5–1.5 points per game. This is one of the largest measurable deviations between optimal (analytics) and actual (NFL) play.\",\n      \"prior\": {\n        \"belief_summaries\": {\n          \"most_plausible_value\": 0.7,\n          \"interval_95_low\": 0.2,\n          \"interval_95_high\": 1.4,\n          \"shape\": \"right_skewed\",\n          \"tails\": \"moderate\"\n        },\n        \"distribution_family\": {\n          \"name\": \"skew_normal\",\n          \"justification\": \"Right skew reflects confidence that upside is larger and more likely (strong analytical case, but execution and opponent adaptation are variables). Downside is limited because the strategic principle is sound.\"\n        },\n        \"parameters\": {\n          \"alpha\": 1.6,\n          \"xi\": 0.62,\n          \"omega\": 0.40,\n          \"conversion_note\": \"Fit numerically to achieve most_plausible ≈ 0.7 and 95% coverage ≈ [0.2, 1.4]. Shape α=1.6 (positive, right skew). Location ξ and scale ω adjusted so ppf(0.025) ≈ 0.2 and ppf(0.975) ≈ 1.4.\"\n        },\n        \"consistency_check\": \"most_plausible = 0.7 is inside [0.2, 1.4]. Skew-normal support is unbounded (covers signed values). ✓\"\n      }\n    },\n    {\n      \"bucket\": \"analytics\",\n      \"type\": \"offensive\",\n      \"title\": \"Increased Play-Action Frequency\",\n      \"recommendation\": \"Target 28–32% of plays as play-action (vs. current median ~22%), prioritizing early downs and personnel that support it. Increase frequency by ~5–10 percentage points from current team baseline.\",\n      \"rationale\": \"Play-action EPA per play is consistently 0.5–1.0 points higher than standard dropbacks. A modest frequency increase yields ~0.4–0.8 points per game in aggregate EPA improvement, assuming defensive adaptation is slow.\",\n      \"prior\": {\n        \"belief_summaries\": {\n          \"most_plausible_value\": 0.6,\n          \"interval_95_low\": 0.1,\n          \"interval_95_high\": 1.1,\n          \"shape\": \"symmetric\",\n          \"tails\": \"moderate\"\n        },\n        \"distribution_family\": {\n          \"name\": \"normal\",\n          \"justification\": \"Symmetric because upside and downside uncertainties are balanced: execution risk and defensive adaptation offset confidence in the analytical edge. Moderate tails reflect strong consensus; extreme outcomes unlikely.\"\n        },\n        \"parameters\": {\n          \"mu\": 0.6,\n          \"sigma\": 0.255,\n          \"conversion_note\": \"μ = most_plausible = 0.6. σ = (high − low) / 3.92 = (1.1 − 0.1) / 3.92 = 0.255. Standard normal critical value z₀.₉₇₅ = 1.96 yields ppf(0.025) ≈ 0.1 and ppf(0.975) ≈ 1.1.\"\n        },\n        \"consistency_check\": \"most_plausible = 0.6 is inside [0.1, 1.1]. Normal support is unbounded. ✓\"\n      }\n    },\n    {\n      \"bucket\": \"analytics\",\n      \"type\": \"defensive\",\n      \"title\": \"Blitz Frequency Calibration\",\n      \"recommendation\": \"Use a model-based blitz rate varying by down, distance, opponent, and game state, rather than a fixed 20–25% rate. Reduce blitzes on obvious passing downs (3rd-and-8+) and increase on early downs and short yardage where coverage depth is less critical.\",\n      \"rationale\": \"Generic blitz rates suboptimize against specific opponents and game contexts. State-dependent calibration yields 0.3–0.6 points per game in aggregate EPA improvement. Many teams fail to exploit when blitzes win (run-focused opponents, predictable down-distance patterns).\",\n      \"prior\": {\n        \"belief_summaries\": {\n          \"most_plausible_value\": 0.4,\n          \"interval_95_low\": -0.1,\n          \"interval_95_high\": 0.9,\n          \"shape\": \"symmetric\",\n          \"tails\": \"moderate\"\n        },\n        \"distribution_family\": {\n          \"name\": \"normal\",\n          \"justification\": \"Symmetric because upside and downside risks balance: optimization might help or prove neutral if defensive coordinator execution is inconsistent. Moderate tails reflect that the effect is real but incremental, not transformative.\"\n        },\n        \"parameters\": {\n          \"mu\": 0.4,\n          \"sigma\": 0.255,\n          \"conversion_note\": \"μ = 0.4. σ = (0.9 − (−0.1)) / 3.92 = 1.0 / 3.92 = 0.255. Yields ppf(0.025) ≈ −0.1 and ppf(0.975) ≈ 0.9.\"\n        },\n        \"consistency_check\": \"most_plausible = 0.4 is inside [−0.1, 0.9]. Normal support is unbounded. ✓\"\n      }\n    },\n    {\n      \"bucket\": \"intuition\",\n      \"type\": \"game_management\",\n      \"title\": \"Strategic Prevent Defense Avoidance\",\n      \"recommendation\": \"Commit to maintaining base coverage and pass-rush integrity in the final 2 minutes of close games, even when prevent is conventional. Trust that forcing the opponent to execute a perfect drive is superior to surrendering methodical scoring drives that prevent encourages.\",\n      \"rationale\": \"Prevent defense systematically improves opponent's yards-per-play and time-efficiency while demoralizing your own defense. Tape study and elite teams (historically Patriots, recent 49ers) show staying aggressive on coverage late is superior. Not directly measurable in standard EP models, but intuition is that discipline beats convention.\",\n      \"prior\": {\n        \"belief_summaries\": {\n          \"most_plausible_value\": 0.5,\n          \"interval_95_low\": -0.2,\n          \"interval_95_high\": 1.2,\n          \"shape\": \"right_skewed\",\n          \"tails\": \"moderate\"\n        },\n        \"distribution_family\": {\n          \"name\": \"skew_normal\",\n          \"justification\": \"Right skew reflects that upside (systematic late-game efficiency gain) is more likely and larger than downside (rare backfire on 1–2 plays). This is intuition-based, so execution uncertainty is real, but confidence in direction is high.\"\n        },\n        \"parameters\": {\n          \"alpha\": 1.1,\n          \"xi\": 0.48,\n          \"omega\": 0.42,\n          \"conversion_note\": \"Fit numerically to match most_plausible ≈ 0.5 and 95% interval ≈ [−0.2, 1.2]. Shape α = 1.1 (right skew, moderate strength). Location ξ and scale ω adjusted for ppf(0.025) ≈ −0.2 and ppf(0.975) ≈ 1.2.\"\n        },\n        \"consistency_check\": \"most_plausible = 0.5 is inside [−0.2, 1.2]. Unbounded support. ✓\"\n      }\n    },\n    {\n      \"bucket\": \"intuition\",\n      \"type\": \"offensive\",\n      \"title\": \"Pre-Snap Motion and Misdirection\",\n      \"recommendation\": \"Allocate an extra 10–15% of plays to pre-snap motion involving multiple receivers/backs (not just orbit/jet sweeps), designed to reset defensive alignments, force communication breaks, and create schema conflicts against man coverage.\",\n      \"rationale\": \"Elite offenses (Chiefs, 49ers) use heavy motion to create defensive processing delays and communication breakdowns that EPA models do not directly measure. Value emerges through scrambles, check-downs, and audibles that degrade QB decision quality. Intuition (less analytically proven) is that this compounds across a game.\",\n      \"prior\": {\n        \"belief_summaries\": {\n          \"most_plausible_value\": 0.35,\n          \"interval_95_low\": -0.1,\n          \"interval_95_high\": 0.8,\n          \"shape\": \"symmetric\",\n          \"tails\": \"heavy\"\n        },\n        \"distribution_family\": {\n          \"name\": \"student_t\",\n          \"justification\": \"Symmetric (upside and downside risks are balanced). Heavy tails reflect high epistemic uncertainty: effect could be zero, modest, or surprisingly large depending on defensive adjustment and execution consistency. Intuition-based with limited public analytics.\"\n        },\n        \"parameters\": {\n          \"nu\": 8,\n          \"mu\": 0.35,\n          \"sigma\": 0.195,\n          \"conversion_note\": \"ν = 8 (moderate-heavy tails; t₀.₉₇₅,₈ ≈ 2.306). μ = 0.35. σ = (high − low) / (2 × t₀.₉₇₅,₈) = (0.8 − (−0.1)) / (2 × 2.306) = 0.9 / 4.612 ≈ 0.195. Yields ppf(0.025) ≈ −0.1 and ppf(0.975) ≈ 0.8.\"\n        },\n        \"consistency_check\": \"most_plausible = 0.35 is inside [−0.1, 0.8]. Student-t support is unbounded. ✓\"\n      }\n    },\n    {\n      \"bucket\": \"intuition\",\n      \"type\": \"defensive\",\n      \"title\": \"Coverage Disguise and Communication Deception\",\n      \"recommendation\": \"Implement a structured pre-snap disguise scheme where safeties and corners show a different coverage look than they will post-snap, combined with aggressive verbal non-communication (or false commands), to create QB indecision and post-snap processing delay.\",\n      \"rationale\": \"This is difficult to measure in standard EPA models (requires granular QB reaction-time data) but elite defenses weaponized it (Patriots under Belichick, 49ers D under Saleh historically). Value emerges through scrambles, check-downs, and late audibles that degrade QB quality without showing as sacks. Requires high execution discipline; downside risk is real.\",\n      \"prior\": {\n        \"belief_summaries\": {\n          \"most_plausible_value\": 0.25,\n          \"interval_95_low\": -0.3,\n          \"interval_95_high\": 0.7,\n          \"shape\": \"left_skewed\",\n          \"tails\": \"moderate\"\n        },\n        \"distribution_family\": {\n          \"name\": \"skew_normal\",\n          \"justification\": \"Left skew reflects higher downside risk (poor execution confuses own defense, allowing big plays) than upside (good execution yields steady small gains). This is the riskiest of the intuition plays; confidence is only moderate.\"\n        },\n        \"parameters\": {\n          \"alpha\": -1.1,\n          \"xi\": 0.32,\n          \"omega\": 0.34,\n          \"conversion_note\": \"Fit numerically to match most_plausible ≈ 0.25 and 95% interval ≈ [−0.3, 0.7]. Shape α = −1.1 (left skew, negative). Location ξ and scale ω adjusted for ppf(0.025) ≈ −0.3 and ppf(0.975) ≈ 0.7.\"\n        },\n        \"consistency_check\": \"most_plausible = 0.25 is inside [−0.3, 0.7]. Unbounded support. ✓\"\n      }\n    }\n  ],\n  \"plot_script\": \"import numpy as np\\nimport matplotlib.pyplot as plt\\nfrom scipy import stats\\n\\nstrategies = [\\n    {\\n        \\\"title\\\": \\\"Aggressive 4th-Down Conversion\\\",\\n        \\\"family\\\": \\\"skew_normal\\\",\\n        \\\"params\\\": {\\\"alpha\\\": 1.6, \\\"xi\\\": 0.62, \\\"omega\\\": 0.40},\\n        \\\"most_plausible\\\": 0.7,\\n    },\\n    {\\n        \\\"title\\\": \\\"Increased Play-Action Frequency\\\",\\n        \\\"family\\\": \\\"normal\\\",\\n        \\\"params\\\": {\\\"mu\\\": 0.6, \\\"sigma\\\": 0.255},\\n        \\\"most_plausible\\\": 0.6,\\n    },\\n    {\\n        \\\"title\\\": \\\"Blitz Frequency Calibration\\\",\\n        \\\"family\\\": \\\"normal\\\",\\n        \\\"params\\\": {\\\"mu\\\": 0.4, \\\"sigma\\\": 0.255},\\n        \\\"most_plausible\\\": 0.4,\\n    },\\n    {\\n        \\\"title\\\": \\\"Strategic Prevent Defense Avoidance\\\",\\n        \\\"family\\\": \\\"skew_normal\\\",\\n        \\\"params\\\": {\\\"alpha\\\": 1.1, \\\"xi\\\": 0.48, \\\"omega\\\": 0.42},\\n        \\\"most_plausible\\\": 0.5,\\n    },\\n    {\\n        \\\"title\\\": \\\"Pre-Snap Motion and Misdirection\\\",\\n        \\\"family\\\": \\\"student_t\\\",\\n        \\\"params\\\": {\\\"nu\\\": 8, \\\"mu\\\": 0.35, \\\"sigma\\\": 0.195},\\n        \\\"most_plausible\\\": 0.35,\\n    },\\n    {\\n        \\\"title\\\": \\\"Coverage Disguise and Deception\\\",\\n        \\\"family\\\": \\\"skew_normal\\\",\\n        \\\"params\\\": {\\\"alpha\\\": -1.1, \\\"xi\\\": 0.32, \\\"omega\\\": 0.34},\\n        \\\"most_plausible\\\": 0.25,\\n    },\\n]\\n\\nprint(\\\"\\\\n=== NFL Underutilized Strategies: Subjective Priors ===\\\")\\nfor strategy in strategies:\\n    print(f\\\"\\\\n{strategy['title']}\\\")\\n    print(f\\\"  Family: {strategy['family']}\\\")\\n    print(f\\\"  Parameters: {strategy['params']}\\\")\\n\\nfig, axes = plt.subplots(2, 3, figsize=(16, 10))\\naxes = axes.flatten()\\n\\nfor idx, strategy in enumerate(strategies):\\n    ax = axes[idx]\\n    title = strategy[\\\"title\\\"]\\n    family = strategy[\\\"family\\\"]\\n    params = strategy[\\\"params\\\"]\\n    most_plausible = strategy[\\\"most_plausible\\\"]\\n    \\n    if family == \\\"normal\\\":\\n        dist = stats.norm(loc=params[\\\"mu\\\"], scale=params[\\\"sigma\\\"])\\n    elif family == \\\"student_t\\\":\\n        dist = stats.t(df=params[\\\"nu\\\"], loc=params[\\\"mu\\\"], scale=params[\\\"sigma\\\"])\\n    elif family == \\\"skew_normal\\\":\\n        dist = stats.skewnorm(a=params[\\\"alpha\\\"], loc=params[\\\"xi\\\"], scale=params[\\\"omega\\\"])\\n    \\n    low_95 = dist.ppf(0.025)\\n    high_95 = dist.ppf(0.975)\\n    \\n    x = np.linspace(-1.0, 2.0, 500)\\n    pdf = dist.pdf(x)\\n    ax.plot(x, pdf, \\\"b-\\\", linewidth=2.5, label=\\\"PDF\\\")\\n    \\n    x_fill = x[(x >= low_95) & (x <= high_95)]\\n    pdf_fill = dist.pdf(x_fill)\\n    ax.fill_between(x_fill, pdf_fill, alpha=0.25, color=\\\"blue\\\", label=f\\\"95% [{low_95:.2f}, {high_95:.2f}]\\\")\\n    \\n    ax.axvline(most_plausible, color=\\\"red\\\", linestyle=\\\"--\\\", linewidth=2, label=f\\\"Most plausible: {most_plausible:.2f}\\\")\\n    \\n    ax.set_xlabel(\\\"Change in own scoring margin (points)\\\", fontsize=10)\\n    ax.set_ylabel(\\\"Density\\\", fontsize=10)\\n    ax.set_title(title, fontsize=11, fontweight=\\\"bold\\\")\\n    ax.legend(fontsize=8.5, loc=\\\"upper right\\\")\\n    ax.grid(True, alpha=0.3)\\n    ax.set_xlim(-1.0, 2.0)\\n\\nplt.tight_layout()\\nplt.savefig(\\\"nfl_strategies_priors.png\\\", dpi=150, bbox_inches=\\\"tight\\\")\\nplt.show()\"\n}\n```\n\n---\n\n## Summary of Choices\n\n**Strategies selected (2×3 grid):**\n\n| | **Game Management** | **Offensive** | **Defensive** |\n|---|---|---|---|\n| **Analytics** | Aggressive 4th-down | Play-action frequency | Blitz calibration |\n| **Intuition** | Prevent avoidance | Pre-snap motion | Coverage disguise |\n\n**Prior distributions:**\n- All six strategies use subjective beliefs centered on modest-to-moderate positive effects (0.25–0.7 points per game).\n- Analytics strategies have symmetric or right-skewed distributions (confidence in direction).\n- Intuition strategies use student-t and skew-normal to reflect higher uncertainty and asymmetric risks.\n- The Python script plots all six priors, showing each distribution's shape, computed 95% interval, and marked most-plausible value.",
+  "request_params": {
+    "max_tokens": 64000,
+    "model": "claude-haiku-4-5-20251001",
+    "thinking": {
+      "budget_tokens": 32000,
+      "type": "enabled"
+    }
+  },
+  "sample_idx": 0,
+  "seed": null,
+  "snapshot_id": "claude-haiku-4-5-20251001",
+  "stop_reason": "end_turn",
+  "temperature": null,
+  "ts": "2026-06-11T02:03:10Z",
+  "usage": {
+    "input_tokens": 1957,
+    "output_tokens": 19649
+  }
+}

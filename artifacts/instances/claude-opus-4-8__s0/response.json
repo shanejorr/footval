@@ -1,0 +1,195 @@
+{
+  "instance_id": "claude-opus-4-8__s0",
+  "model": "claude-opus-4-8",
+  "parse_mode": "fenced",
+  "parsed_json": {
+    "plot_script": "import numpy as np\nimport matplotlib.pyplot as plt\nfrom scipy.stats import norm, t, skewnorm\n\n# ---- Editable priors for the 6 strategies (family + parameters) ----\nstrategies = [\n    {\"title\": \"Analytics / GameMgmt: Optimal 4th-down aggression\",\n     \"family\": \"normal\", \"params\": {\"mu\": 0.72, \"sigma\": 0.3673},\n     \"most_plausible\": 0.72},\n    {\"title\": \"Analytics / Offense: Expand play-action usage\",\n     \"family\": \"skew_normal\", \"params\": {\"xi\": 0.14, \"omega\": 0.80, \"alpha\": 4.0},\n     \"most_plausible\": 0.48},\n    {\"title\": \"Analytics / Defense: Two-high light-box base\",\n     \"family\": \"normal\", \"params\": {\"mu\": 0.38, \"sigma\": 0.4082},\n     \"most_plausible\": 0.38},\n    {\"title\": \"Intuition / GameMgmt: Proactive end-of-half timeouts\",\n     \"family\": \"normal\", \"params\": {\"mu\": 0.18, \"sigma\": 0.3469},\n     \"most_plausible\": 0.18},\n    {\"title\": \"Intuition / Offense: No-huddle tempo as base\",\n     \"family\": \"student_t\", \"params\": {\"nu\": 4, \"mu\": 0.28, \"sigma\": 0.5764},\n     \"most_plausible\": 0.28},\n    {\"title\": \"Intuition / Defense: Manufacture takeaways\",\n     \"family\": \"student_t\", \"params\": {\"nu\": 4, \"mu\": 0.32, \"sigma\": 0.4683},\n     \"most_plausible\": 0.32},\n]\n\ndef make_dist(s):\n    f, p = s[\"family\"], s[\"params\"]\n    if f == \"normal\":\n        return norm(loc=p[\"mu\"], scale=p[\"sigma\"])\n    if f == \"student_t\":\n        return t(df=p[\"nu\"], loc=p[\"mu\"], scale=p[\"sigma\"])\n    if f == \"skew_normal\":\n        return skewnorm(a=p[\"alpha\"], loc=p[\"xi\"], scale=p[\"omega\"])\n    raise ValueError(\"unknown family: \" + f)\n\nfig, axes = plt.subplots(2, 3, figsize=(16, 9))\naxes = axes.ravel()\n\nfor ax, s in zip(axes, strategies):\n    dist = make_dist(s)\n    lo, hi = dist.ppf(0.025), dist.ppf(0.975)\n    span = hi - lo\n    xs = np.linspace(lo - 0.5 * span, hi + 0.5 * span, 600)\n    pdf = dist.pdf(xs)\n    ax.plot(xs, pdf, lw=2, color=\"navy\")\n    mask = (xs >= lo) & (xs <= hi)\n    ax.fill_between(xs[mask], pdf[mask], alpha=0.25, color=\"navy\",\n                    label=\"95%% interval [%.2f, %.2f]\" % (lo, hi))\n    mp = s[\"most_plausible\"]\n    ax.axvline(mp, color=\"crimson\", ls=\"--\", lw=1.5,\n               label=\"most-plausible = %.2f\" % mp)\n    ax.axvline(0.0, color=\"gray\", ls=\":\", lw=1)\n    ax.set_title(s[\"title\"], fontsize=10)\n    ax.set_xlabel(\"Change in own scoring margin (points)\")\n    ax.set_ylabel(\"density\")\n    ax.legend(fontsize=8, loc=\"upper right\")\n    print(s[\"title\"])\n    print(\"  family:\", s[\"family\"], \"| params:\", s[\"params\"])\n    print(\"  ppf 95%% interval: [%.3f, %.3f]\" % (lo, hi))\n    print()\n\nplt.tight_layout()\nplt.show()\n",
+    "quantity": {
+      "description": "Change in own-team expected single-game scoring margin (own points − opponent points) from adopting the strategy versus not, holding everything else equal; an average per-game effect.",
+      "support": "unbounded real; positive favors own team",
+      "units": "points"
+    },
+    "strategies": [
+      {
+        "bucket": "analytics",
+        "prior": {
+          "belief_summaries": {
+            "interval_95_high": 1.44,
+            "interval_95_low": 0.0,
+            "most_plausible_value": 0.72,
+            "shape": "symmetric",
+            "tails": "moderate"
+          },
+          "consistency_check": "0.72 lies inside [0.0, 1.44]; normal support is all of R, covering signed (including negative) values.",
+          "distribution_family": {
+            "justification": "The underlying models are well-validated and replicated, so both sign and magnitude are fairly pinned down; the effect is unlikely to land far from center, so symmetric with moderate tails fits.",
+            "name": "normal"
+          },
+          "parameters": {
+            "conversion_note": "Normal: mu = most_plausible = 0.72; sigma = (high - low)/3.92 = (1.44 - 0.00)/3.92 = 0.3673. Interval is symmetric about mu by construction.",
+            "mu": 0.72,
+            "sigma": 0.3673
+          }
+        },
+        "rationale": "Win-probability and expected-points models repeatedly show conventional coaches forfeit fractions of a win per season by punting/kicking in go situations; converting those decisions adds expected points and shortens the opponent's field, which maps directly onto wins.",
+        "recommendation": "Adopt a model-driven 4th-down policy: go for it on essentially all 4th-and-1s past our own 30 and on 4th-and-short in opponent four-down territory, and keep the punt/FG unit off the field in spots WP/EP models flag as negative-EP.",
+        "title": "Optimal 4th-down aggression",
+        "type": "game_management"
+      },
+      {
+        "bucket": "analytics",
+        "prior": {
+          "belief_summaries": {
+            "interval_95_high": 1.8,
+            "interval_95_low": -0.1,
+            "most_plausible_value": 0.48,
+            "shape": "right_skewed",
+            "tails": "moderate"
+          },
+          "consistency_check": "0.48 lies inside [-0.1, 1.8]; skew_normal support is all of R, covering signed values.",
+          "distribution_family": {
+            "justification": "Asymmetric belief: a floor near zero because defenses adapt and surprise decays, but a longer upside tail with the right personnel/scheme, so right skew is appropriate.",
+            "name": "skew_normal"
+          },
+          "parameters": {
+            "alpha": 4.0,
+            "conversion_note": "Skew-normal, right skew via alpha = +4 (skewness ~0.78, Gaussian-decaying tails). Fit numerically: using standard SN(alpha=4) mode ~0.42 and standard quantiles q.025 ~ -0.28, q.975 ~ 2.10, solved omega ~0.80 and xi ~0.14 so the mode ~0.48 and central 95% ~[-0.08, 1.82], approximately the stated [-0.1, 1.8]. Approximate; the script's ppf prints the exact interval.",
+            "omega": 0.8,
+            "xi": 0.14
+          }
+        },
+        "rationale": "Public charting shows play-action carries a sizable EPA/dropback premium that is largely independent of run-game success, yet most offenses use it well below the efficiency-maximizing rate; more PA means more explosive, lower-risk completions, which lift scoring margin.",
+        "recommendation": "Roughly double our play-action rate, especially on early downs and outside obvious passing situations, and keep using it even when the base run game is mediocre; pair it with boots/keepers to stress second-level defenders.",
+        "title": "Expand play-action usage",
+        "type": "offensive"
+      },
+      {
+        "bucket": "analytics",
+        "prior": {
+          "belief_summaries": {
+            "interval_95_high": 1.18,
+            "interval_95_low": -0.42,
+            "most_plausible_value": 0.38,
+            "shape": "symmetric",
+            "tails": "moderate"
+          },
+          "consistency_check": "0.38 lies inside [-0.42, 1.18]; the interval crosses zero, honestly reflecting backfire risk; normal support covers signed values.",
+          "distribution_family": {
+            "justification": "A bounded structural tilt with genuine two-sided risk (against heavy-run teams or with poor tackling it can backfire) and no strong skew or fat-tail mechanism.",
+            "name": "normal"
+          },
+          "parameters": {
+            "conversion_note": "Normal: mu = 0.38; sigma = (high - low)/3.92 = (1.18 - (-0.42))/3.92 = 1.60/3.92 = 0.4082.",
+            "mu": 0.38,
+            "sigma": 0.4082
+          }
+        },
+        "rationale": "Explosive plays (especially 20+ yard passes) are the strongest per-play driver of scoring drives, and analytics shows trading low-EPA rushing yards to deny high-EPA explosives is a favorable exchange many staffs still resist.",
+        "recommendation": "Default to two-high safety structures with lighter boxes on early downs to take away explosive passes and force methodical drives, conceding efficient-but-low-value rushing yards; vary coverages within the two-high umbrella rather than reverting to single-high to stuff the run.",
+        "title": "Two-high light-box as base",
+        "type": "defensive"
+      },
+      {
+        "bucket": "intuition",
+        "prior": {
+          "belief_summaries": {
+            "interval_95_high": 0.86,
+            "interval_95_low": -0.5,
+            "most_plausible_value": 0.18,
+            "shape": "symmetric",
+            "tails": "moderate"
+          },
+          "consistency_check": "0.18 lies inside [-0.5, 0.86]; interval is wide relative to its small center and dips clearly negative, reflecting honest low confidence; normal support covers signed values.",
+          "distribution_family": {
+            "justification": "A small, two-sided effect with no fat-tail mechanism; the real downside (spent timeouts unavailable if the script flips, and the opponent also benefits from a stopped clock) is captured by a wide-relative-to-center symmetric spread.",
+            "name": "normal"
+          },
+          "parameters": {
+            "conversion_note": "Normal: mu = 0.18; sigma = (high - low)/3.92 = (0.86 - (-0.50))/3.92 = 1.36/3.92 = 0.3469.",
+            "mu": 0.18,
+            "sigma": 0.3469
+          }
+        },
+        "rationale": "Intuition basis: public models quantify offensive in-possession clock/timeout use but rarely isolate the value of spending DEFENSIVE timeouts to manufacture a pre-half possession or the before/after-half 'double.' Winning link: an extra expected possession per half is worth real points, and the deferred second-half kickoff compounds it. This is one of my weaker picks and the prior reflects that.",
+        "recommendation": "When we have deferred, use defensive timeouts aggressively in the last ~3-4 minutes of the second quarter to force a punt and get the ball back with time to score before half, chasing the two-possession swing of scoring just before and just after intermission, rather than hoarding timeouts.",
+        "title": "Proactive end-of-half defensive timeouts (the double-up)",
+        "type": "game_management"
+      },
+      {
+        "bucket": "intuition",
+        "prior": {
+          "belief_summaries": {
+            "interval_95_high": 1.88,
+            "interval_95_low": -1.32,
+            "most_plausible_value": 0.28,
+            "shape": "symmetric",
+            "tails": "heavy"
+          },
+          "consistency_check": "0.28 lies inside [-1.32, 1.88]; student_t support is all of R; heavy tails put real mass on both large positive and large negative effects.",
+          "distribution_family": {
+            "justification": "Genuinely two-sided with potential for large swings either way (snowball upside vs. gassed-defense / short-field downside), so symmetric center but heavy tails.",
+            "name": "student_t"
+          },
+          "parameters": {
+            "conversion_note": "Student-t: nu = 4 (clearly heavy tails); t_{0.975,4} = 2.776; mu = 0.28; sigma = (high - low)/(2 x 2.776) = (1.88 - (-1.32))/5.552 = 3.20/5.552 = 0.5764 (scale, not SD).",
+            "mu": 0.28,
+            "nu": 4,
+            "sigma": 0.5764
+          }
+        },
+        "rationale": "Intuition basis: public analytics on sustained tempo is genuinely mixed—more snaps help us but also the opponent, and rest our defense less—so there is no clean consensus effect. Winning link: constraining the defense's personnel and pressure menu can raise our per-play efficiency and force mistakes, and the effect compounds when it snowballs.",
+        "recommendation": "Operate primarily from no-huddle tempo by default (not just in two-minute) to lock the defense into base personnel, limit exotic pressures and disguise, and prevent specialized substitutions, accepting fewer huddles and a faster game clock.",
+        "title": "No-huddle tempo as a base operating mode",
+        "type": "offensive"
+      },
+      {
+        "bucket": "intuition",
+        "prior": {
+          "belief_summaries": {
+            "interval_95_high": 1.62,
+            "interval_95_low": -0.98,
+            "most_plausible_value": 0.32,
+            "shape": "symmetric",
+            "tails": "heavy"
+          },
+          "consistency_check": "0.32 lies inside [-0.98, 1.62]; student_t support is all of R; interval reaches well into negative territory, reflecting the tackling tradeoff and luck component.",
+          "distribution_family": {
+            "justification": "Turnovers are extremely high-variance and high-leverage, so a non-trivial chance of a large |effect| in either direction is essential—heavy tails, modest positive center.",
+            "name": "student_t"
+          },
+          "parameters": {
+            "conversion_note": "Student-t: nu = 4 (heavy tails); t_{0.975,4} = 2.776; mu = 0.32; sigma = (high - low)/(2 x 2.776) = (1.62 - (-0.98))/5.552 = 2.60/5.552 = 0.4683 (scale, not SD).",
+            "mu": 0.32,
+            "nu": 4,
+            "sigma": 0.4683
+          }
+        },
+        "rationale": "Intuition basis: analytics treats turnovers as high-leverage but largely luck-driven (fumble recovery, INT variance), so it is skeptical that emphasis reliably creates them. Winning link: takeaways are among the biggest EP swings in football (short fields, lost possessions, occasional return scores), so even a small, noisy bump buys points—though the tackling tradeoff adds genuine downside.",
+        "recommendation": "Drill aggressive ball disruption—second-defender punch-outs, rake-throughs, and attacking the catch point—as a weekly point of emphasis, accepting a marginally higher missed-tackle/YAC risk in exchange for more forced fumbles and contested-throw takeaways.",
+        "title": "Manufacture takeaways via ball-disruption coaching",
+        "type": "defensive"
+      }
+    ]
+  },
+  "raw_text": "```json\n{\n  \"quantity\": {\n    \"description\": \"Change in own-team expected single-game scoring margin (own points − opponent points) from adopting the strategy versus not, holding everything else equal; an average per-game effect.\",\n    \"units\": \"points\",\n    \"support\": \"unbounded real; positive favors own team\"\n  },\n  \"strategies\": [\n    {\n      \"bucket\": \"analytics\",\n      \"type\": \"game_management\",\n      \"title\": \"Optimal 4th-down aggression\",\n      \"recommendation\": \"Adopt a model-driven 4th-down policy: go for it on essentially all 4th-and-1s past our own 30 and on 4th-and-short in opponent four-down territory, and keep the punt/FG unit off the field in spots WP/EP models flag as negative-EP.\",\n      \"rationale\": \"Win-probability and expected-points models repeatedly show conventional coaches forfeit fractions of a win per season by punting/kicking in go situations; converting those decisions adds expected points and shortens the opponent's field, which maps directly onto wins.\",\n      \"prior\": {\n        \"belief_summaries\": {\n          \"most_plausible_value\": 0.72,\n          \"interval_95_low\": 0.0,\n          \"interval_95_high\": 1.44,\n          \"shape\": \"symmetric\",\n          \"tails\": \"moderate\"\n        },\n        \"distribution_family\": {\n          \"name\": \"normal\",\n          \"justification\": \"The underlying models are well-validated and replicated, so both sign and magnitude are fairly pinned down; the effect is unlikely to land far from center, so symmetric with moderate tails fits.\"\n        },\n        \"parameters\": {\n          \"mu\": 0.72,\n          \"sigma\": 0.3673,\n          \"conversion_note\": \"Normal: mu = most_plausible = 0.72; sigma = (high - low)/3.92 = (1.44 - 0.00)/3.92 = 0.3673. Interval is symmetric about mu by construction.\"\n        },\n        \"consistency_check\": \"0.72 lies inside [0.0, 1.44]; normal support is all of R, covering signed (including negative) values.\"\n      }\n    },\n    {\n      \"bucket\": \"analytics\",\n      \"type\": \"offensive\",\n      \"title\": \"Expand play-action usage\",\n      \"recommendation\": \"Roughly double our play-action rate, especially on early downs and outside obvious passing situations, and keep using it even when the base run game is mediocre; pair it with boots/keepers to stress second-level defenders.\",\n      \"rationale\": \"Public charting shows play-action carries a sizable EPA/dropback premium that is largely independent of run-game success, yet most offenses use it well below the efficiency-maximizing rate; more PA means more explosive, lower-risk completions, which lift scoring margin.\",\n      \"prior\": {\n        \"belief_summaries\": {\n          \"most_plausible_value\": 0.48,\n          \"interval_95_low\": -0.1,\n          \"interval_95_high\": 1.8,\n          \"shape\": \"right_skewed\",\n          \"tails\": \"moderate\"\n        },\n        \"distribution_family\": {\n          \"name\": \"skew_normal\",\n          \"justification\": \"Asymmetric belief: a floor near zero because defenses adapt and surprise decays, but a longer upside tail with the right personnel/scheme, so right skew is appropriate.\"\n        },\n        \"parameters\": {\n          \"xi\": 0.14,\n          \"omega\": 0.80,\n          \"alpha\": 4.0,\n          \"conversion_note\": \"Skew-normal, right skew via alpha = +4 (skewness ~0.78, Gaussian-decaying tails). Fit numerically: using standard SN(alpha=4) mode ~0.42 and standard quantiles q.025 ~ -0.28, q.975 ~ 2.10, solved omega ~0.80 and xi ~0.14 so the mode ~0.48 and central 95% ~[-0.08, 1.82], approximately the stated [-0.1, 1.8]. Approximate; the script's ppf prints the exact interval.\"\n        },\n        \"consistency_check\": \"0.48 lies inside [-0.1, 1.8]; skew_normal support is all of R, covering signed values.\"\n      }\n    },\n    {\n      \"bucket\": \"analytics\",\n      \"type\": \"defensive\",\n      \"title\": \"Two-high light-box as base\",\n      \"recommendation\": \"Default to two-high safety structures with lighter boxes on early downs to take away explosive passes and force methodical drives, conceding efficient-but-low-value rushing yards; vary coverages within the two-high umbrella rather than reverting to single-high to stuff the run.\",\n      \"rationale\": \"Explosive plays (especially 20+ yard passes) are the strongest per-play driver of scoring drives, and analytics shows trading low-EPA rushing yards to deny high-EPA explosives is a favorable exchange many staffs still resist.\",\n      \"prior\": {\n        \"belief_summaries\": {\n          \"most_plausible_value\": 0.38,\n          \"interval_95_low\": -0.42,\n          \"interval_95_high\": 1.18,\n          \"shape\": \"symmetric\",\n          \"tails\": \"moderate\"\n        },\n        \"distribution_family\": {\n          \"name\": \"normal\",\n          \"justification\": \"A bounded structural tilt with genuine two-sided risk (against heavy-run teams or with poor tackling it can backfire) and no strong skew or fat-tail mechanism.\"\n        },\n        \"parameters\": {\n          \"mu\": 0.38,\n          \"sigma\": 0.4082,\n          \"conversion_note\": \"Normal: mu = 0.38; sigma = (high - low)/3.92 = (1.18 - (-0.42))/3.92 = 1.60/3.92 = 0.4082.\"\n        },\n        \"consistency_check\": \"0.38 lies inside [-0.42, 1.18]; the interval crosses zero, honestly reflecting backfire risk; normal support covers signed values.\"\n      }\n    },\n    {\n      \"bucket\": \"intuition\",\n      \"type\": \"game_management\",\n      \"title\": \"Proactive end-of-half defensive timeouts (the double-up)\",\n      \"recommendation\": \"When we have deferred, use defensive timeouts aggressively in the last ~3-4 minutes of the second quarter to force a punt and get the ball back with time to score before half, chasing the two-possession swing of scoring just before and just after intermission, rather than hoarding timeouts.\",\n      \"rationale\": \"Intuition basis: public models quantify offensive in-possession clock/timeout use but rarely isolate the value of spending DEFENSIVE timeouts to manufacture a pre-half possession or the before/after-half 'double.' Winning link: an extra expected possession per half is worth real points, and the deferred second-half kickoff compounds it. This is one of my weaker picks and the prior reflects that.\",\n      \"prior\": {\n        \"belief_summaries\": {\n          \"most_plausible_value\": 0.18,\n          \"interval_95_low\": -0.5,\n          \"interval_95_high\": 0.86,\n          \"shape\": \"symmetric\",\n          \"tails\": \"moderate\"\n        },\n        \"distribution_family\": {\n          \"name\": \"normal\",\n          \"justification\": \"A small, two-sided effect with no fat-tail mechanism; the real downside (spent timeouts unavailable if the script flips, and the opponent also benefits from a stopped clock) is captured by a wide-relative-to-center symmetric spread.\"\n        },\n        \"parameters\": {\n          \"mu\": 0.18,\n          \"sigma\": 0.3469,\n          \"conversion_note\": \"Normal: mu = 0.18; sigma = (high - low)/3.92 = (0.86 - (-0.50))/3.92 = 1.36/3.92 = 0.3469.\"\n        },\n        \"consistency_check\": \"0.18 lies inside [-0.5, 0.86]; interval is wide relative to its small center and dips clearly negative, reflecting honest low confidence; normal support covers signed values.\"\n      }\n    },\n    {\n      \"bucket\": \"intuition\",\n      \"type\": \"offensive\",\n      \"title\": \"No-huddle tempo as a base operating mode\",\n      \"recommendation\": \"Operate primarily from no-huddle tempo by default (not just in two-minute) to lock the defense into base personnel, limit exotic pressures and disguise, and prevent specialized substitutions, accepting fewer huddles and a faster game clock.\",\n      \"rationale\": \"Intuition basis: public analytics on sustained tempo is genuinely mixed—more snaps help us but also the opponent, and rest our defense less—so there is no clean consensus effect. Winning link: constraining the defense's personnel and pressure menu can raise our per-play efficiency and force mistakes, and the effect compounds when it snowballs.\",\n      \"prior\": {\n        \"belief_summaries\": {\n          \"most_plausible_value\": 0.28,\n          \"interval_95_low\": -1.32,\n          \"interval_95_high\": 1.88,\n          \"shape\": \"symmetric\",\n          \"tails\": \"heavy\"\n        },\n        \"distribution_family\": {\n          \"name\": \"student_t\",\n          \"justification\": \"Genuinely two-sided with potential for large swings either way (snowball upside vs. gassed-defense / short-field downside), so symmetric center but heavy tails.\"\n        },\n        \"parameters\": {\n          \"nu\": 4,\n          \"mu\": 0.28,\n          \"sigma\": 0.5764,\n          \"conversion_note\": \"Student-t: nu = 4 (clearly heavy tails); t_{0.975,4} = 2.776; mu = 0.28; sigma = (high - low)/(2 x 2.776) = (1.88 - (-1.32))/5.552 = 3.20/5.552 = 0.5764 (scale, not SD).\"\n        },\n        \"consistency_check\": \"0.28 lies inside [-1.32, 1.88]; student_t support is all of R; heavy tails put real mass on both large positive and large negative effects.\"\n      }\n    },\n    {\n      \"bucket\": \"intuition\",\n      \"type\": \"defensive\",\n      \"title\": \"Manufacture takeaways via ball-disruption coaching\",\n      \"recommendation\": \"Drill aggressive ball disruption—second-defender punch-outs, rake-throughs, and attacking the catch point—as a weekly point of emphasis, accepting a marginally higher missed-tackle/YAC risk in exchange for more forced fumbles and contested-throw takeaways.\",\n      \"rationale\": \"Intuition basis: analytics treats turnovers as high-leverage but largely luck-driven (fumble recovery, INT variance), so it is skeptical that emphasis reliably creates them. Winning link: takeaways are among the biggest EP swings in football (short fields, lost possessions, occasional return scores), so even a small, noisy bump buys points—though the tackling tradeoff adds genuine downside.\",\n      \"prior\": {\n        \"belief_summaries\": {\n          \"most_plausible_value\": 0.32,\n          \"interval_95_low\": -0.98,\n          \"interval_95_high\": 1.62,\n          \"shape\": \"symmetric\",\n          \"tails\": \"heavy\"\n        },\n        \"distribution_family\": {\n          \"name\": \"student_t\",\n          \"justification\": \"Turnovers are extremely high-variance and high-leverage, so a non-trivial chance of a large |effect| in either direction is essential—heavy tails, modest positive center.\"\n        },\n        \"parameters\": {\n          \"nu\": 4,\n          \"mu\": 0.32,\n          \"sigma\": 0.4683,\n          \"conversion_note\": \"Student-t: nu = 4 (heavy tails); t_{0.975,4} = 2.776; mu = 0.32; sigma = (high - low)/(2 x 2.776) = (1.62 - (-0.98))/5.552 = 2.60/5.552 = 0.4683 (scale, not SD).\"\n        },\n        \"consistency_check\": \"0.32 lies inside [-0.98, 1.62]; student_t support is all of R; interval reaches well into negative territory, reflecting the tackling tradeoff and luck component.\"\n      }\n    }\n  ],\n  \"plot_script\": \"import numpy as np\\nimport matplotlib.pyplot as plt\\nfrom scipy.stats import norm, t, skewnorm\\n\\n# ---- Editable priors for the 6 strategies (family + parameters) ----\\nstrategies = [\\n    {\\\"title\\\": \\\"Analytics / GameMgmt: Optimal 4th-down aggression\\\",\\n     \\\"family\\\": \\\"normal\\\", \\\"params\\\": {\\\"mu\\\": 0.72, \\\"sigma\\\": 0.3673},\\n     \\\"most_plausible\\\": 0.72},\\n    {\\\"title\\\": \\\"Analytics / Offense: Expand play-action usage\\\",\\n     \\\"family\\\": \\\"skew_normal\\\", \\\"params\\\": {\\\"xi\\\": 0.14, \\\"omega\\\": 0.80, \\\"alpha\\\": 4.0},\\n     \\\"most_plausible\\\": 0.48},\\n    {\\\"title\\\": \\\"Analytics / Defense: Two-high light-box base\\\",\\n     \\\"family\\\": \\\"normal\\\", \\\"params\\\": {\\\"mu\\\": 0.38, \\\"sigma\\\": 0.4082},\\n     \\\"most_plausible\\\": 0.38},\\n    {\\\"title\\\": \\\"Intuition / GameMgmt: Proactive end-of-half timeouts\\\",\\n     \\\"family\\\": \\\"normal\\\", \\\"params\\\": {\\\"mu\\\": 0.18, \\\"sigma\\\": 0.3469},\\n     \\\"most_plausible\\\": 0.18},\\n    {\\\"title\\\": \\\"Intuition / Offense: No-huddle tempo as base\\\",\\n     \\\"family\\\": \\\"student_t\\\", \\\"params\\\": {\\\"nu\\\": 4, \\\"mu\\\": 0.28, \\\"sigma\\\": 0.5764},\\n     \\\"most_plausible\\\": 0.28},\\n    {\\\"title\\\": \\\"Intuition / Defense: Manufacture takeaways\\\",\\n     \\\"family\\\": \\\"student_t\\\", \\\"params\\\": {\\\"nu\\\": 4, \\\"mu\\\": 0.32, \\\"sigma\\\": 0.4683},\\n     \\\"most_plausible\\\": 0.32},\\n]\\n\\ndef make_dist(s):\\n    f, p = s[\\\"family\\\"], s[\\\"params\\\"]\\n    if f == \\\"normal\\\":\\n        return norm(loc=p[\\\"mu\\\"], scale=p[\\\"sigma\\\"])\\n    if f == \\\"student_t\\\":\\n        return t(df=p[\\\"nu\\\"], loc=p[\\\"mu\\\"], scale=p[\\\"sigma\\\"])\\n    if f == \\\"skew_normal\\\":\\n        return skewnorm(a=p[\\\"alpha\\\"], loc=p[\\\"xi\\\"], scale=p[\\\"omega\\\"])\\n    raise ValueError(\\\"unknown family: \\\" + f)\\n\\nfig, axes = plt.subplots(2, 3, figsize=(16, 9))\\naxes = axes.ravel()\\n\\nfor ax, s in zip(axes, strategies):\\n    dist = make_dist(s)\\n    lo, hi = dist.ppf(0.025), dist.ppf(0.975)\\n    span = hi - lo\\n    xs = np.linspace(lo - 0.5 * span, hi + 0.5 * span, 600)\\n    pdf = dist.pdf(xs)\\n    ax.plot(xs, pdf, lw=2, color=\\\"navy\\\")\\n    mask = (xs >= lo) & (xs <= hi)\\n    ax.fill_between(xs[mask], pdf[mask], alpha=0.25, color=\\\"navy\\\",\\n                    label=\\\"95%% interval [%.2f, %.2f]\\\" % (lo, hi))\\n    mp = s[\\\"most_plausible\\\"]\\n    ax.axvline(mp, color=\\\"crimson\\\", ls=\\\"--\\\", lw=1.5,\\n               label=\\\"most-plausible = %.2f\\\" % mp)\\n    ax.axvline(0.0, color=\\\"gray\\\", ls=\\\":\\\", lw=1)\\n    ax.set_title(s[\\\"title\\\"], fontsize=10)\\n    ax.set_xlabel(\\\"Change in own scoring margin (points)\\\")\\n    ax.set_ylabel(\\\"density\\\")\\n    ax.legend(fontsize=8, loc=\\\"upper right\\\")\\n    print(s[\\\"title\\\"])\\n    print(\\\"  family:\\\", s[\\\"family\\\"], \\\"| params:\\\", s[\\\"params\\\"])\\n    print(\\\"  ppf 95%% interval: [%.3f, %.3f]\\\" % (lo, hi))\\n    print()\\n\\nplt.tight_layout()\\nplt.show()\\n\"\n}\n```",
+  "request_params": {
+    "max_tokens": 64000,
+    "model": "claude-opus-4-8",
+    "output_config": {
+      "effort": "max"
+    },
+    "thinking": {
+      "type": "adaptive"
+    }
+  },
+  "sample_idx": 0,
+  "seed": null,
+  "snapshot_id": "claude-opus-4-8",
+  "stop_reason": "end_turn",
+  "temperature": null,
+  "ts": "2026-06-11T01:33:50Z",
+  "usage": {
+    "input_tokens": 2526,
+    "output_tokens": 42340
+  }
+}

@@ -1,0 +1,193 @@
+{
+  "instance_id": "gpt-5.5__s0",
+  "model": "gpt-5.5",
+  "parse_mode": "direct",
+  "parsed_json": {
+    "plot_script": "import numpy as np\nimport matplotlib.pyplot as plt\nfrom scipy.stats import norm, t, skewnorm\n\nstrategies = [\n    {'title': 'WP-guided fourth downs and 2-point tries', 'family': 'skew_normal', 'most_plausible': 0.44, 'params': {'xi': 0.221, 'omega': 0.409, 'alpha': 1.3}},\n    {'title': 'Neutral early-down pass/play-action bias', 'family': 'skew_normal', 'most_plausible': 0.31, 'params': {'xi': 0.131, 'omega': 0.345, 'alpha': 1.1}},\n    {'title': 'Coverage-first pressure discipline', 'family': 'normal', 'most_plausible': 0.23, 'params': {'mu': 0.23, 'sigma': 0.290816}},\n    {'title': 'Timeouts as play-quality insurance', 'family': 'normal', 'most_plausible': 0.04, 'params': {'mu': 0.04, 'sigma': 0.142857}},\n    {'title': 'Selective shock tempo', 'family': 'student_t', 'most_plausible': 0.13, 'params': {'nu': 7, 'mu': 0.13, 'sigma': 0.241525}},\n    {'title': 'Pass-rush freshness rotation', 'family': 'skew_normal', 'most_plausible': 0.09, 'params': {'xi': 0.230, 'omega': 0.295, 'alpha': -3.0}}\n]\n\ndef make_dist(s):\n    p = s['params']\n    if s['family'] == 'normal':\n        return norm(loc=p['mu'], scale=p['sigma'])\n    if s['family'] == 'student_t':\n        return t(df=p['nu'], loc=p['mu'], scale=p['sigma'])\n    if s['family'] == 'skew_normal':\n        return skewnorm(a=p['alpha'], loc=p['xi'], scale=p['omega'])\n    raise ValueError('Unknown family: {}'.format(s['family']))\n\nfig, axes = plt.subplots(3, 2, figsize=(12, 10), constrained_layout=True)\naxes = axes.ravel()\n\nfor ax, s in zip(axes, strategies):\n    dist = make_dist(s)\n    lo, hi = dist.ppf([0.025, 0.975])\n    xlo, xhi = dist.ppf([0.001, 0.999])\n    xlo = min(xlo, lo, s['most_plausible'])\n    xhi = max(xhi, hi, s['most_plausible'])\n    pad = 0.10 * (xhi - xlo)\n    x = np.linspace(xlo - pad, xhi + pad, 700)\n    y = dist.pdf(x)\n\n    ax.plot(x, y, color='black', linewidth=1.8)\n    mask = (x >= lo) & (x <= hi)\n    ax.fill_between(x[mask], 0, y[mask], color='steelblue', alpha=0.25, label='distribution 95% interval')\n    ax.axvline(s['most_plausible'], color='crimson', linestyle='--', linewidth=1.5, label='most plausible')\n    ax.axvline(lo, color='gray', linestyle=':', linewidth=1.0)\n    ax.axvline(hi, color='gray', linestyle=':', linewidth=1.0)\n    ax.set_title(s['title'])\n    ax.set_xlabel('Change in own scoring margin (points)')\n    ax.set_ylabel('Density')\n    ax.legend(fontsize=8)\n\n    params_text = ', '.join(['{}={}'.format(k, v) for k, v in s['params'].items()])\n    print('{}: family={}, params={{ {} }}'.format(s['title'], s['family'], params_text))\n\nplt.show()\n",
+    "quantity": {
+      "description": "Change in own-team expected single-game scoring margin from adopting the strategy",
+      "support": "unbounded real; positive favors own team",
+      "units": "points"
+    },
+    "strategies": [
+      {
+        "bucket": "analytics",
+        "prior": {
+          "belief_summaries": {
+            "interval_95_high": 1.14,
+            "interval_95_low": -0.11,
+            "most_plausible_value": 0.44,
+            "shape": "right_skewed",
+            "tails": "moderate"
+          },
+          "consistency_check": "The most-plausible value 0.44 lies inside [-0.11, 1.14]. A skew-normal distribution has unbounded real support, so negative and positive effects are both allowed; interval matching is approximate from numerical fitting.",
+          "distribution_family": {
+            "justification": "The public evidence points positive, but execution and context can make the average effect small or even negative; the upside tail is longer because a very conservative baseline can leave substantial points on the table. Skew-normal gives signed support with mild right skew.",
+            "name": "skew_normal"
+          },
+          "parameters": {
+            "alpha": 1.3,
+            "conversion_note": "Set alpha=1.3 for mild right skew. Numerically, a standard skew_normal with alpha=1.3 has mode approx 0.536 and central 95% quantiles approx [-0.81, 2.24]; omega approx 0.55 / (0.536 - (-0.81)) = 0.409, and xi = 0.44 - 0.409*0.536 = 0.221, yielding an approximate 95% interval near [-0.11, 1.14].",
+            "omega": 0.409,
+            "xi": 0.221
+          }
+        },
+        "rationale": "Public fourth-down and win-probability models repeatedly find that possessions and touchdown chances are undervalued relative to field-position caution. Capturing extra first downs and red-zone chances should raise expected points and late-game win probability.",
+        "recommendation": "Use a live win-probability/expected-points card as the default: go on many 4th-and-1/2 situations around midfield and in plus territory, avoid low-value long field goals, and make 2-point decisions by score/time rather than tie-preservation instinct. I keep a veto for extreme weather, injuries, or a matchup the model cannot see, but the conservative choice carries the burden of proof.",
+        "title": "WP-guided fourth downs and 2-point tries",
+        "type": "game_management"
+      },
+      {
+        "bucket": "analytics",
+        "prior": {
+          "belief_summaries": {
+            "interval_95_high": 0.9,
+            "interval_95_low": -0.19,
+            "most_plausible_value": 0.31,
+            "shape": "right_skewed",
+            "tails": "moderate"
+          },
+          "consistency_check": "The most-plausible value 0.31 lies inside [-0.19, 0.90]. A skew-normal distribution has signed, unbounded support; the fitted mode and interval are approximate.",
+          "distribution_family": {
+            "justification": "The central belief is positive, but the effect depends on quarterback quality, pass protection, and turnover avoidance. I use mild right skew because the largest surprises are more likely when a previously run-heavy offense unlocks efficient early-down answers.",
+            "name": "skew_normal"
+          },
+          "parameters": {
+            "alpha": 1.1,
+            "conversion_note": "Set alpha=1.1 for mild right skew. Numerically, a standard skew_normal with alpha=1.1 has mode approx 0.520 and central 95% quantiles approx [-0.93, 2.24]; omega approx 0.50 / (0.520 - (-0.93)) = 0.345, and xi = 0.31 - 0.345*0.520 = 0.131, giving an approximate interval near [-0.19, 0.90].",
+            "omega": 0.345,
+            "xi": 0.131
+          }
+        },
+        "rationale": "Public EPA work generally shows that early-down passing and play-action are underused relative to their efficiency, especially because failed early runs create predictable third-and-long. Staying ahead of the sticks increases drive survival and scoring probability.",
+        "recommendation": "Shift neutral first- and second-down calls several percentage points toward efficient dropback, play-action, and RPO concepts from formations that still credibly run. Do not chase run/pass balance for its own sake; run when the box, defensive personnel, or game state makes it efficient.",
+        "title": "Neutral early-down pass/play-action bias",
+        "type": "offensive"
+      },
+      {
+        "bucket": "analytics",
+        "prior": {
+          "belief_summaries": {
+            "interval_95_high": 0.8,
+            "interval_95_low": -0.34,
+            "most_plausible_value": 0.23,
+            "shape": "symmetric",
+            "tails": "light"
+          },
+          "consistency_check": "The most-plausible value 0.23 lies inside [-0.34, 0.80]. The normal distribution has unbounded real support and therefore covers signed effects.",
+          "distribution_family": {
+            "justification": "I view the uncertainty as roughly balanced: the strategy can help by suppressing explosives or hurt if the four-man rush cannot affect the quarterback. Normal is adequate because I do not expect extreme per-game average effects from this single lever.",
+            "name": "normal"
+          },
+          "parameters": {
+            "conversion_note": "For normal(mu, sigma), mu = most_plausible = 0.23. sigma = (high - low) / 3.92 = (0.80 - (-0.34)) / 3.92 = 1.14 / 3.92 = 0.290816.",
+            "mu": 0.23,
+            "sigma": 0.290816
+          }
+        },
+        "rationale": "Public EPA research consistently values pass defense and explosive-pass prevention highly, while blitzing often trades pressure for worse coverage and larger gains allowed. Reducing explosive touchdown drives is directly tied to winning even if it concedes some short completions.",
+        "recommendation": "On likely pass downs, replace some five-plus-man rushes with four-man rushes, simulated pressures, and two-high or match-coverage structures that protect against explosives. Blitz selectively when the protection rules or quarterback profile justify it, not as the default answer to needing a stop.",
+        "title": "Coverage-first pressure discipline",
+        "type": "defensive"
+      },
+      {
+        "bucket": "intuition",
+        "prior": {
+          "belief_summaries": {
+            "interval_95_high": 0.32,
+            "interval_95_low": -0.24,
+            "most_plausible_value": 0.04,
+            "shape": "symmetric",
+            "tails": "light"
+          },
+          "consistency_check": "The most-plausible value 0.04 lies inside [-0.24, 0.32]. The normal distribution has unbounded real support and therefore covers signed effects.",
+          "distribution_family": {
+            "justification": "This is a weak candidate with the most plausible effect close to zero. Normal is appropriate because the upside and downside both look limited and fairly balanced.",
+            "name": "normal"
+          },
+          "parameters": {
+            "conversion_note": "For normal(mu, sigma), mu = most_plausible = 0.04. sigma = (high - low) / 3.92 = (0.32 - (-0.24)) / 3.92 = 0.56 / 3.92 = 0.142857.",
+            "mu": 0.04,
+            "sigma": 0.142857
+          }
+        },
+        "rationale": "Preventing one delay, blown protection, uncovered receiver, or doomed red-zone snap can outweigh the average future value of the timeout. The effect is probably small because these situations are infrequent and overuse can damage end-game clock equity.",
+        "recommendation": "Spend a first- or second-half timeout before the snap when the headset, personnel, or defensive look indicates a likely busted high-leverage play, rather than saving every timeout for a textbook two-minute sequence. This qualifies as intuition because public clock models value timeouts, but usually cannot observe the sideline's private information that a specific called play is about to fail.",
+        "title": "Timeouts as play-quality insurance",
+        "type": "game_management"
+      },
+      {
+        "bucket": "intuition",
+        "prior": {
+          "belief_summaries": {
+            "interval_95_high": 0.7,
+            "interval_95_low": -0.44,
+            "most_plausible_value": 0.13,
+            "shape": "symmetric",
+            "tails": "heavy"
+          },
+          "consistency_check": "The most-plausible value 0.13 lies inside [-0.44, 0.70]. The Student-t distribution has unbounded real support and therefore covers signed effects.",
+          "distribution_family": {
+            "justification": "I expect the average effect to be small-positive, but scheme, quarterback, and defense-fatigue interactions could produce a surprisingly large benefit or harm. Student-t captures that heavier-tailed uncertainty while keeping the prior centered on a signed effect.",
+            "name": "student_t"
+          },
+          "parameters": {
+            "conversion_note": "For student_t(nu, mu, sigma), chose nu=7 for moderately heavy tails and used t_{0.975,7} approx 2.36. mu = most_plausible = 0.13; sigma = (high - low) / (2*2.36) = (0.70 - (-0.44)) / 4.72 = 1.14 / 4.72 = 0.241525.",
+            "mu": 0.13,
+            "nu": 7,
+            "sigma": 0.241525
+          }
+        },
+        "rationale": "The goal is to steal a few easy snaps without paying the full-game pace tax on our own defense. It raises win probability if the cheap efficiency and reduced disguise outweigh occasional communication errors or fast three-and-outs.",
+        "recommendation": "Use short no-huddle bursts after explosives, defensive substitutions, and successful first-down plays to trap personnel and force simplified defensive calls, then slow down once the advantage disappears. This is intuition rather than established analytics because public tempo studies are mixed and often cannot separate planned selective tempo from trailing-game hurry-up noise.",
+        "title": "Selective shock tempo",
+        "type": "offensive"
+      },
+      {
+        "bucket": "intuition",
+        "prior": {
+          "belief_summaries": {
+            "interval_95_high": 0.32,
+            "interval_95_low": -0.43,
+            "most_plausible_value": 0.09,
+            "shape": "left_skewed",
+            "tails": "moderate"
+          },
+          "consistency_check": "The most-plausible value 0.09 lies inside [-0.43, 0.32]. A skew-normal distribution has unbounded real support, so signed positive and negative effects are both possible; interval matching is approximate.",
+          "distribution_family": {
+            "justification": "The central belief is slightly positive, but the larger miss is over-rotating into inferior personnel that opponents exploit. A left-skewed skew-normal captures a longer downside tail while retaining signed support.",
+            "name": "skew_normal"
+          },
+          "parameters": {
+            "alpha": -3.0,
+            "conversion_note": "Set alpha=-3.0 for clear left skew. Numerically, a standard skew_normal with alpha=-3.0 has mode approx -0.474 and central 95% quantiles approx [-2.24, 0.30]; omega approx 0.52 / (-0.474 - (-2.24)) = 0.295, and xi = 0.09 - 0.295*(-0.474) = 0.230, yielding an approximate 95% interval near [-0.43, 0.32].",
+            "omega": 0.295,
+            "xi": 0.23
+          }
+        },
+        "rationale": "Fresh rushers preserve closing speed and reduce missed contain on the highest-leverage passing downs. The downside tail is real because backups can be targeted in the run game or a mistimed rotation can create communication errors.",
+        "recommendation": "Pre-plan more defensive-line and edge rotations, especially for interior rushers, so the best rush unit is fresh on third downs and in the fourth quarter, even if that means a few earlier snaps with slightly weaker players. This is intuition because public analytics has limited clean player-tracking evidence on marginal fatigue, rotation timing, and late-game rush quality after controlling for score, opponent, and personnel.",
+        "title": "Pass-rush freshness rotation",
+        "type": "defensive"
+      }
+    ]
+  },
+  "raw_text": "{\n  \"quantity\": {\n    \"description\": \"Change in own-team expected single-game scoring margin from adopting the strategy\",\n    \"units\": \"points\",\n    \"support\": \"unbounded real; positive favors own team\"\n  },\n  \"strategies\": [\n    {\n      \"bucket\": \"analytics\",\n      \"type\": \"game_management\",\n      \"title\": \"WP-guided fourth downs and 2-point tries\",\n      \"recommendation\": \"Use a live win-probability/expected-points card as the default: go on many 4th-and-1/2 situations around midfield and in plus territory, avoid low-value long field goals, and make 2-point decisions by score/time rather than tie-preservation instinct. I keep a veto for extreme weather, injuries, or a matchup the model cannot see, but the conservative choice carries the burden of proof.\",\n      \"rationale\": \"Public fourth-down and win-probability models repeatedly find that possessions and touchdown chances are undervalued relative to field-position caution. Capturing extra first downs and red-zone chances should raise expected points and late-game win probability.\",\n      \"prior\": {\n        \"belief_summaries\": {\n          \"most_plausible_value\": 0.44,\n          \"interval_95_low\": -0.11,\n          \"interval_95_high\": 1.14,\n          \"shape\": \"right_skewed\",\n          \"tails\": \"moderate\"\n        },\n        \"distribution_family\": {\n          \"name\": \"skew_normal\",\n          \"justification\": \"The public evidence points positive, but execution and context can make the average effect small or even negative; the upside tail is longer because a very conservative baseline can leave substantial points on the table. Skew-normal gives signed support with mild right skew.\"\n        },\n        \"parameters\": {\n          \"xi\": 0.221,\n          \"omega\": 0.409,\n          \"alpha\": 1.3,\n          \"conversion_note\": \"Set alpha=1.3 for mild right skew. Numerically, a standard skew_normal with alpha=1.3 has mode approx 0.536 and central 95% quantiles approx [-0.81, 2.24]; omega approx 0.55 / (0.536 - (-0.81)) = 0.409, and xi = 0.44 - 0.409*0.536 = 0.221, yielding an approximate 95% interval near [-0.11, 1.14].\"\n        },\n        \"consistency_check\": \"The most-plausible value 0.44 lies inside [-0.11, 1.14]. A skew-normal distribution has unbounded real support, so negative and positive effects are both allowed; interval matching is approximate from numerical fitting.\"\n      }\n    },\n    {\n      \"bucket\": \"analytics\",\n      \"type\": \"offensive\",\n      \"title\": \"Neutral early-down pass/play-action bias\",\n      \"recommendation\": \"Shift neutral first- and second-down calls several percentage points toward efficient dropback, play-action, and RPO concepts from formations that still credibly run. Do not chase run/pass balance for its own sake; run when the box, defensive personnel, or game state makes it efficient.\",\n      \"rationale\": \"Public EPA work generally shows that early-down passing and play-action are underused relative to their efficiency, especially because failed early runs create predictable third-and-long. Staying ahead of the sticks increases drive survival and scoring probability.\",\n      \"prior\": {\n        \"belief_summaries\": {\n          \"most_plausible_value\": 0.31,\n          \"interval_95_low\": -0.19,\n          \"interval_95_high\": 0.9,\n          \"shape\": \"right_skewed\",\n          \"tails\": \"moderate\"\n        },\n        \"distribution_family\": {\n          \"name\": \"skew_normal\",\n          \"justification\": \"The central belief is positive, but the effect depends on quarterback quality, pass protection, and turnover avoidance. I use mild right skew because the largest surprises are more likely when a previously run-heavy offense unlocks efficient early-down answers.\"\n        },\n        \"parameters\": {\n          \"xi\": 0.131,\n          \"omega\": 0.345,\n          \"alpha\": 1.1,\n          \"conversion_note\": \"Set alpha=1.1 for mild right skew. Numerically, a standard skew_normal with alpha=1.1 has mode approx 0.520 and central 95% quantiles approx [-0.93, 2.24]; omega approx 0.50 / (0.520 - (-0.93)) = 0.345, and xi = 0.31 - 0.345*0.520 = 0.131, giving an approximate interval near [-0.19, 0.90].\"\n        },\n        \"consistency_check\": \"The most-plausible value 0.31 lies inside [-0.19, 0.90]. A skew-normal distribution has signed, unbounded support; the fitted mode and interval are approximate.\"\n      }\n    },\n    {\n      \"bucket\": \"analytics\",\n      \"type\": \"defensive\",\n      \"title\": \"Coverage-first pressure discipline\",\n      \"recommendation\": \"On likely pass downs, replace some five-plus-man rushes with four-man rushes, simulated pressures, and two-high or match-coverage structures that protect against explosives. Blitz selectively when the protection rules or quarterback profile justify it, not as the default answer to needing a stop.\",\n      \"rationale\": \"Public EPA research consistently values pass defense and explosive-pass prevention highly, while blitzing often trades pressure for worse coverage and larger gains allowed. Reducing explosive touchdown drives is directly tied to winning even if it concedes some short completions.\",\n      \"prior\": {\n        \"belief_summaries\": {\n          \"most_plausible_value\": 0.23,\n          \"interval_95_low\": -0.34,\n          \"interval_95_high\": 0.8,\n          \"shape\": \"symmetric\",\n          \"tails\": \"light\"\n        },\n        \"distribution_family\": {\n          \"name\": \"normal\",\n          \"justification\": \"I view the uncertainty as roughly balanced: the strategy can help by suppressing explosives or hurt if the four-man rush cannot affect the quarterback. Normal is adequate because I do not expect extreme per-game average effects from this single lever.\"\n        },\n        \"parameters\": {\n          \"mu\": 0.23,\n          \"sigma\": 0.290816,\n          \"conversion_note\": \"For normal(mu, sigma), mu = most_plausible = 0.23. sigma = (high - low) / 3.92 = (0.80 - (-0.34)) / 3.92 = 1.14 / 3.92 = 0.290816.\"\n        },\n        \"consistency_check\": \"The most-plausible value 0.23 lies inside [-0.34, 0.80]. The normal distribution has unbounded real support and therefore covers signed effects.\"\n      }\n    },\n    {\n      \"bucket\": \"intuition\",\n      \"type\": \"game_management\",\n      \"title\": \"Timeouts as play-quality insurance\",\n      \"recommendation\": \"Spend a first- or second-half timeout before the snap when the headset, personnel, or defensive look indicates a likely busted high-leverage play, rather than saving every timeout for a textbook two-minute sequence. This qualifies as intuition because public clock models value timeouts, but usually cannot observe the sideline's private information that a specific called play is about to fail.\",\n      \"rationale\": \"Preventing one delay, blown protection, uncovered receiver, or doomed red-zone snap can outweigh the average future value of the timeout. The effect is probably small because these situations are infrequent and overuse can damage end-game clock equity.\",\n      \"prior\": {\n        \"belief_summaries\": {\n          \"most_plausible_value\": 0.04,\n          \"interval_95_low\": -0.24,\n          \"interval_95_high\": 0.32,\n          \"shape\": \"symmetric\",\n          \"tails\": \"light\"\n        },\n        \"distribution_family\": {\n          \"name\": \"normal\",\n          \"justification\": \"This is a weak candidate with the most plausible effect close to zero. Normal is appropriate because the upside and downside both look limited and fairly balanced.\"\n        },\n        \"parameters\": {\n          \"mu\": 0.04,\n          \"sigma\": 0.142857,\n          \"conversion_note\": \"For normal(mu, sigma), mu = most_plausible = 0.04. sigma = (high - low) / 3.92 = (0.32 - (-0.24)) / 3.92 = 0.56 / 3.92 = 0.142857.\"\n        },\n        \"consistency_check\": \"The most-plausible value 0.04 lies inside [-0.24, 0.32]. The normal distribution has unbounded real support and therefore covers signed effects.\"\n      }\n    },\n    {\n      \"bucket\": \"intuition\",\n      \"type\": \"offensive\",\n      \"title\": \"Selective shock tempo\",\n      \"recommendation\": \"Use short no-huddle bursts after explosives, defensive substitutions, and successful first-down plays to trap personnel and force simplified defensive calls, then slow down once the advantage disappears. This is intuition rather than established analytics because public tempo studies are mixed and often cannot separate planned selective tempo from trailing-game hurry-up noise.\",\n      \"rationale\": \"The goal is to steal a few easy snaps without paying the full-game pace tax on our own defense. It raises win probability if the cheap efficiency and reduced disguise outweigh occasional communication errors or fast three-and-outs.\",\n      \"prior\": {\n        \"belief_summaries\": {\n          \"most_plausible_value\": 0.13,\n          \"interval_95_low\": -0.44,\n          \"interval_95_high\": 0.7,\n          \"shape\": \"symmetric\",\n          \"tails\": \"heavy\"\n        },\n        \"distribution_family\": {\n          \"name\": \"student_t\",\n          \"justification\": \"I expect the average effect to be small-positive, but scheme, quarterback, and defense-fatigue interactions could produce a surprisingly large benefit or harm. Student-t captures that heavier-tailed uncertainty while keeping the prior centered on a signed effect.\"\n        },\n        \"parameters\": {\n          \"nu\": 7,\n          \"mu\": 0.13,\n          \"sigma\": 0.241525,\n          \"conversion_note\": \"For student_t(nu, mu, sigma), chose nu=7 for moderately heavy tails and used t_{0.975,7} approx 2.36. mu = most_plausible = 0.13; sigma = (high - low) / (2*2.36) = (0.70 - (-0.44)) / 4.72 = 1.14 / 4.72 = 0.241525.\"\n        },\n        \"consistency_check\": \"The most-plausible value 0.13 lies inside [-0.44, 0.70]. The Student-t distribution has unbounded real support and therefore covers signed effects.\"\n      }\n    },\n    {\n      \"bucket\": \"intuition\",\n      \"type\": \"defensive\",\n      \"title\": \"Pass-rush freshness rotation\",\n      \"recommendation\": \"Pre-plan more defensive-line and edge rotations, especially for interior rushers, so the best rush unit is fresh on third downs and in the fourth quarter, even if that means a few earlier snaps with slightly weaker players. This is intuition because public analytics has limited clean player-tracking evidence on marginal fatigue, rotation timing, and late-game rush quality after controlling for score, opponent, and personnel.\",\n      \"rationale\": \"Fresh rushers preserve closing speed and reduce missed contain on the highest-leverage passing downs. The downside tail is real because backups can be targeted in the run game or a mistimed rotation can create communication errors.\",\n      \"prior\": {\n        \"belief_summaries\": {\n          \"most_plausible_value\": 0.09,\n          \"interval_95_low\": -0.43,\n          \"interval_95_high\": 0.32,\n          \"shape\": \"left_skewed\",\n          \"tails\": \"moderate\"\n        },\n        \"distribution_family\": {\n          \"name\": \"skew_normal\",\n          \"justification\": \"The central belief is slightly positive, but the larger miss is over-rotating into inferior personnel that opponents exploit. A left-skewed skew-normal captures a longer downside tail while retaining signed support.\"\n        },\n        \"parameters\": {\n          \"xi\": 0.23,\n          \"omega\": 0.295,\n          \"alpha\": -3.0,\n          \"conversion_note\": \"Set alpha=-3.0 for clear left skew. Numerically, a standard skew_normal with alpha=-3.0 has mode approx -0.474 and central 95% quantiles approx [-2.24, 0.30]; omega approx 0.52 / (-0.474 - (-2.24)) = 0.295, and xi = 0.09 - 0.295*(-0.474) = 0.230, yielding an approximate 95% interval near [-0.43, 0.32].\"\n        },\n        \"consistency_check\": \"The most-plausible value 0.09 lies inside [-0.43, 0.32]. A skew-normal distribution has unbounded real support, so signed positive and negative effects are both possible; interval matching is approximate.\"\n      }\n    }\n  ],\n  \"plot_script\": \"import numpy as np\\nimport matplotlib.pyplot as plt\\nfrom scipy.stats import norm, t, skewnorm\\n\\nstrategies = [\\n    {'title': 'WP-guided fourth downs and 2-point tries', 'family': 'skew_normal', 'most_plausible': 0.44, 'params': {'xi': 0.221, 'omega': 0.409, 'alpha': 1.3}},\\n    {'title': 'Neutral early-down pass/play-action bias', 'family': 'skew_normal', 'most_plausible': 0.31, 'params': {'xi': 0.131, 'omega': 0.345, 'alpha': 1.1}},\\n    {'title': 'Coverage-first pressure discipline', 'family': 'normal', 'most_plausible': 0.23, 'params': {'mu': 0.23, 'sigma': 0.290816}},\\n    {'title': 'Timeouts as play-quality insurance', 'family': 'normal', 'most_plausible': 0.04, 'params': {'mu': 0.04, 'sigma': 0.142857}},\\n    {'title': 'Selective shock tempo', 'family': 'student_t', 'most_plausible': 0.13, 'params': {'nu': 7, 'mu': 0.13, 'sigma': 0.241525}},\\n    {'title': 'Pass-rush freshness rotation', 'family': 'skew_normal', 'most_plausible': 0.09, 'params': {'xi': 0.230, 'omega': 0.295, 'alpha': -3.0}}\\n]\\n\\ndef make_dist(s):\\n    p = s['params']\\n    if s['family'] == 'normal':\\n        return norm(loc=p['mu'], scale=p['sigma'])\\n    if s['family'] == 'student_t':\\n        return t(df=p['nu'], loc=p['mu'], scale=p['sigma'])\\n    if s['family'] == 'skew_normal':\\n        return skewnorm(a=p['alpha'], loc=p['xi'], scale=p['omega'])\\n    raise ValueError('Unknown family: {}'.format(s['family']))\\n\\nfig, axes = plt.subplots(3, 2, figsize=(12, 10), constrained_layout=True)\\naxes = axes.ravel()\\n\\nfor ax, s in zip(axes, strategies):\\n    dist = make_dist(s)\\n    lo, hi = dist.ppf([0.025, 0.975])\\n    xlo, xhi = dist.ppf([0.001, 0.999])\\n    xlo = min(xlo, lo, s['most_plausible'])\\n    xhi = max(xhi, hi, s['most_plausible'])\\n    pad = 0.10 * (xhi - xlo)\\n    x = np.linspace(xlo - pad, xhi + pad, 700)\\n    y = dist.pdf(x)\\n\\n    ax.plot(x, y, color='black', linewidth=1.8)\\n    mask = (x >= lo) & (x <= hi)\\n    ax.fill_between(x[mask], 0, y[mask], color='steelblue', alpha=0.25, label='distribution 95% interval')\\n    ax.axvline(s['most_plausible'], color='crimson', linestyle='--', linewidth=1.5, label='most plausible')\\n    ax.axvline(lo, color='gray', linestyle=':', linewidth=1.0)\\n    ax.axvline(hi, color='gray', linestyle=':', linewidth=1.0)\\n    ax.set_title(s['title'])\\n    ax.set_xlabel('Change in own scoring margin (points)')\\n    ax.set_ylabel('Density')\\n    ax.legend(fontsize=8)\\n\\n    params_text = ', '.join(['{}={}'.format(k, v) for k, v in s['params'].items()])\\n    print('{}: family={}, params={{ {} }}'.format(s['title'], s['family'], params_text))\\n\\nplt.show()\\n\"\n}",
+  "request_params": {
+    "max_output_tokens": 64000,
+    "model": "gpt-5.5",
+    "reasoning": {
+      "effort": "high"
+    }
+  },
+  "sample_idx": 0,
+  "seed": null,
+  "snapshot_id": "gpt-5.5-2026-04-23",
+  "stop_reason": "completed",
+  "temperature": null,
+  "ts": "2026-06-11T02:17:20Z",
+  "usage": {
+    "input_tokens": 14953,
+    "output_tokens": 2982
+  }
+}

@@ -1,0 +1,198 @@
+{
+  "instance_id": "gemini-3.1-pro-preview__s0",
+  "model": "gemini-3.1-pro-preview",
+  "parse_mode": "fenced",
+  "parsed_json": {
+    "plot_script": "import numpy as np\nimport matplotlib.pyplot as plt\nfrom scipy.stats import norm, t, skewnorm\n\nstrategies = [\n    {'title': 'Strict 4th-and-short aggression', 'family': 'skew_normal', 'params': {'xi': 0.4, 'omega': 0.9, 'alpha': 3.0}},\n    {'title': 'At-the-snap \\'cheat\\' motion', 'family': 'normal', 'params': {'mu': 1.25, 'sigma': 0.51}},\n    {'title': 'Invite the run with light boxes', 'family': 'student_t', 'params': {'nu': 5, 'mu': 0.6, 'sigma': 0.622}},\n    {'title': 'First-drive script-breaking timeout', 'family': 'normal', 'params': {'mu': 0.05, 'sigma': 0.357}},\n    {'title': 'Freeze Tempo (No-huddle)', 'family': 'skew_normal', 'params': {'xi': 0.2, 'omega': 0.8, 'alpha': 2.0}},\n    {'title': 'Elite EDGE at inside LB', 'family': 'student_t', 'params': {'nu': 4, 'mu': 0.45, 'sigma': 0.629}}\n]\n\nfig, axes = plt.subplots(2, 3, figsize=(16, 10))\nfig.tight_layout(pad=5.0)\n\nfor ax, strat in zip(axes.flat, strategies):\n    fam = strat['family']\n    p = strat['params']\n    \n    if fam == 'normal':\n        dist = norm(loc=p['mu'], scale=p['sigma'])\n        plausible = p['mu']\n    elif fam == 'student_t':\n        dist = t(df=p['nu'], loc=p['mu'], scale=p['sigma'])\n        plausible = p['mu']\n    elif fam == 'skew_normal':\n        dist = skewnorm(a=p['alpha'], loc=p['xi'], scale=p['omega'])\n        # Numerical mode approximation for marking\n        x_opt = np.linspace(p['xi'] - p['omega'], p['xi'] + 3*p['omega'], 1000)\n        plausible = x_opt[np.argmax(dist.pdf(x_opt))]\n        \n    low = dist.ppf(0.025)\n    high = dist.ppf(0.975)\n    \n    x = np.linspace(dist.ppf(0.001), dist.ppf(0.999), 500)\n    y = dist.pdf(x)\n    \n    ax.plot(x, y, 'k-', lw=2)\n    \n    # Shade 95% interval\n    x_fill = np.linspace(low, high, 100)\n    ax.fill_between(x_fill, dist.pdf(x_fill), alpha=0.3, color='blue', label='95% Interval')\n    \n    ax.axvline(plausible, color='red', linestyle='--', label=f'Most Plausible ({plausible:.2f})')\n    \n    ax.set_title(strat['title'])\n    ax.set_xlabel('Change in own scoring margin (points)')\n    ax.set_ylabel('Density')\n    ax.legend(loc='best', fontsize=9)\n    \n    print(f\"{strat['title']} | {fam} | {p}\")\n\nplt.show()\n",
+    "quantity": {
+      "description": "Change in own-team expected single-game scoring margin from adopting the strategy",
+      "support": "unbounded real; positive favors own team",
+      "units": "points"
+    },
+    "strategies": [
+      {
+        "bucket": "analytics",
+        "prior": {
+          "belief_summaries": {
+            "interval_95_high": 2.47,
+            "interval_95_low": -0.05,
+            "most_plausible_value": 0.75,
+            "shape": "right_skewed",
+            "tails": "moderate"
+          },
+          "consistency_check": "The most plausible value (0.75) is cleanly inside the 95% interval [-0.05, 2.47]. Support is unbounded real, correctly allowing negative outcomes if fourth-down variance bites us.",
+          "distribution_family": {
+            "justification": "Allows for an asymmetric risk profile. The downside of failing a conversion is capped by standard defensive holds, but the upside of sustaining drives creates a long right tail of expected scoring.",
+            "name": "skew_normal"
+          },
+          "parameters": {
+            "alpha": 3.0,
+            "conversion_note": "Fitted numerically. With an alpha of 3.0 (right skew), setting location xi=0.40 and scale omega=0.90 yields a mode (most plausible) of roughly 0.75, a 2.5% quantile of ~ -0.05, and a 97.5% quantile of ~ 2.47.",
+            "omega": 0.9,
+            "xi": 0.4
+          }
+        },
+        "rationale": "Public expected-points (EP) and win-probability (WP) models overwhelmingly demonstrate that yielding possession in the middle of the field surrenders massive hidden equity. Converting extends scoring drives, while the defensive penalty for a turnover on downs in this zone is offset by the opposing offense having to traverse a condensed field without immediate red-zone access.",
+        "recommendation": "Never punt on 4th-and-1 to 4th-and-3 when the ball is between your own 33-yard line and the opponent's 33-yard line. Always keep the offense on the field.",
+        "title": "Strict 4th-and-short aggression between the 33s",
+        "type": "game_management"
+      },
+      {
+        "bucket": "analytics",
+        "prior": {
+          "belief_summaries": {
+            "interval_95_high": 2.25,
+            "interval_95_low": 0.25,
+            "most_plausible_value": 1.25,
+            "shape": "symmetric",
+            "tails": "light"
+          },
+          "consistency_check": "The mode (1.25) is exactly the midpoint of the interval [0.25, 2.25]. Support spans all real numbers, capable of generating signed outcomes.",
+          "distribution_family": {
+            "justification": "A symmetric, standard distribution represents a consistent, reliable schematic advantage with standard play-by-play variance.",
+            "name": "normal"
+          },
+          "parameters": {
+            "conversion_note": "mu = most_plausible_value = 1.25. sigma = (high - low) / (2 * 1.96) = (2.25 - 0.25) / 3.92 = 0.510.",
+            "mu": 1.25,
+            "sigma": 0.51
+          }
+        },
+        "rationale": "Published analytics models have shown that at-the-snap motion dramatically increases Expected Points Added (EPA) per play by displacing linebackers and forcing static secondary rotations. Despite the data, the league underutilizes it due to the complexity of the pre-snap timing.",
+        "recommendation": "Utilize full-speed, at-the-snap horizontal motion by a speed receiver on over 60% of early downs. Snap the ball exactly as the player crosses the offensive tackle.",
+        "title": "At-the-snap 'cheat' motion",
+        "type": "offensive"
+      },
+      {
+        "bucket": "analytics",
+        "prior": {
+          "belief_summaries": {
+            "interval_95_high": 2.2,
+            "interval_95_low": -1.0,
+            "most_plausible_value": 0.6,
+            "shape": "symmetric",
+            "tails": "heavy"
+          },
+          "consistency_check": "Most plausible (0.60) is the center of [-1.00, 2.20]. Support is mathematically unbounded and signed.",
+          "distribution_family": {
+            "justification": "Heavy tails account for the risk of getting completely trampled by an elite rushing attack (negative tail) or forcing a pass-happy coordinator into entirely abandoning their scheme (positive tail).",
+            "name": "student_t"
+          },
+          "parameters": {
+            "conversion_note": "nu=5 chosen for moderate/heavy tails. The t-critical value t_{0.975, 5} is ~2.57. mu = most_plausible = 0.60. sigma = (2.20 - -1.00) / (2 * 2.57) = 3.20 / 5.14 = 0.622.",
+            "mu": 0.6,
+            "nu": 5.0,
+            "sigma": 0.622
+          }
+        },
+        "rationale": "Analytics consensus dictates that passing is drastically more efficient than running. By mathematically inviting the run, we trade small, positive-EPA rushing gains against the opponent for the elimination of catastrophic, game-altering deep passing EPA.",
+        "recommendation": "Deploy two-high safety shells and strict 6-man boxes on 1st and 10, explicitly daring the opponent to hand the ball off. Concede 4-5 yard runs to eliminate explosive passing plays.",
+        "title": "Invite the run with light boxes",
+        "type": "defensive"
+      },
+      {
+        "bucket": "intuition",
+        "prior": {
+          "belief_summaries": {
+            "interval_95_high": 0.75,
+            "interval_95_low": -0.65,
+            "most_plausible_value": 0.05,
+            "shape": "symmetric",
+            "tails": "light"
+          },
+          "consistency_check": "Mode (0.05) is exactly between -0.65 and 0.75. Support is unbounded real, properly capturing the likely penalty of missing the timeout later.",
+          "distribution_family": {
+            "justification": "Normal distribution reflects a weak, highly variable effect where the penalty of losing a timeout is often directly offset by the disruption caused, centering just barely above zero.",
+            "name": "normal"
+          },
+          "parameters": {
+            "conversion_note": "mu = 0.05. sigma = (0.75 - -0.65) / 3.92 = 1.4 / 3.92 = 0.357.",
+            "mu": 0.05,
+            "sigma": 0.357
+          }
+        },
+        "rationale": "Public analytics heavily penalizes burning first-half timeouts, viewing them strictly as clock-management assets for late-half WP optimization. As a coach, this is my intuition bucking the math: forcing an opposing coordinator to abort their highly-rehearsed opening script immediately alters the psychological tempo and forces them to reveal their primary schematic counter earlier than planned. It is a very weak mathematical play, but I believe it has slight, unmodeled utility.",
+        "recommendation": "Call a timeout immediately prior to the snap on a high-leverage 3rd down during the opponent's first offensive drive of the game, just to force them to change their play. Do not do this for clock management.",
+        "title": "First-drive script-breaking timeout",
+        "type": "game_management"
+      },
+      {
+        "bucket": "intuition",
+        "prior": {
+          "belief_summaries": {
+            "interval_95_high": 1.85,
+            "interval_95_low": -0.34,
+            "most_plausible_value": 0.45,
+            "shape": "right_skewed",
+            "tails": "moderate"
+          },
+          "consistency_check": "The mode (~0.45) rests comfortably inside the -0.34 to 1.85 interval. The unbounded distribution spans the positive and negative real line.",
+          "distribution_family": {
+            "justification": "Right skewed because the downside is minimal (a standard play executed slowly), while the upside is massive (a busted coverage due to a tired, impatient defense acting erratically).",
+            "name": "skew_normal"
+          },
+          "parameters": {
+            "alpha": 2.0,
+            "conversion_note": "Fitted numerically. With alpha=2.0, setting xi=0.20 and omega=0.80 results in a mode near 0.45, a 2.5% quantile of ~ -0.34, and a 97.5% quantile of ~ 1.85.",
+            "omega": 0.8,
+            "xi": 0.2
+          }
+        },
+        "rationale": "Analytics is mostly silent here because play-by-play data parses 'no huddle' and 'time remaining on play clock' poorly in tandem. Intuitively, this traps the defense's current personnel on the field (exhausting defensive linemen) while simultaneously giving the quarterback 20 seconds of unabated presnap vision to decode the coverage as the defense grows impatient.",
+        "recommendation": "Rush to the line immediately after the previous play as if running a hurry-up offense, then stand static and do not snap the ball until 1 second remains on the play clock. Execute this 4-5 times a game.",
+        "title": "Freeze Tempo (Bleed-the-clock no-huddle)",
+        "type": "offensive"
+      },
+      {
+        "bucket": "intuition",
+        "prior": {
+          "belief_summaries": {
+            "interval_95_high": 2.2,
+            "interval_95_low": -1.3,
+            "most_plausible_value": 0.45,
+            "shape": "symmetric",
+            "tails": "heavy"
+          },
+          "consistency_check": "Mode (0.45) is centered within the [-1.30, 2.20] interval. The real-number support inherently allows the tactic to backfire heavily.",
+          "distribution_family": {
+            "justification": "Requires heavy tails to reflect the high-variance boom-or-bust reality of defensive structural deception: either rapid sacks (positive tail) or massive busted run-lane/coverage gaps (negative tail).",
+            "name": "student_t"
+          },
+          "parameters": {
+            "conversion_note": "nu=4 chosen for heavy tails. The t-critical value t_{0.975, 4} is ~2.78. mu = 0.45. sigma = (2.20 - -1.30) / (2 * 2.78) = 3.50 / 5.56 = 0.629.",
+            "mu": 0.45,
+            "nu": 4.0,
+            "sigma": 0.629
+          }
+        },
+        "rationale": "Analytics is heavily mixed/silent here because positional tracking models struggle to quantify the expected value of edge rushers playing radically out of position. Intuition says that forcing a center to make a slide-protection call against a freak athlete, rather than an offensive tackle, induces interior panic and unblocked free rushers, even if it leaves the edge temporarily structurally unsound.",
+        "recommendation": "On 3rd and long, align your premier outside pass-rusher standing up in the A-gap over the center. Stunt them outside or let them drop into shallow coverage based on the center's slide.",
+        "title": "Elite EDGE at inside LB on 3rd down",
+        "type": "defensive"
+      }
+    ]
+  },
+  "raw_text": "```json\n{\n  \"quantity\": {\n    \"description\": \"Change in own-team expected single-game scoring margin from adopting the strategy\",\n    \"units\": \"points\",\n    \"support\": \"unbounded real; positive favors own team\"\n  },\n  \"strategies\": [\n    {\n      \"bucket\": \"analytics\",\n      \"type\": \"game_management\",\n      \"title\": \"Strict 4th-and-short aggression between the 33s\",\n      \"recommendation\": \"Never punt on 4th-and-1 to 4th-and-3 when the ball is between your own 33-yard line and the opponent's 33-yard line. Always keep the offense on the field.\",\n      \"rationale\": \"Public expected-points (EP) and win-probability (WP) models overwhelmingly demonstrate that yielding possession in the middle of the field surrenders massive hidden equity. Converting extends scoring drives, while the defensive penalty for a turnover on downs in this zone is offset by the opposing offense having to traverse a condensed field without immediate red-zone access.\",\n      \"prior\": {\n        \"belief_summaries\": {\n          \"most_plausible_value\": 0.75,\n          \"interval_95_low\": -0.05,\n          \"interval_95_high\": 2.47,\n          \"shape\": \"right_skewed\",\n          \"tails\": \"moderate\"\n        },\n        \"distribution_family\": {\n          \"name\": \"skew_normal\",\n          \"justification\": \"Allows for an asymmetric risk profile. The downside of failing a conversion is capped by standard defensive holds, but the upside of sustaining drives creates a long right tail of expected scoring.\"\n        },\n        \"parameters\": {\n          \"xi\": 0.40,\n          \"omega\": 0.90,\n          \"alpha\": 3.0,\n          \"conversion_note\": \"Fitted numerically. With an alpha of 3.0 (right skew), setting location xi=0.40 and scale omega=0.90 yields a mode (most plausible) of roughly 0.75, a 2.5% quantile of ~ -0.05, and a 97.5% quantile of ~ 2.47.\"\n        },\n        \"consistency_check\": \"The most plausible value (0.75) is cleanly inside the 95% interval [-0.05, 2.47]. Support is unbounded real, correctly allowing negative outcomes if fourth-down variance bites us.\"\n      }\n    },\n    {\n      \"bucket\": \"analytics\",\n      \"type\": \"offensive\",\n      \"title\": \"At-the-snap 'cheat' motion\",\n      \"recommendation\": \"Utilize full-speed, at-the-snap horizontal motion by a speed receiver on over 60% of early downs. Snap the ball exactly as the player crosses the offensive tackle.\",\n      \"rationale\": \"Published analytics models have shown that at-the-snap motion dramatically increases Expected Points Added (EPA) per play by displacing linebackers and forcing static secondary rotations. Despite the data, the league underutilizes it due to the complexity of the pre-snap timing.\",\n      \"prior\": {\n        \"belief_summaries\": {\n          \"most_plausible_value\": 1.25,\n          \"interval_95_low\": 0.25,\n          \"interval_95_high\": 2.25,\n          \"shape\": \"symmetric\",\n          \"tails\": \"light\"\n        },\n        \"distribution_family\": {\n          \"name\": \"normal\",\n          \"justification\": \"A symmetric, standard distribution represents a consistent, reliable schematic advantage with standard play-by-play variance.\"\n        },\n        \"parameters\": {\n          \"mu\": 1.25,\n          \"sigma\": 0.51,\n          \"conversion_note\": \"mu = most_plausible_value = 1.25. sigma = (high - low) / (2 * 1.96) = (2.25 - 0.25) / 3.92 = 0.510.\"\n        },\n        \"consistency_check\": \"The mode (1.25) is exactly the midpoint of the interval [0.25, 2.25]. Support spans all real numbers, capable of generating signed outcomes.\"\n      }\n    },\n    {\n      \"bucket\": \"analytics\",\n      \"type\": \"defensive\",\n      \"title\": \"Invite the run with light boxes\",\n      \"recommendation\": \"Deploy two-high safety shells and strict 6-man boxes on 1st and 10, explicitly daring the opponent to hand the ball off. Concede 4-5 yard runs to eliminate explosive passing plays.\",\n      \"rationale\": \"Analytics consensus dictates that passing is drastically more efficient than running. By mathematically inviting the run, we trade small, positive-EPA rushing gains against the opponent for the elimination of catastrophic, game-altering deep passing EPA.\",\n      \"prior\": {\n        \"belief_summaries\": {\n          \"most_plausible_value\": 0.60,\n          \"interval_95_low\": -1.00,\n          \"interval_95_high\": 2.20,\n          \"shape\": \"symmetric\",\n          \"tails\": \"heavy\"\n        },\n        \"distribution_family\": {\n          \"name\": \"student_t\",\n          \"justification\": \"Heavy tails account for the risk of getting completely trampled by an elite rushing attack (negative tail) or forcing a pass-happy coordinator into entirely abandoning their scheme (positive tail).\"\n        },\n        \"parameters\": {\n          \"nu\": 5.0,\n          \"mu\": 0.60,\n          \"sigma\": 0.622,\n          \"conversion_note\": \"nu=5 chosen for moderate/heavy tails. The t-critical value t_{0.975, 5} is ~2.57. mu = most_plausible = 0.60. sigma = (2.20 - -1.00) / (2 * 2.57) = 3.20 / 5.14 = 0.622.\"\n        },\n        \"consistency_check\": \"Most plausible (0.60) is the center of [-1.00, 2.20]. Support is mathematically unbounded and signed.\"\n      }\n    },\n    {\n      \"bucket\": \"intuition\",\n      \"type\": \"game_management\",\n      \"title\": \"First-drive script-breaking timeout\",\n      \"recommendation\": \"Call a timeout immediately prior to the snap on a high-leverage 3rd down during the opponent's first offensive drive of the game, just to force them to change their play. Do not do this for clock management.\",\n      \"rationale\": \"Public analytics heavily penalizes burning first-half timeouts, viewing them strictly as clock-management assets for late-half WP optimization. As a coach, this is my intuition bucking the math: forcing an opposing coordinator to abort their highly-rehearsed opening script immediately alters the psychological tempo and forces them to reveal their primary schematic counter earlier than planned. It is a very weak mathematical play, but I believe it has slight, unmodeled utility.\",\n      \"prior\": {\n        \"belief_summaries\": {\n          \"most_plausible_value\": 0.05,\n          \"interval_95_low\": -0.65,\n          \"interval_95_high\": 0.75,\n          \"shape\": \"symmetric\",\n          \"tails\": \"light\"\n        },\n        \"distribution_family\": {\n          \"name\": \"normal\",\n          \"justification\": \"Normal distribution reflects a weak, highly variable effect where the penalty of losing a timeout is often directly offset by the disruption caused, centering just barely above zero.\"\n        },\n        \"parameters\": {\n          \"mu\": 0.05,\n          \"sigma\": 0.357,\n          \"conversion_note\": \"mu = 0.05. sigma = (0.75 - -0.65) / 3.92 = 1.4 / 3.92 = 0.357.\"\n        },\n        \"consistency_check\": \"Mode (0.05) is exactly between -0.65 and 0.75. Support is unbounded real, properly capturing the likely penalty of missing the timeout later.\"\n      }\n    },\n    {\n      \"bucket\": \"intuition\",\n      \"type\": \"offensive\",\n      \"title\": \"Freeze Tempo (Bleed-the-clock no-huddle)\",\n      \"recommendation\": \"Rush to the line immediately after the previous play as if running a hurry-up offense, then stand static and do not snap the ball until 1 second remains on the play clock. Execute this 4-5 times a game.\",\n      \"rationale\": \"Analytics is mostly silent here because play-by-play data parses 'no huddle' and 'time remaining on play clock' poorly in tandem. Intuitively, this traps the defense's current personnel on the field (exhausting defensive linemen) while simultaneously giving the quarterback 20 seconds of unabated presnap vision to decode the coverage as the defense grows impatient.\",\n      \"prior\": {\n        \"belief_summaries\": {\n          \"most_plausible_value\": 0.45,\n          \"interval_95_low\": -0.34,\n          \"interval_95_high\": 1.85,\n          \"shape\": \"right_skewed\",\n          \"tails\": \"moderate\"\n        },\n        \"distribution_family\": {\n          \"name\": \"skew_normal\",\n          \"justification\": \"Right skewed because the downside is minimal (a standard play executed slowly), while the upside is massive (a busted coverage due to a tired, impatient defense acting erratically).\"\n        },\n        \"parameters\": {\n          \"xi\": 0.20,\n          \"omega\": 0.80,\n          \"alpha\": 2.0,\n          \"conversion_note\": \"Fitted numerically. With alpha=2.0, setting xi=0.20 and omega=0.80 results in a mode near 0.45, a 2.5% quantile of ~ -0.34, and a 97.5% quantile of ~ 1.85.\"\n        },\n        \"consistency_check\": \"The mode (~0.45) rests comfortably inside the -0.34 to 1.85 interval. The unbounded distribution spans the positive and negative real line.\"\n      }\n    },\n    {\n      \"bucket\": \"intuition\",\n      \"type\": \"defensive\",\n      \"title\": \"Elite EDGE at inside LB on 3rd down\",\n      \"recommendation\": \"On 3rd and long, align your premier outside pass-rusher standing up in the A-gap over the center. Stunt them outside or let them drop into shallow coverage based on the center's slide.\",\n      \"rationale\": \"Analytics is heavily mixed/silent here because positional tracking models struggle to quantify the expected value of edge rushers playing radically out of position. Intuition says that forcing a center to make a slide-protection call against a freak athlete, rather than an offensive tackle, induces interior panic and unblocked free rushers, even if it leaves the edge temporarily structurally unsound.\",\n      \"prior\": {\n        \"belief_summaries\": {\n          \"most_plausible_value\": 0.45,\n          \"interval_95_low\": -1.30,\n          \"interval_95_high\": 2.20,\n          \"shape\": \"symmetric\",\n          \"tails\": \"heavy\"\n        },\n        \"distribution_family\": {\n          \"name\": \"student_t\",\n          \"justification\": \"Requires heavy tails to reflect the high-variance boom-or-bust reality of defensive structural deception: either rapid sacks (positive tail) or massive busted run-lane/coverage gaps (negative tail).\"\n        },\n        \"parameters\": {\n          \"nu\": 4.0,\n          \"mu\": 0.45,\n          \"sigma\": 0.629,\n          \"conversion_note\": \"nu=4 chosen for heavy tails. The t-critical value t_{0.975, 4} is ~2.78. mu = 0.45. sigma = (2.20 - -1.30) / (2 * 2.78) = 3.50 / 5.56 = 0.629.\"\n        },\n        \"consistency_check\": \"Mode (0.45) is centered within the [-1.30, 2.20] interval. The real-number support inherently allows the tactic to backfire heavily.\"\n      }\n    }\n  ],\n  \"plot_script\": \"import numpy as np\\nimport matplotlib.pyplot as plt\\nfrom scipy.stats import norm, t, skewnorm\\n\\nstrategies = [\\n    {'title': 'Strict 4th-and-short aggression', 'family': 'skew_normal', 'params': {'xi': 0.4, 'omega': 0.9, 'alpha': 3.0}},\\n    {'title': 'At-the-snap \\\\'cheat\\\\' motion', 'family': 'normal', 'params': {'mu': 1.25, 'sigma': 0.51}},\\n    {'title': 'Invite the run with light boxes', 'family': 'student_t', 'params': {'nu': 5, 'mu': 0.6, 'sigma': 0.622}},\\n    {'title': 'First-drive script-breaking timeout', 'family': 'normal', 'params': {'mu': 0.05, 'sigma': 0.357}},\\n    {'title': 'Freeze Tempo (No-huddle)', 'family': 'skew_normal', 'params': {'xi': 0.2, 'omega': 0.8, 'alpha': 2.0}},\\n    {'title': 'Elite EDGE at inside LB', 'family': 'student_t', 'params': {'nu': 4, 'mu': 0.45, 'sigma': 0.629}}\\n]\\n\\nfig, axes = plt.subplots(2, 3, figsize=(16, 10))\\nfig.tight_layout(pad=5.0)\\n\\nfor ax, strat in zip(axes.flat, strategies):\\n    fam = strat['family']\\n    p = strat['params']\\n    \\n    if fam == 'normal':\\n        dist = norm(loc=p['mu'], scale=p['sigma'])\\n        plausible = p['mu']\\n    elif fam == 'student_t':\\n        dist = t(df=p['nu'], loc=p['mu'], scale=p['sigma'])\\n        plausible = p['mu']\\n    elif fam == 'skew_normal':\\n        dist = skewnorm(a=p['alpha'], loc=p['xi'], scale=p['omega'])\\n        # Numerical mode approximation for marking\\n        x_opt = np.linspace(p['xi'] - p['omega'], p['xi'] + 3*p['omega'], 1000)\\n        plausible = x_opt[np.argmax(dist.pdf(x_opt))]\\n        \\n    low = dist.ppf(0.025)\\n    high = dist.ppf(0.975)\\n    \\n    x = np.linspace(dist.ppf(0.001), dist.ppf(0.999), 500)\\n    y = dist.pdf(x)\\n    \\n    ax.plot(x, y, 'k-', lw=2)\\n    \\n    # Shade 95% interval\\n    x_fill = np.linspace(low, high, 100)\\n    ax.fill_between(x_fill, dist.pdf(x_fill), alpha=0.3, color='blue', label='95% Interval')\\n    \\n    ax.axvline(plausible, color='red', linestyle='--', label=f'Most Plausible ({plausible:.2f})')\\n    \\n    ax.set_title(strat['title'])\\n    ax.set_xlabel('Change in own scoring margin (points)')\\n    ax.set_ylabel('Density')\\n    ax.legend(loc='best', fontsize=9)\\n    \\n    print(f\\\"{strat['title']} | {fam} | {p}\\\")\\n\\nplt.show()\\n\"\n}\n```",
+  "request_params": {
+    "config": {
+      "max_output_tokens": 64000,
+      "seed": 42,
+      "temperature": 1.0,
+      "thinking_config": {
+        "thinking_level": "HIGH"
+      }
+    },
+    "model": "gemini-3.1-pro-preview"
+  },
+  "sample_idx": 0,
+  "seed": 42,
+  "snapshot_id": "gemini-3.1-pro-preview",
+  "stop_reason": "STOP",
+  "temperature": 1.0,
+  "ts": "2026-06-11T02:21:54Z",
+  "usage": {
+    "input_tokens": 1795,
+    "output_tokens": 3818,
+    "thoughts_tokens": 6021
+  }
+}
