@@ -40,8 +40,11 @@ RUBRIC_SOUNDNESS = """\
 RUBRIC_PRIORS = """\
 **Criterion 2 — Reasonableness of Bayesian priors**
 
-- A **stronger** response: the family matches the stated shape/tails and the signed support; effect-size magnitudes are free of gross implausibility (no single strategy swinging the per-game scoring margin by several points) and are internally differentiated across the six cells rather than copy-pasted; intervals are neither overconfident nor absurdly wide; conversions are correct; weak cells are handled honestly (near-zero center, wider interval).
-- A **weaker** response: an invalid/wrong family for signed data, badly mis-scaled or over-tight/over-wide intervals, inconsistent parameters or conversion slips, a family that does not match the stated shape, or identical boilerplate priors copy-pasted across differing strategies."""
+Judge the *substance* of the beliefs first; treat parameter-reproduction accuracy as a secondary, mechanical matter.
+
+- A **stronger** response (primary signals): effect-size magnitudes are football-plausible (no single strategy swinging the per-game scoring margin by several points); the six cells are genuinely differentiated rather than copy-pasted; intervals are neither overconfident nor absurdly wide; weak cells are handled honestly (near-zero center, wider interval); and the distribution family's shape matches the stated belief (a real left tail where downside is claimed, signed support where the effect can go either way).
+- A **weaker** response (primary signals): grossly implausible or over-tight/over-wide magnitudes; identical boilerplate priors reused across differing strategies; an invalid family for signed data; or a family whose shape contradicts the stated belief (for example a symmetric family used to sidestep a claimed asymmetric downside).
+- **Secondary (tiebreaker only):** whether the reported parameters reproduce the stated interval. A reproduction failure is a conversion slip — the parameters and the stated interval disagree — not evidence that the underlying belief is unreasonable. Do not reward playing it safe: a response that reaches for a richer family to represent honest asymmetric downside and gets a tail quantile slightly off should not automatically lose to one that avoided the shape with a symmetric family. Decide which *intended* belief is better first, and let reproduction accuracy break the tie only when the two responses are otherwise comparable on substance."""
 
 SYSTEM = f"""You are an impartial evaluator comparing two anonymized responses ("Response A" and \
 "Response B") to the same fixed task. For each criterion below, decide which response is BETTER. \
@@ -58,6 +61,13 @@ Ground rules:
 - The AUTOMATED CHECK REPORT attached to each response is ground truth for mechanical facts \
 (grid completeness, interval sanity, family validity, whether reported parameters reproduce the \
 stated interval). Do not re-litigate it; spend your judgment on the subjective quality.
+- Weight a parameter-reproduction failure as a mechanical conversion error, not a substantive \
+flaw: it should not by itself decide the priors criterion when one response's beliefs are clearly \
+more reasonable. Let reproduction accuracy break the tie only when the two responses are \
+otherwise comparable on substance.
+- Weigh distinct *kinds* of problems, not the raw count of failing cells. Several cells failing \
+for the same underlying reason (for example one wrong quantile applied to every skew-normal cell) \
+is one defect, not many.
 - A response that failed to parse as JSON or is missing parts should generally lose the affected \
 criterion — evaluate whatever is present.
 - Judge each criterion independently; the same response need not win both.
@@ -195,8 +205,9 @@ def check_summary(checks: dict[str, Any] | None) -> str:
         k: grid.get(k)
         for k in ("n_strategies", "missing_cells", "duplicate_cells", "duplicate_titles", "issues")
     }
+    raw_strategies = detail.get("strategies") or []
     strategies = []
-    for s in detail.get("strategies") or []:
+    for s in raw_strategies:
         strategies.append(
             {
                 "idx": s.get("idx"),
@@ -210,7 +221,36 @@ def check_summary(checks: dict[str, Any] | None) -> str:
             }
         )
     summary["per_strategy"] = strategies
+    summary["params_reproduce_summary"] = _repro_summary(raw_strategies)
     return json.dumps(summary, indent=2, ensure_ascii=False)
+
+
+def _repro_summary(strategies: list[dict[str, Any]]) -> str:
+    """One-line, common-cause roll-up of parameter-reproduction failures.
+
+    Presents a single repeated conversion mistake as one issue rather than N
+    independent failures, so the judge does not tally correlated cells. Neutral
+    ground-truth context, not a verdict.
+    """
+    n = len(strategies)
+    if n == 0:
+        return "no strategies to check"
+    fails = [s for s in strategies if s.get("params_ok") is False]
+    if not fails:
+        return f"all {n} cells reproduce their stated interval"
+    cells = [s.get("idx") for s in fails]
+    families = {s.get("family") for s in fails}
+    note = ""
+    if len(fails) > 1 and len(families) == 1:
+        fam = next(iter(families))
+        note = (
+            f"; every failing cell uses the same family ({fam}), so this most likely "
+            "reflects one repeated conversion mistake rather than several distinct errors"
+        )
+    return (
+        f"{len(fails)} of {n} cells' reported parameters do not reproduce the stated "
+        f"interval (cells {cells}){note}"
+    )
 
 
 def build_bundle(store: artifacts.Store, iid: str, label: str) -> tuple[str, int]:

@@ -153,7 +153,13 @@ measurable.
 Forced choice: the judge **must** pick "A" or "B" for each criterion; ties are not allowed.
 Criteria are judged independently (the same response need not win both). Instruct judges to use the
 check reports as ground truth for the mechanical facts and to spend their judgment on subjective
-quality.
+quality. Two weighting rules keep the mechanical `params_reproduce` check from dominating the
+priors criterion (see the revision note in §6.3): a parameter-reproduction failure is a mechanical
+conversion error that breaks ties only when the two responses are otherwise comparable on
+substance, and judges weigh distinct *kinds* of problems rather than the raw count of failing
+cells (one repeated conversion mistake across several cells is one defect). The judge-facing check
+summary carries a `params_reproduce_summary` roll-up that states the common cause when all failing
+cells share a family.
 
 ### 6.3 Quality descriptions
 
@@ -167,8 +173,13 @@ picks whichever response better fits the "stronger" description.
 
 **Criterion 2 — Reasonableness of Bayesian priors**
 
-- A **stronger** response: family matches the stated shape/tails and the signed support; effect-size magnitudes are free of gross implausibility (no single strategy swinging the per-game scoring margin by several points) and are internally differentiated across the six cells rather than copy-pasted; intervals neither overconfident nor absurdly wide; conversions correct; weak cells handled honestly (near-zero center, wider interval).
-- A **weaker** response: invalid/wrong family for signed data, badly mis-scaled or over-tight/over-wide intervals, inconsistent parameters or conversion slips, a family that doesn't match the stated shape, or boilerplate priors copy-pasted across differing strategies.
+Judge the *substance* of the beliefs first; parameter-reproduction accuracy is a secondary, mechanical matter (tiebreaker only).
+
+- A **stronger** response (primary): football-plausible effect-size magnitudes (no single strategy swinging the per-game scoring margin by several points); the six cells genuinely differentiated rather than copy-pasted; intervals neither overconfident nor absurdly wide; weak cells handled honestly (near-zero center, wider interval); the family's shape matches the stated belief (a real left tail where downside is claimed, signed support where the effect can go either way).
+- A **weaker** response (primary): grossly implausible or over-tight/over-wide magnitudes; boilerplate priors reused across differing strategies; an invalid family for signed data; or a family whose shape contradicts the stated belief.
+- **Secondary (tiebreaker only):** whether reported parameters reproduce the stated interval. A reproduction failure is a conversion slip, not evidence the belief is unreasonable; do not reward playing it safe with a symmetric family over an ambitious asymmetric one whose tail quantile is slightly off.
+
+> **Revision (post-first-run).** The original Criterion 2 listed "conversions correct / conversion slips" as a co-equal signal, and with the automated `params_reproduce` result handed to judges as ground truth, the priors criterion collapsed into "who passed more reproduction cells." One candidate (Claude Sonnet 4.6) lost 76 of 88 priors matchups almost entirely because a single wrong skew-normal tail quantile failed reproduction across its four skew-normal cells — a correlated, one-root-cause slip counted as four defects. The rubric above demotes reproduction to a tiebreaker, adds explicit weighting/common-cause ground rules (§6.2), and the check summary now emits a `params_reproduce_summary` roll-up so a repeated slip reads as one issue. This is a deliberate methodology change; runs before and after it are not directly comparable on the priors criterion.
 
 ### 6.4 Self- and family-comparison
 

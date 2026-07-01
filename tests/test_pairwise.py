@@ -57,6 +57,47 @@ def test_pairwise_system_has_no_numeric_scale():
     assert "stronger" in sys and "weaker" in sys
 
 
+def test_priors_rubric_demotes_reproduction_to_tiebreaker():
+    # Parameter reproduction must be framed as a secondary/tiebreaker signal,
+    # and the SYSTEM must warn against tallying correlated failing cells — the
+    # two behaviors that sank Sonnet 4.6's priors under the old prompt.
+    assert "tiebreaker" in pairwise.RUBRIC_PRIORS.lower()
+    assert "substance" in pairwise.RUBRIC_PRIORS.lower()
+    assert "count of failing cells" in pairwise.SYSTEM
+
+
+def test_repro_summary_collapses_common_cause():
+    def strat(idx, family, ok):
+        return {"idx": idx, "family": family, "params_ok": ok}
+
+    # all pass
+    assert "all 3 cells reproduce" in pairwise._repro_summary(
+        [strat(i, "normal", True) for i in range(3)]
+    )
+    # several failures sharing one family read as a single repeated mistake
+    same = pairwise._repro_summary(
+        [strat(0, "skew_normal", False), strat(1, "skew_normal", False), strat(2, "normal", True)]
+    )
+    assert "2 of 3" in same and "one repeated conversion mistake" in same
+    # mixed-family failures are not collapsed
+    mixed = pairwise._repro_summary(
+        [strat(0, "skew_normal", False), strat(1, "student_t", False)]
+    )
+    assert "repeated conversion mistake" not in mixed
+    # empty
+    assert pairwise._repro_summary([]) == "no strategies to check"
+
+
+def test_check_summary_includes_repro_rollup_and_per_strategy():
+    from footbench.checks import check_instance
+
+    report = check_instance(valid_response(), "direct", 0.1)
+    summary = json.loads(pairwise.check_summary(report))
+    assert "per_strategy" in summary
+    assert "params_reproduce_summary" in summary
+    assert isinstance(summary["params_reproduce_summary"], str)
+
+
 # --- enumeration & ids -------------------------------------------------------------
 
 
