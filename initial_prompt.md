@@ -12,7 +12,7 @@ Put these at the top of the pipeline as editable variables.
 candidate_models:
   - claude-fable-5
   - claude-opus-4-8
-  - claude-sonnet-4-6
+  - claude-sonnet-5
   - claude-haiku-4-5-20251001
   - gpt-5.5-pro
   - gpt-5.5

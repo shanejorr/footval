@@ -7,7 +7,7 @@
 candidate_models:
   - claude-fable-5
   - claude-opus-4-8
-  - claude-sonnet-4-6
+  - claude-sonnet-5
   - claude-haiku-4-5-20251001
   - gpt-5.5-pro
   - gpt-5.5
@@ -73,20 +73,22 @@ models:
     params:
       thinking: {type: adaptive}
       output_config: {effort: max}
-  claude-sonnet-4-6:
+  claude-sonnet-5:
     provider: anthropic
     family: anthropic
     supports_temperature: false
     supports_seed: false
     supports_images: true
     params:
-      # Adaptive thinking at effort max AND high both made Sonnet think past
-      # its 64k output ceiling and return ZERO text (see the preserved
-      # response.effort-{max,high}-attempt.json files). The transitional
-      # budget_tokens cap bounds thinking so an answer can emerge — the
-      # highest thinking configuration this model can complete. Documented
-      # deviation from "adaptive everywhere".
-      thinking: {type: enabled, budget_tokens: 32000}
+      # Adaptive thinking at effort max made Sonnet 5 think past its 64k output
+      # ceiling and return ZERO text — the same failure mode as Sonnet 4.6, the
+      # model it replaces (see the preserved response.effort-max-attempt.json).
+      # Sonnet 5 removed `thinking: enabled` + budget_tokens (400), so 4.6's
+      # capped-budget fallback doesn't exist; effort is the only thinking-depth
+      # knob. xhigh is the highest configuration this model can complete within
+      # the shared 64k output budget. Documented deviation from "effort max".
+      thinking: {type: adaptive}
+      output_config: {effort: xhigh}
   claude-haiku-4-5-20251001:
     provider: anthropic
     family: anthropic
