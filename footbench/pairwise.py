@@ -699,7 +699,7 @@ def write_csv(cfg: Config) -> None:
     missing = 0
     wins: dict[tuple[str, str], int] = {}
     with open(out_path, "w", newline="") as fh:
-        writer = csv.writer(fh)
+        writer = csv.writer(fh, lineterminator="\n")
         writer.writerow(["judge", "model_a", "model_b", "criterion", "winner"])
         for judge_name in cfg.pairwise_judges:
             for cid in cids:
