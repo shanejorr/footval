@@ -24,6 +24,7 @@ _RESPONSE_FIELDS = (
     "temperature",
     "seed",
     "stop_reason",
+    "usage",
     "raw_text",
     "parsed_json",
     "parse_mode",

@@ -300,7 +300,7 @@ Objective tables (the `tables` stage):
 
 | Table | Key fields |
 |---|---|
-| `responses` | instance_id, model, sample_idx, snapshot_id, ts, temperature, seed, raw_text, parsed_json |
+| `responses` | instance_id, model, sample_idx, snapshot_id, ts, temperature, seed, usage (provider token counts, incl. reasoning/thinking where reported), raw_text, parsed_json |
 | `checks` | instance_id, json_valid, grid_complete, intervals_ok, family_ok, params_reproduce_ok, detail |
 
 Pairwise judging artifacts (under `artifacts/pairwise/`):

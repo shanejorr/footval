@@ -83,7 +83,11 @@ def run(cfg: Config, only: list[str] | None = None) -> None:
                 err_path.unlink()
             generated.append(iid)
             note = "" if parse_mode == "direct" else f" (parse_mode={parse_mode})"
-            print(f"    ok: snapshot={res.snapshot_id} stop={res.stop_reason}{note}")
+            out_tok = res.usage.get("output_tokens")
+            print(
+                f"    ok: snapshot={res.snapshot_id} stop={res.stop_reason}"
+                f" output_tokens={out_tok}{note}"
+            )
 
     print(
         f"generate: {len(generated)} generated, {len(skipped)} already present,"

@@ -148,6 +148,8 @@ def _anthropic(req: LLMRequest) -> LLMResult:
         # mid-stream disconnects surface as raw httpx errors, not SDK types
         raise TransientAPIError(f"stream interrupted: {exc}") from exc
     text = "".join(b.text for b in msg.content if b.type == "text")
+    # Anthropic's output_tokens includes thinking tokens (no separate breakdown);
+    # input_tokens excludes cache reads/writes, so record those alongside.
     return LLMResult(
         text=text,
         snapshot_id=msg.model,
@@ -156,6 +158,8 @@ def _anthropic(req: LLMRequest) -> LLMResult:
         usage={
             "input_tokens": msg.usage.input_tokens,
             "output_tokens": msg.usage.output_tokens,
+            "cache_read_input_tokens": getattr(msg.usage, "cache_read_input_tokens", None),
+            "cache_creation_input_tokens": getattr(msg.usage, "cache_creation_input_tokens", None),
         },
     )
 
@@ -212,10 +216,17 @@ def _openai_responses(client: Any, req: LLMRequest) -> LLMResult:
         stop = f"incomplete: {resp.incomplete_details.reason}"
     usage = {}
     if getattr(resp, "usage", None):
+        # output_tokens includes reasoning tokens; the details split them out
         usage = {
             "input_tokens": resp.usage.input_tokens,
             "output_tokens": resp.usage.output_tokens,
         }
+        out_details = getattr(resp.usage, "output_tokens_details", None)
+        if out_details is not None:
+            usage["reasoning_tokens"] = out_details.reasoning_tokens
+        in_details = getattr(resp.usage, "input_tokens_details", None)
+        if in_details is not None:
+            usage["cached_tokens"] = in_details.cached_tokens
     return LLMResult(
         text=resp.output_text or "",
         snapshot_id=resp.model,
@@ -281,6 +292,7 @@ def _gemini(req: LLMRequest) -> LLMResult:
             "input_tokens": resp.usage_metadata.prompt_token_count,
             "output_tokens": resp.usage_metadata.candidates_token_count,
             "thoughts_tokens": resp.usage_metadata.thoughts_token_count,
+            "cached_tokens": resp.usage_metadata.cached_content_token_count,
         }
     audit_config = dict(config)
     if "system_instruction" in audit_config:
@@ -371,6 +383,9 @@ def _zai(req: LLMRequest) -> LLMResult:
             "input_tokens": resp.usage.prompt_tokens,
             "output_tokens": resp.usage.completion_tokens,
         }
+        details = getattr(resp.usage, "completion_tokens_details", None)
+        if details is not None and getattr(details, "reasoning_tokens", None) is not None:
+            usage["reasoning_tokens"] = details.reasoning_tokens
     return LLMResult(
         text=choice.message.content or "",
         snapshot_id=resp.model,
