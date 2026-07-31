@@ -38,6 +38,11 @@ def main(argv: list[str] | None = None) -> None:
         action="store_true",
         help="pairwise: print the assembled prompt instead of calling the API",
     )
+    parser.add_argument(
+        "--full",
+        action="store_true",
+        help="probe: send full thinking/effort params (catches parameter-name drift)",
+    )
     args = parser.parse_args(argv)
     cfg = load_config()
 
@@ -45,7 +50,7 @@ def main(argv: list[str] | None = None) -> None:
         if command == "probe":
             from . import providers
 
-            providers.probe_cli(cfg, only=args.only)
+            providers.probe_cli(cfg, only=args.only, full=args.full)
         elif command == "generate":
             from . import generate
 

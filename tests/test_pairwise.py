@@ -5,6 +5,7 @@ from conftest import JUDGE_PROMPT_TEXT, make_cfg, valid_response
 
 from footval import pairwise, providers
 from footval.artifacts import Store
+from footval.config import ModelCfg
 
 FAMILIES = {"m1": "openai", "m2": "openai", "m3": "google", "j1": "anthropic", "z1": "zai"}
 # 8 candidates on the live roster -> C(8,2) = 28 unordered pairs.
@@ -279,6 +280,30 @@ def test_prompt_cache_key_not_sent_to_non_openai_chat_providers(tmp_path):
     req = pairwise.build_request(cfg, cfg.judge_model("z1"), parts)
     assert cfg.model("z1").provider == "zai"
     assert "prompt_cache_key" not in providers._chat_kwargs(req)
+
+
+def test_zai_vendor_params_ride_extra_body():
+    # `thinking` is a z.ai knob, not an OpenAI SDK kwarg: passed top-level the
+    # SDK raises TypeError before any HTTP call, so it must move to extra_body.
+    mcfg = ModelCfg(
+        name="glm",
+        provider="zai",
+        family="zai",
+        params={"thinking": {"type": "enabled"}, "reasoning_effort": "high"},
+    )
+    req = providers.LLMRequest(
+        model=mcfg,
+        system="s",
+        parts=(providers.ContentPart(kind="text", text="hello"),),
+        temperature=0.0,
+        seed=None,
+        max_output_tokens=10,
+    )
+    kwargs = providers._zai_call_kwargs(req)
+    assert "thinking" not in kwargs
+    assert kwargs["extra_body"] == {"thinking": {"type": "enabled"}}
+    # reasoning_effort IS a real SDK param and stays top-level
+    assert kwargs["reasoning_effort"] == "high"
 
 
 def test_gemini_batch_request_shape_and_text_only(tmp_path):

@@ -1,4 +1,4 @@
-.PHONY: run probe generate check tables test lint \
+.PHONY: run probe probe-full generate check tables test lint \
 	pairwise-estimate pairwise-submit pairwise-sync pairwise-status pairwise-collect pairwise-csv \
 	bradley-terry
 
@@ -7,6 +7,9 @@ run:
 
 probe:
 	uv run python -m footval probe
+
+probe-full:
+	uv run python -m footval probe --full
 
 generate:
 	uv run python -m footval generate

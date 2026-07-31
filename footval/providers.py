@@ -171,6 +171,9 @@ def _anthropic(req: LLMRequest) -> LLMResult:
         if exc.status_code >= 500:
             raise TransientAPIError(str(exc)) from exc
         raise ModelConfigError(f"{exc.status_code}: {exc.message}") from exc
+    except TypeError as exc:
+        # unknown kwarg from merged config params — the SDK rejects it pre-flight
+        raise ModelConfigError(f"SDK rejected request params: {exc}") from exc
     except httpx.HTTPError as exc:
         # mid-stream disconnects surface as raw httpx errors, not SDK types
         raise TransientAPIError(f"stream interrupted: {exc}") from exc
@@ -236,6 +239,8 @@ def _openai_responses(client: Any, req: LLMRequest) -> LLMResult:
         if exc.status_code >= 500:
             raise TransientAPIError(str(exc)) from exc
         raise ModelConfigError(f"{exc.status_code}: {exc}") from exc
+    except TypeError as exc:
+        raise ModelConfigError(f"SDK rejected request params: {exc}") from exc
     except httpx.HTTPError as exc:
         raise TransientAPIError(f"transport error: {exc}") from exc
     stop = resp.status
@@ -372,6 +377,27 @@ def _chat_kwargs(req: LLMRequest) -> dict[str, Any]:
     return deep_merge(kwargs, req.model.params)
 
 
+def _zai_call_kwargs(req: LLMRequest) -> dict[str, Any]:
+    """Chat kwargs with vendor-specific params moved into ``extra_body``.
+
+    z.ai knobs like ``thinking`` are not OpenAI SDK parameters — passed as
+    plain kwargs the SDK raises TypeError before any HTTP call — but
+    ``extra_body`` ships them verbatim in the JSON body. The batch JSONL path
+    uses `_chat_kwargs` directly (raw JSON, no SDK signature), so only this
+    synchronous call site needs the split.
+    """
+    import inspect
+
+    from openai.resources.chat.completions import Completions
+
+    kwargs = _chat_kwargs(req)
+    known = inspect.signature(Completions.create).parameters
+    extra = {k: kwargs.pop(k) for k in list(kwargs) if k not in known}
+    if extra:
+        kwargs["extra_body"] = deep_merge(kwargs.get("extra_body") or {}, extra)
+    return kwargs
+
+
 def _zai(req: LLMRequest) -> LLMResult:
     import openai
 
@@ -381,7 +407,7 @@ def _zai(req: LLMRequest) -> LLMResult:
         timeout=_TIMEOUT_S,
         max_retries=3,
     )
-    kwargs = _chat_kwargs(req)
+    kwargs = _zai_call_kwargs(req)
     try:
         resp = client.chat.completions.create(**kwargs)
     except openai.RateLimitError as exc:
@@ -392,6 +418,8 @@ def _zai(req: LLMRequest) -> LLMResult:
         if exc.status_code >= 500:
             raise TransientAPIError(str(exc)) from exc
         raise ModelConfigError(f"{exc.status_code}: {exc}") from exc
+    except TypeError as exc:
+        raise ModelConfigError(f"SDK rejected request params: {exc}") from exc
     except httpx.HTTPError as exc:
         raise TransientAPIError(f"transport error: {exc}") from exc
     choice = resp.choices[0]
@@ -418,12 +446,13 @@ _PROBE_STRIP = frozenset(
 )
 
 
-def probe_cli(cfg: Config, only: list[str] | None = None) -> None:
+def probe_cli(cfg: Config, only: list[str] | None = None, full: bool = False) -> None:
     """One cheap call per configured model; prints resolved snapshot IDs.
 
     Run this before spending money: 404s mean the model ID in config.yaml
-    needs updating. Thinking/effort params are stripped so the probe stays tiny
-    (full params are exercised by the first real generation).
+    needs updating. Thinking/effort params are stripped so the probe stays tiny;
+    ``full`` sends them verbatim, which costs a little thinking but catches
+    parameter-name drift the stripped probe cannot see.
     """
     from . import artifacts
 
@@ -433,9 +462,11 @@ def probe_cli(cfg: Config, only: list[str] | None = None) -> None:
     results: dict[str, dict[str, Any]] = {}
     for name in names:
         mcfg = cfg.model(name)
-        probe_model = replace(
-            mcfg, params={k: v for k, v in mcfg.params.items() if k not in _PROBE_STRIP}
-        )
+        probe_model = mcfg
+        if not full:
+            probe_model = replace(
+                mcfg, params={k: v for k, v in mcfg.params.items() if k not in _PROBE_STRIP}
+            )
         req = LLMRequest(
             model=probe_model,
             system=None,

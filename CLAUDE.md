@@ -39,6 +39,7 @@ restoring Part 3 to the prompt.
 make run            # generate → check → tables
 make generate       # stage 1 only (then check / tables)
 make probe          # one cheap call per configured model; prints resolved snapshot IDs
+make probe-full     # same, with full thinking/effort params (catches param-name drift)
 make test           # pytest
 make lint           # ruff check + format
 ```
