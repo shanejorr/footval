@@ -140,7 +140,8 @@ task. Each call provides:
 
 - `footval.prompt.md` (the task both candidates were given).
 - The two **anonymized** response bundles (strip any model-identifying text; label only as
-  "Response A" / "Response B"), each as pretty-printed JSON (or raw text if it failed to parse).
+  "Response A" / "Response B"), each as pretty-printed JSON with every strategy's `prior`
+  block removed (§5.4) — or as raw, unmodified text if it failed to parse.
 - The Stage 2 automated check report for each response — restricted to the JSON-validity and
   grid facts — as ground truth for the mechanical facts.
 
@@ -196,8 +197,12 @@ statistics, or exotic-but-unworkable cleverness.
 
 The candidates still produce a Bayesian prior per strategy (Part 2 of the prompt), it is still
 checked in Stage 2, and it is still published as the prior-comparison chart. It is **not** a
-judged criterion. The judge prompt marks it explicitly out of scope and the judge-facing check
-summary omits every prior-mechanics result, so a judge cannot be nudged by them.
+judged criterion. Three mechanisms keep it out of the verdict: the judge prompt marks it
+explicitly out of scope, the judge-facing check summary omits every prior-mechanics result,
+and the `prior` blocks themselves are removed from the parsed-JSON bundles judges see (a
+response that failed to parse is shown raw and whole, and the judge prompt says to ignore any
+prior content there). Withholding the blocks — rather than instructing judges past them —
+also drops roughly half of each bundle's uncached tokens from every judge call.
 
 > **Revision (post-second-run).** Judging previously had a second criterion, "Reasonableness of
 > Bayesian priors". Even after the first-run fix that demoted parameter reproduction to a

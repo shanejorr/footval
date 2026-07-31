@@ -169,6 +169,46 @@ def test_bundle_label_and_check_report(tmp_path):
     assert "AUTOMATED CHECK REPORT FOR RESPONSE B" in text
 
 
+def test_strip_priors_pure_and_shape_tolerant():
+    resp = valid_response()
+    stripped = pairwise.strip_priors(resp)
+    assert all("prior" not in s for s in stripped["strategies"])
+    assert all("prior" in s for s in resp["strategies"])  # input not mutated
+    assert stripped["quantity"] == resp["quantity"]
+    # malformed shapes pass through untouched
+    assert pairwise.strip_priors(["x"]) == ["x"]
+    assert pairwise.strip_priors({"strategies": "nope"}) == {"strategies": "nope"}
+    assert pairwise.strip_priors({"strategies": ["nope"]}) == {"strategies": ["nope"]}
+
+
+def test_judge_bundle_has_no_prior_blocks(tmp_path):
+    # Priors are out of scope; the bundle withholds them like the prior-mechanics
+    # check results, rather than relying on judges to ignore them.
+    store = seeded_store(tmp_path, ["mA__s0"])
+    text, _n = pairwise.build_bundle(store, "mA__s0", "A")
+    assert '"prior"' not in text
+    assert '"recommendation"' in text and '"rationale"' in text
+    assert "prior blocks removed" in text
+
+
+def test_unparsed_bundle_shown_raw_and_whole(tmp_path):
+    store = Store(tmp_path / "artifacts")
+    raw = 'not json, but mentions "prior": {"mu": 0.5} inline'
+    store.write_json(
+        store.response_path("mR__s0"),
+        {
+            "instance_id": "mR__s0",
+            "model": "mR",
+            "parse_mode": "failed",
+            "parsed_json": None,
+            "raw_text": raw,
+        },
+    )
+    text, _n = pairwise.build_bundle(store, "mR__s0", "A")
+    assert "did NOT parse" in text
+    assert raw in text
+
+
 def test_retry_part_appended(tmp_path):
     parts = pairwise.build_parts("TASK", "a", "b", retry=True)
     assert len(parts) == 5

@@ -190,8 +190,9 @@ model's own reported parameters and confirms it matches the interval the model c
 The first two of those (did it parse, is the grid complete and distinct) are handed to the
 judges as **ground truth**, so judges don't have to re-derive mechanical facts. The last three
 concern the priors, which are no longer judged — those results are published but deliberately
-**withheld from the judges**, so a stray arithmetic slip in a prior can't quietly drag down a
-model's grade for its coaching ideas.
+**withheld from the judges**, and the prior blocks themselves are **removed from the answers
+the judges read** (an answer that failed to parse is shown raw and whole), so a stray
+arithmetic slip in a prior can't quietly drag down a model's grade for its coaching ideas.
 
 ### How the judges grade — pairwise (head-to-head) competitions
 
@@ -216,8 +217,8 @@ head-to-head wins.
 - The **four-model judge panel** (listed above) each renders every comparison.
 
 Putting that together: 28 pairs × 2 presentation orders × 4 judges = **224 head-to-head
-verdicts.** Judges see only anonymized answers and are handed the relevant objective check
-results as ground truth.
+verdicts.** Judges see only anonymized answers — with the unjudged prior blocks stripped
+out — and are handed the relevant objective check results as ground truth.
 
 The output is a simple tally — for each model, its **win percentage** (head-to-head wins ÷
 comparisons). Two judge-agreement diagnostics ride alongside it: how decisively the four-judge

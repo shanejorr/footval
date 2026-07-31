@@ -40,7 +40,7 @@ Assess these five dimensions. They are listed in priority order — when the two
 - Statistics, figures, or study citations you cannot verify. Treat an unverifiable number as neither support nor a flaw; judge the underlying football claim.
 - Cleverness for its own sake. A strategy that is exotic but would not survive contact with an NFL Sunday is weaker than a plain one that would.
 
-**Explicitly out of scope — do not let it influence your verdict:** the Bayesian priors the task also asks for. Effect-size magnitudes, interval widths, distribution-family choice, and the arithmetic converting beliefs into parameters are NOT being judged here, by you or anyone else in this round. Ignore them entirely, even when one response's numbers look more sensible than the other's. Judge only the six recommendations and their rationales.
+**Explicitly out of scope — do not let it influence your verdict:** the Bayesian priors the task also asks for. Effect-size magnitudes, interval widths, distribution-family choice, and the arithmetic converting beliefs into parameters are NOT being judged here, by you or anyone else in this round. The `prior` blocks have been removed from responses that parsed as JSON — treat their absence as normal, never as a defect. A response that failed to parse is shown raw, so prior content may still appear there; ignore it entirely, even when its numbers look more or less sensible. Judge only the six recommendations and their rationales.
 
 Ground rules:
 

@@ -83,9 +83,11 @@ coin flip from the run seed; presentation order is recorded so position bias is 
 
 **Priors are generated but not judged.** The candidates still produce a Bayesian prior per
 strategy (Part 2 of the prompt) and the checks stage still validates them for the published
-charts, but the judge prompt marks them explicitly out of scope and
+charts, but the judge prompt marks them explicitly out of scope,
 `pairwise.check_summary()` withholds the prior-mechanics results (interval sanity, family
-validity, parameter reproduction) from judges so they cannot contaminate the soundness call.
+validity, parameter reproduction), and `pairwise.strip_priors()` removes the `prior` blocks
+from the parsed bundles judges see (unparsed raw text is shown whole), so they cannot
+contaminate the soundness call — and every judge call skips the priors' token cost.
 
 Cost design: Anthropic/OpenAI/Gemini go through their 50%-off batch APIs
 (`providers.BATCH_PROVIDERS`); z.ai has no batch API and runs synchronously. Prompts share

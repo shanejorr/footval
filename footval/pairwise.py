@@ -185,6 +185,22 @@ def check_summary(checks: dict[str, Any] | None) -> str:
     return json.dumps(summary, indent=2, ensure_ascii=False)
 
 
+def strip_priors(parsed: Any) -> Any:
+    """Judge-facing copy of a parsed response with each strategy's `prior`
+    block removed. Priors are out of scope for the soundness round; like the
+    withheld prior-mechanics check results, removing them closes the
+    contamination vector instead of relying on judges to ignore them — and
+    drops roughly half of every bundle's (uncached) tokens from every judge
+    call. Responses that failed to parse are shown raw and whole."""
+    if not isinstance(parsed, dict) or not isinstance(parsed.get("strategies"), list):
+        return parsed
+    strategies = [
+        {k: v for k, v in s.items() if k != "prior"} if isinstance(s, dict) else s
+        for s in parsed["strategies"]
+    ]
+    return {**parsed, "strategies": strategies}
+
+
 def build_bundle(store: artifacts.Store, iid: str, label: str) -> tuple[str, int]:
     """One candidate's full anonymized package. Deterministic from on-disk
     artifacts, so every call sharing this (iid, label) gets identical bytes —
@@ -192,8 +208,11 @@ def build_bundle(store: artifacts.Store, iid: str, label: str) -> tuple[str, int
     resp = store.load_response(iid) or {}
     parsed = resp.get("parsed_json")
     if isinstance(parsed, dict | list):
-        body = json.dumps(parsed, indent=2, ensure_ascii=False)
-        body_label = f"Response {label} parsed as JSON; it follows pretty-printed."
+        body = json.dumps(strip_priors(parsed), indent=2, ensure_ascii=False)
+        body_label = (
+            f"Response {label} parsed as JSON; it follows pretty-printed, with the "
+            "out-of-scope prior blocks removed."
+        )
     else:
         body = resp.get("raw_text") or ""
         body_label = f"Response {label} did NOT parse as JSON; the raw text follows."
