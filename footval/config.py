@@ -40,6 +40,8 @@ class ModelCfg:
     name: str
     provider: str
     family: str
+    # Provider list price per 1M billable output tokens (None -> cost not computed)
+    output_usd_per_mtok: float | None = None
     supports_temperature: bool = True
     supports_seed: bool = False
     base_url: str | None = None
@@ -113,6 +115,9 @@ def load_config(root: Path | None = None) -> Config:
             name=name,
             provider=m["provider"],
             family=m["family"],
+            output_usd_per_mtok=(
+                float(m["output_usd_per_mtok"]) if m.get("output_usd_per_mtok") else None
+            ),
             supports_temperature=m.get("supports_temperature", True),
             supports_seed=m.get("supports_seed", False),
             base_url=m.get("base_url"),

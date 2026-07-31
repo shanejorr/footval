@@ -300,7 +300,12 @@ Objective tables (the `tables` stage):
 
 | Table | Key fields |
 |---|---|
-| `responses` | instance_id, model, sample_idx, snapshot_id, ts, temperature, seed, usage (provider token counts, incl. reasoning/thinking where reported), raw_text, parsed_json |
+| `responses` | instance_id, model, sample_idx, snapshot_id, ts, temperature, seed, usage (provider token counts, incl. reasoning/thinking where reported), billable_output_tokens, output_cost_usd, raw_text, parsed_json |
+
+The tables stage also writes `outputs/data/candidate_costs.csv` — per candidate: samples,
+billable output tokens (visible output + separately-reported thinking), the model's
+`output_usd_per_mtok` list price from config.yaml, and the total output cost in USD. A model
+with no configured price gets a blank cost, never a silent zero.
 | `checks` | instance_id, json_valid, grid_complete, intervals_ok, family_ok, params_reproduce_ok, detail |
 
 Pairwise judging artifacts (under `artifacts/pairwise/`):

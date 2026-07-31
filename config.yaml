@@ -2,6 +2,10 @@
 #
 # Model IDs and API params WILL drift; fix them HERE, never in code.
 # `make probe` makes one cheap call per model and prints resolved snapshot IDs.
+# `output_usd_per_mtok:` is the provider's list price per 1M OUTPUT tokens
+# (verified 2026-07-31; prices drift — update here). Billable output includes
+# thinking tokens: Gemini reports them separately (thoughts_tokens, billed as
+# output); the other providers fold them into output_tokens already.
 # `params:` is merged verbatim into the provider call (config wins on conflict).
 # `judge_params:` is merged on top of `params:` only when the model is acting as a
 # pairwise judge — all three judges are also candidates and judge at a higher
@@ -52,6 +56,7 @@ models:
   claude-fable-5:
     provider: anthropic
     family: anthropic
+    output_usd_per_mtok: 50.00
     supports_temperature: false
     supports_seed: false
     params:
@@ -62,6 +67,7 @@ models:
   claude-opus-5:
     provider: anthropic
     family: anthropic
+    output_usd_per_mtok: 25.00
     supports_temperature: false
     supports_seed: false
     params:
@@ -72,6 +78,7 @@ models:
   gpt-5.6-sol:
     provider: openai
     family: openai
+    output_usd_per_mtok: 30.00
     supports_temperature: false
     supports_seed: false
     params:
@@ -81,6 +88,7 @@ models:
   gpt-5.6-terra:
     provider: openai
     family: openai
+    output_usd_per_mtok: 15.00
     supports_temperature: false
     supports_seed: false
     params:
@@ -92,6 +100,7 @@ models:
   gemini-3.1-pro-preview:
     provider: gemini
     family: google
+    output_usd_per_mtok: 12.00
     supports_temperature: true
     supports_seed: true
     params:
@@ -99,6 +108,7 @@ models:
   gemini-3.6-flash:
     provider: gemini
     family: google
+    output_usd_per_mtok: 7.50
     supports_temperature: true
     supports_seed: true
     params:
@@ -110,6 +120,7 @@ models:
   glm-5.2:
     provider: zai
     family: zai
+    output_usd_per_mtok: 4.40
     base_url: https://api.z.ai/api/paas/v4
     supports_temperature: true
     supports_seed: false

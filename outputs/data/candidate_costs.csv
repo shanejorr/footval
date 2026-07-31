@@ -1,0 +1,9 @@
+model,samples,billable_output_tokens,output_usd_per_mtok,output_cost_usd
+claude-fable-5,1,6610,50.0,0.3305
+claude-opus-5,1,12544,25.0,0.3136
+claude-sonnet-5,1,11595,,
+gemini-3.1-pro-preview,1,8154,12.0,0.097848
+gemini-3.6-flash,1,12359,7.5,0.092692
+glm-5.2,1,5368,4.4,0.023619
+gpt-5.6-sol,1,4720,30.0,0.1416
+gpt-5.6-terra,1,5290,15.0,0.07935

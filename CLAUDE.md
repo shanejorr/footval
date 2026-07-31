@@ -24,7 +24,7 @@ Three core stages, each reading/writing structured artifacts so they run indepen
 |---|---|---|
 | 1 Generate | `footval/generate.py` | Call each candidate `n_samples` times → response instances |
 | 2 Check | `footval/checks.py` | Deterministic JSON/structure/parameter checks |
-| 3 Tables | `footval/tables.py` | Consolidate per-instance artifacts into the objective `responses` / `checks` tables |
+| 3 Tables | `footval/tables.py` | Consolidate per-instance artifacts into the objective `responses` / `checks` tables + the `candidate_costs.csv` output-cost summary |
 
 The unit of analysis everywhere is the **response instance** = (model, sample_idx).
 
@@ -219,3 +219,4 @@ API keys come from environment variables / a gitignored `.env`: `ANTHROPIC_API_K
 Written to `outputs/` (not auto-committed; owner reviews first). CSV data files live in `outputs/data/`:
 
 - `pairwise_results.csv` — long form: columns `judge, model_a, model_b, criterion, winner`; one row per judge×pair×criterion (`criterion` is `analytical_reasoning` or `intuitive_reasoning`); blank `winner` where a judge returned no valid verdict. The notebook (`outputs/blog_output.ipynb`) reads this plus `artifacts/tables/responses.json` to build the win-percentage and prior-comparison charts.
+- `candidate_costs.csv` — per-candidate generation cost, written by the `tables` stage: samples, billable output tokens (visible output + separately-reported thinking, e.g. Gemini's `thoughts_tokens`), the model's `output_usd_per_mtok` list price (set in config.yaml; verify against provider pricing pages when it drifts), and total `output_cost_usd`. Models without a configured price get a blank cost.
