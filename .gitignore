@@ -1,0 +1,29 @@
+# environment variables
+.env
+
+# python
+.venv/
+__pycache__/
+.pytest_cache/
+.ruff_cache/
+dist/
+
+# Claude Code settings
+.claude/
+
+# runtime data (raw responses, rendered figures, judgments)
+artifacts/*
+!artifacts/tables/
+artifacts/tables/*
+!artifacts/tables/responses.json
+# Keep the small per-instance candidate records the judge stage reads (so re-judging is
+# reproducible from a clone); rendered figures and other large/derived artifacts stay ignored.
+!artifacts/instances/
+artifacts/instances/*
+!artifacts/instances/*/
+artifacts/instances/*/*
+!artifacts/instances/*/response.json
+!artifacts/instances/*/checks.json
+
+# macOS
+.DS_Store

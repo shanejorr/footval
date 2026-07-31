@@ -108,7 +108,7 @@ run `make bradley-terry` first. Re-render headlessly with
   (no axis rule); the by-judge line chart and the judge/candidate matrix use **posterior-predictive
   per-judge win probabilities** with HDIs. Subjective-priors, interrater-reliability, and
   order-consistency charts are unchanged (computed from `responses.json` / raw verdicts). Charts
-  export to `src/content/writings/2026-06-12-footval/charts/*.svg`.
+  export to `outputs/charts/*.svg`.
 - `model_diagnostics.ipynb` — ArviZ convergence/sampling diagnostics per track (summary tables,
   trace/rank/energy/forest/ESS plots, BFMI). Assessment-only; reports no results.
 
