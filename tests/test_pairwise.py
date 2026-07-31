@@ -374,6 +374,20 @@ def test_per_criterion_system_prompt_and_cache_key(tmp_path):
     assert ANL in anl_req.cache_key and INT in int_req.cache_key
 
 
+def test_first_cache_breakpoint_prefix_clears_anthropic_minimum():
+    # Anthropic ignores a cache_control whose prefix is under the model's
+    # minimum cacheable length (1024 tokens on large models). The prefix at the
+    # first message breakpoint is [system rubric][task prompt]; if either file
+    # is ever slimmed to where that sum dips under the minimum, the task
+    # breakpoint silently stops caching. ~4 chars/token.
+    from pathlib import Path
+
+    task = (Path(__file__).resolve().parent.parent / "footval.prompt.md").read_text()
+    for crit, rubric in JUDGE_PROMPTS.items():
+        prefix_tokens = (len(rubric) + len(task)) // 4
+        assert prefix_tokens >= 1024, (crit, prefix_tokens)
+
+
 def test_openai_batch_line_shapes(tmp_path):
     cfg = pw_cfg(tmp_path, judges=("m1",))  # m1 is family openai in FAMILIES
     item = _item(cfg, judge_name="m1")
