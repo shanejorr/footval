@@ -247,6 +247,7 @@ reproducible and any single stage can be re-run on its own:
 ## Where things live
 
 - [`footval.prompt.md`](footval.prompt.md) — the exact prompt every candidate receives.
+- [`footval.judge.prompt.md`](footval.judge.prompt.md) — the exact system prompt every pairwise judge receives (rubrics, ground rules, verdict schema).
 - [`initial_prompt.md`](initial_prompt.md) — the full methodology specification.
 - [`config.yaml`](config.yaml) — the candidate list, the pairwise judge panel, and per-model settings.
 - [`CLAUDE.md`](CLAUDE.md) — orientation for developers working on the code.

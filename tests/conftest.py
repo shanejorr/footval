@@ -21,6 +21,10 @@ _FAMILY_PROVIDER = {
     "deepseek": "deepseek",
 }
 
+# The real judge system prompt, copied byte-for-byte into each test root so
+# judge_system(cfg) resolves against the same text the pipeline uses.
+JUDGE_PROMPT_TEXT = (Path(__file__).resolve().parent.parent / "footval.judge.prompt.md").read_text()
+
 
 def make_cfg(
     root: Path,
@@ -33,6 +37,7 @@ def make_cfg(
         name: ModelCfg(name=name, provider=_FAMILY_PROVIDER.get(fam, "openai"), family=fam)
         for name, fam in families.items()
     }
+    (root / "footval.judge.prompt.md").write_text(JUDGE_PROMPT_TEXT)
     return Config(
         root=root,
         candidate_models=tuple(candidates),

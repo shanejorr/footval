@@ -1,7 +1,7 @@
 import json
 
 import pytest
-from conftest import make_cfg, valid_response
+from conftest import JUDGE_PROMPT_TEXT, make_cfg, valid_response
 
 from footval import pairwise, providers
 from footval.artifacts import Store
@@ -41,16 +41,16 @@ def seeded_store(tmp_path, instance_ids):
 
 
 def test_pairwise_system_has_criteria_1_2_only():
-    assert pairwise.RUBRIC_SOUNDNESS in pairwise.SYSTEM
-    assert pairwise.RUBRIC_PRIORS in pairwise.SYSTEM
-    assert "Criterion 3" not in pairwise.SYSTEM
-    assert "code" not in pairwise.SYSTEM
+    assert "**Criterion 1 — Soundness of recommendations**" in JUDGE_PROMPT_TEXT
+    assert "**Criterion 2 — Reasonableness of Bayesian priors**" in JUDGE_PROMPT_TEXT
+    assert "Criterion 3" not in JUDGE_PROMPT_TEXT
+    assert "code" not in JUDGE_PROMPT_TEXT
 
 
 def test_pairwise_system_has_no_numeric_scale():
     # The 1-5 scoring scale was removed everywhere; the comparison is a pure
     # forced choice with stronger-vs-weaker prose anchors, no numeric anchors.
-    sys = pairwise.SYSTEM
+    sys = JUDGE_PROMPT_TEXT
     assert "closer to a 5" not in sys
     for anchor in ("**5**", "**3**", "**1**", "5/3/1"):
         assert anchor not in sys
@@ -59,11 +59,11 @@ def test_pairwise_system_has_no_numeric_scale():
 
 def test_priors_rubric_demotes_reproduction_to_tiebreaker():
     # Parameter reproduction must be framed as a secondary/tiebreaker signal,
-    # and the SYSTEM must warn against tallying correlated failing cells — the
+    # and the prompt must warn against tallying correlated failing cells — the
     # two behaviors that sank Sonnet 4.6's priors under the old prompt.
-    assert "tiebreaker" in pairwise.RUBRIC_PRIORS.lower()
-    assert "substance" in pairwise.RUBRIC_PRIORS.lower()
-    assert "count of failing cells" in pairwise.SYSTEM
+    assert "tiebreaker" in JUDGE_PROMPT_TEXT.lower()
+    assert "substance" in JUDGE_PROMPT_TEXT.lower()
+    assert "count of failing cells" in JUDGE_PROMPT_TEXT
 
 
 def test_repro_summary_collapses_common_cause():
@@ -80,9 +80,7 @@ def test_repro_summary_collapses_common_cause():
     )
     assert "2 of 3" in same and "one repeated conversion mistake" in same
     # mixed-family failures are not collapsed
-    mixed = pairwise._repro_summary(
-        [strat(0, "skew_normal", False), strat(1, "student_t", False)]
-    )
+    mixed = pairwise._repro_summary([strat(0, "skew_normal", False), strat(1, "student_t", False)])
     assert "repeated conversion mistake" not in mixed
     # empty
     assert pairwise._repro_summary([]) == "no strategies to check"
@@ -236,7 +234,7 @@ def test_openai_batch_line_shapes(tmp_path):
     line = providers.openai_batch_line(item, "/v1/responses")
     assert line["url"] == "/v1/responses"
     assert line["custom_id"] == "p00-ab"
-    assert line["body"]["instructions"] == pairwise.SYSTEM
+    assert line["body"]["instructions"] == JUDGE_PROMPT_TEXT
     chat = providers.openai_batch_line(item, "/v1/chat/completions")
     assert chat["body"]["messages"][0]["role"] == "system"
 
@@ -246,7 +244,7 @@ def test_gemini_batch_request_shape_and_text_only(tmp_path):
     item = _item(cfg, judge_name="m3")
     req = providers.gemini_batch_request(item)
     assert req["metadata"] == {"custom_id": "p00-ab"}
-    assert req["config"]["system_instruction"] == pairwise.SYSTEM
+    assert req["config"]["system_instruction"] == JUDGE_PROMPT_TEXT
     assert req["contents"][0]["parts"][0]["text"] == "=== TASK GIVEN TO BOTH MODELS ===\nTASK"
     bad = providers.BatchItem(
         custom_id="x",

@@ -77,6 +77,10 @@ class Config:
     def prompt_path(self) -> Path:
         return self.root / "footval.prompt.md"
 
+    @property
+    def judge_prompt_path(self) -> Path:
+        return self.root / "footval.judge.prompt.md"
+
     def model(self, name: str) -> ModelCfg:
         return self.models[name]
 

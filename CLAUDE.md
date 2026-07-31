@@ -11,6 +11,7 @@ Footval is a subjective, multi-model LLM evaluation. Twelve candidate models ans
 ## Source-of-truth documents
 
 - `footval.prompt.md` — the exact prompt sent to every candidate. **Do not edit casually**; changing it invalidates prior runs.
+- `footval.judge.prompt.md` — the exact system prompt sent to every pairwise judge (rubrics, ground rules, verdict schema). Loaded byte-for-byte by `pairwise.judge_system()`; the same edit caution applies — changing it invalidates prior verdicts.
 - `initial_prompt.md` — full methodology (stages, pairwise judging, data schema). This is authoritative, with one deliberate deviation: stage 6 (spec §9, a web page) was replaced by the owner's decision with static outputs — `outputs/data/pairwise_results.csv` (long form: one row per judge×pair×criterion with the winner) plus the notebook charts (win percentage overall/by criterion/by judge, the prior comparison, and panel-consensus diagnostics). If code and spec disagree elsewhere, fix the code or update the spec deliberately — don't let them drift.
 
 When asked to implement something, read the spec first; this file is only a fast orientation.
