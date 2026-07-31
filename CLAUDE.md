@@ -170,19 +170,20 @@ Both read the persisted BT trace (`import footval`, `az.from_netcdf(bt.trace_pat
 run `make bradley-terry` first. Re-render headlessly with
 `uv run jupyter nbconvert --to notebook --execute --inplace outputs/<nb>.ipynb`.
 
-- `blog_output.ipynb` — the published charts. The leaderboard plots `win_prob_vs_field` as a
-  point estimate with a thick **50% HDI** and thin **95% HDI** line (no axis rule); the
-  by-judge line chart and the judge/candidate matrix use **posterior-predictive per-judge win
-  probabilities** with HDIs. Subjective-priors, interrater-reliability, and order-consistency
-  charts are computed from `responses.json` / raw verdicts. Charts export to
-  `outputs/charts/*.svg`.
-- `model_diagnostics.ipynb` — ArviZ convergence/sampling diagnostics per track (summary
+- `blog_output.ipynb` — the published charts, reported **per criterion** (both tracks from
+  `bt.TRACKS`; no pooled overall ranking). Each criterion gets its own leaderboard
+  (`win_prob_vs_field` as a point estimate with a thick **50% HDI** and thin **95% HDI** line,
+  no axis rule), by-judge line chart, and judge/candidate matrix built from
+  **posterior-predictive per-judge win probabilities** with HDIs. Subjective-priors,
+  interrater-reliability (three-judge vote splits: Unanimous vs 2-1 Majority),
+  order-consistency, and candidate generation-cost charts are computed from `responses.json`,
+  the raw verdicts, and `outputs/data/candidate_costs.csv`. Charts export to
+  `outputs/charts/*.svg`; per-criterion files carry `-analytical` / `-intuitive` suffixes.
+- `model_diagnostics.ipynb` — ArviZ convergence/sampling diagnostics for both tracks (summary
   tables, trace/rank/energy/forest/ESS plots, BFMI). Assessment-only; reports no results.
 
-**Both notebooks still assume the retired single-track (`soundness`) judging** — e.g.
-`bt_traces["soundness"]` is hardcoded in `blog_output.ipynb` — and carry stored outputs from
-the previous run. They must be reworked for the two reasoning tracks (per-criterion
-leaderboards now carry real information) before the next post-run render.
+Both notebooks still carry stored outputs from the previous run; they are refreshed by
+re-executing after the next full run.
 
 ## Conventions
 

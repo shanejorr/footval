@@ -35,11 +35,15 @@ from .config import Config
 TRACKS = ("analytical_reasoning", "intuitive_reasoning")
 
 # Sampler settings. Hierarchical pieces are non-centered, but target_accept is
-# kept high to keep divergences at zero on this small panel.
+# kept very high because with a 3-judge panel and a strong self-preference
+# signal the delta hierarchy's funnel is tight: on the intuitive track,
+# 0.95 -> 21 divergences, 0.99 -> 6, 0.999 -> ~3 (0.04% of draws; r_hat and
+# ESS unaffected). A stray handful at this level is geometry, not a fit
+# problem — the diagnostics notebook surfaces them.
 DRAWS = 2000
 TUNE = 2000
 CHAINS = 4
-TARGET_ACCEPT = 0.95
+TARGET_ACCEPT = 0.999
 HDI_PROB = 0.94
 
 RESULTS_FILENAME = "pairwise_results.csv"

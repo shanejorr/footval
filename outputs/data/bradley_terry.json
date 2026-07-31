@@ -4,15 +4,14 @@
     "draws": 2000,
     "tune": 2000,
     "chains": 4,
-    "target_accept": 0.95
+    "target_accept": 0.999
   },
   "tracks": {
-    "soundness": {
-      "n_obs": 224,
+    "analytical_reasoning": {
+      "n_obs": 126,
       "models": [
         "claude-fable-5",
         "claude-opus-5",
-        "claude-sonnet-5",
         "gemini-3.1-pro-preview",
         "gemini-3.6-flash",
         "glm-5.2",
@@ -21,166 +20,293 @@
       ],
       "judges": [
         "claude-fable-5",
-        "gemini-3.5-flash",
         "glm-5.2",
         "gpt-5.6-sol"
       ],
       "rankings": [
         {
           "model": "claude-opus-5",
-          "strength_mean": 2.512067170519315,
-          "strength_sd": 0.4637041174612797,
-          "hdi_low": 1.6663608493564297,
-          "hdi_high": 3.4014157044833744,
+          "strength_mean": 1.2723762044481746,
+          "strength_sd": 0.36647823539493735,
+          "hdi_low": 0.59870640676606,
+          "hdi_high": 1.9411154169397742,
           "rank": 1,
-          "win_prob_vs_field": 0.9298000698406045,
-          "win_prob_hdi_low": 0.8728329649588089,
-          "win_prob_hdi_high": 0.9824267413829452
-        },
-        {
-          "model": "gemini-3.1-pro-preview",
-          "strength_mean": 0.6238777387859109,
-          "strength_sd": 0.31719338282065573,
-          "hdi_low": 0.05394871312222835,
-          "hdi_high": 1.252689354381895,
-          "rank": 2,
-          "win_prob_vs_field": 0.6546827476967586,
-          "win_prob_hdi_low": 0.53730619053699,
-          "win_prob_hdi_high": 0.767868222337482
-        },
-        {
-          "model": "gpt-5.6-terra",
-          "strength_mean": 0.18506703486126114,
-          "strength_sd": 0.275609268977134,
-          "hdi_low": -0.3035089556830618,
-          "hdi_high": 0.7124207965413037,
-          "rank": 3,
-          "win_prob_vs_field": 0.5615785802460695,
-          "win_prob_hdi_low": 0.45288596076046733,
-          "win_prob_hdi_high": 0.6707531374546158
-        },
-        {
-          "model": "claude-sonnet-5",
-          "strength_mean": -0.31034767429247845,
-          "strength_sd": 0.27851801620485417,
-          "hdi_low": -0.8420986508545073,
-          "hdi_high": 0.20206446521590857,
-          "rank": 4,
-          "win_prob_vs_field": 0.44847623799585895,
-          "win_prob_hdi_low": 0.3348336504046889,
-          "win_prob_hdi_high": 0.5662479505330132
+          "win_prob_vs_field": 0.7531176864920391,
+          "win_prob_hdi_low": 0.6513065448320282,
+          "win_prob_hdi_high": 0.8505652329520373
         },
         {
           "model": "gpt-5.6-sol",
-          "strength_mean": -0.38698608455143413,
-          "strength_sd": 0.27272572806741274,
-          "hdi_low": -0.915226776783482,
-          "hdi_high": 0.10568090530521311,
-          "rank": 5,
-          "win_prob_vs_field": 0.43078122493500154,
-          "win_prob_hdi_low": 0.3188742571377812,
-          "win_prob_hdi_high": 0.5438326678577784
+          "strength_mean": 1.164285717484788,
+          "strength_sd": 0.3405329266995542,
+          "hdi_low": 0.5490240084610198,
+          "hdi_high": 1.7958019267340695,
+          "rank": 2,
+          "win_prob_vs_field": 0.7323691526770562,
+          "win_prob_hdi_low": 0.6407230731735595,
+          "win_prob_hdi_high": 0.8203057207780279
+        },
+        {
+          "model": "gpt-5.6-terra",
+          "strength_mean": 0.8872788123216824,
+          "strength_sd": 0.27849718889376046,
+          "hdi_low": 0.3940743268266642,
+          "hdi_high": 1.4200340802684177,
+          "rank": 3,
+          "win_prob_vs_field": 0.6768034605771421,
+          "win_prob_hdi_low": 0.595595807792456,
+          "win_prob_hdi_high": 0.7572560222875588
         },
         {
           "model": "claude-fable-5",
-          "strength_mean": -0.3994259479295864,
-          "strength_sd": 0.27036963558930716,
-          "hdi_low": -0.8937988880750158,
-          "hdi_high": 0.1114191867150015,
-          "rank": 6,
-          "win_prob_vs_field": 0.42794853744791894,
-          "win_prob_hdi_low": 0.316134104827408,
-          "win_prob_hdi_high": 0.538435647266015
+          "strength_mean": 0.4811292760710609,
+          "strength_sd": 0.2509657209780114,
+          "hdi_low": 0.026078697846256965,
+          "hdi_high": 0.9621960191208517,
+          "rank": 4,
+          "win_prob_vs_field": 0.5913645463979594,
+          "win_prob_hdi_low": 0.5072106140656066,
+          "win_prob_hdi_high": 0.6782611664464416
         },
         {
           "model": "glm-5.2",
-          "strength_mean": -0.8618972109328835,
-          "strength_sd": 0.30760658861607515,
-          "hdi_low": -1.460128937157982,
-          "hdi_high": -0.30615109218047554,
-          "rank": 7,
-          "win_prob_vs_field": 0.32430008601983223,
-          "win_prob_hdi_low": 0.20478071770069325,
-          "win_prob_hdi_high": 0.43767653930746586
+          "strength_mean": -0.5270462955368749,
+          "strength_sd": 0.31744064963332674,
+          "hdi_low": -1.101863278818427,
+          "hdi_high": 0.09496158103299278,
+          "rank": 5,
+          "win_prob_vs_field": 0.38166978249507194,
+          "win_prob_hdi_low": 0.2833413216870733,
+          "win_prob_hdi_high": 0.4940481822347637
         },
         {
           "model": "gemini-3.6-flash",
-          "strength_mean": -1.362355026460089,
-          "strength_sd": 0.32808414042095685,
-          "hdi_low": -1.9915915250434184,
-          "hdi_high": -0.7779714698809369,
-          "rank": 8,
-          "win_prob_vs_field": 0.22243251581795465,
-          "win_prob_hdi_low": 0.12185432070251448,
-          "win_prob_hdi_high": 0.3220191645663429
+          "strength_mean": -1.590265598215705,
+          "strength_sd": 0.41617249786329386,
+          "hdi_low": -2.364957137676905,
+          "hdi_high": -0.8293294185959991,
+          "rank": 6,
+          "win_prob_vs_field": 0.19000096095417723,
+          "win_prob_hdi_low": 0.10386932769923847,
+          "win_prob_hdi_high": 0.2761421768906979
+        },
+        {
+          "model": "gemini-3.1-pro-preview",
+          "strength_mean": -1.6877581165731288,
+          "strength_sd": 0.4269327709255569,
+          "hdi_low": -2.4575877569210673,
+          "hdi_high": -0.8855130396650059,
+          "rank": 7,
+          "win_prob_vs_field": 0.17467441040655624,
+          "win_prob_hdi_low": 0.08844928159736805,
+          "win_prob_hdi_high": 0.2597748012836653
         }
       ],
       "judge_effects": [
         {
           "judge": "claude-fable-5",
-          "kappa_mean": 0.9907535766727267,
-          "kappa_hdi_low": 0.5857512156187683,
-          "kappa_hdi_high": 1.3934677519577252,
-          "gamma_mean": 0.8661438823845721,
-          "gamma_hdi_low": 0.37744160259147935,
-          "gamma_hdi_high": 1.4091382007876223,
-          "delta_mean": 0.8402988164481363,
-          "delta_hdi_low": 0.1634879971492688,
-          "delta_hdi_high": 1.5929423368164077
-        },
-        {
-          "judge": "gemini-3.5-flash",
-          "kappa_mean": 1.1293098750142567,
-          "kappa_hdi_low": 0.6845382771461465,
-          "kappa_hdi_high": 1.7435246175468047,
-          "gamma_mean": 0.7738392722578685,
-          "gamma_hdi_low": 0.3027476566504002,
-          "gamma_hdi_high": 1.252357269564588,
-          "delta_mean": 0.7644855570244438,
-          "delta_hdi_low": 0.04325631272714618,
-          "delta_hdi_high": 1.4767611452780363
+          "kappa_mean": 3.683718589453686,
+          "kappa_hdi_low": 0.8640232417281412,
+          "kappa_hdi_high": 7.794147413669368,
+          "gamma_mean": 0.21900879238807913,
+          "gamma_hdi_low": -0.535396450143428,
+          "gamma_hdi_high": 1.0093542357979108,
+          "delta_mean": 0.18045695101151,
+          "delta_hdi_low": -1.2039544136810845,
+          "delta_hdi_high": 1.4111870382723728
         },
         {
           "judge": "glm-5.2",
-          "kappa_mean": 1.139301411586653,
-          "kappa_hdi_low": 0.6460462248468697,
-          "kappa_hdi_high": 1.8016654942185626,
-          "gamma_mean": 0.6071933824836468,
-          "gamma_hdi_low": 0.1169915800354763,
-          "gamma_hdi_high": 1.069878499119279,
-          "delta_mean": 0.5357874579125932,
-          "delta_hdi_low": -0.32575571039850026,
-          "delta_hdi_high": 1.3102966249569197
+          "kappa_mean": 3.4905501890086925,
+          "kappa_hdi_low": 0.8756705625037511,
+          "kappa_hdi_high": 7.6187484751,
+          "gamma_mean": -0.027446055309026857,
+          "gamma_hdi_low": -0.7249927905496042,
+          "gamma_hdi_high": 0.7378074654067379,
+          "delta_mean": 0.2957416188617619,
+          "delta_hdi_low": -1.1693681425949645,
+          "delta_hdi_high": 1.6304989829686942
         },
         {
           "judge": "gpt-5.6-sol",
-          "kappa_mean": 1.0852296867659363,
-          "kappa_hdi_low": 0.6880980212340506,
-          "kappa_hdi_high": 1.5876521098657015,
-          "gamma_mean": 0.7030350735562872,
-          "gamma_hdi_low": 0.2529333627776023,
-          "gamma_hdi_high": 1.171365249711022,
-          "delta_mean": 0.7894255646233844,
-          "delta_hdi_low": 0.1376377556468048,
-          "delta_hdi_high": 1.5270839542163783
+          "kappa_mean": 1.9309859012086699,
+          "kappa_hdi_low": 0.49330475312787575,
+          "kappa_hdi_high": 3.875119744207549,
+          "gamma_mean": 0.052979723903361545,
+          "gamma_hdi_low": -0.6075360141867199,
+          "gamma_hdi_high": 0.7121252530992238,
+          "delta_mean": 1.1768926666528887,
+          "delta_hdi_low": -0.16897014810160982,
+          "delta_hdi_high": 2.7864429371102366
         }
       ],
       "population": {
         "mu_gamma": {
-          "mean": 0.6701724471174015,
-          "hdi_low": 0.24108672529929456,
-          "hdi_high": 1.0904945896155216
+          "mean": 0.06840209086771418,
+          "hdi_low": -0.4996004649183425,
+          "hdi_high": 0.6406820495939936
         },
         "mu_delta": {
-          "mean": 0.6359406376845064,
-          "hdi_low": 0.09186979305437169,
-          "hdi_high": 1.1747877008419152
+          "mean": 0.37315973399169455,
+          "hdi_low": -0.4184428504422708,
+          "hdi_high": 1.147672667197195
         }
       },
       "diagnostics": {
         "max_r_hat": 1.0,
-        "min_ess_bulk": 2931.0,
+        "min_ess_bulk": 1888.0,
         "n_divergences": 0
+      }
+    },
+    "intuitive_reasoning": {
+      "n_obs": 126,
+      "models": [
+        "claude-fable-5",
+        "claude-opus-5",
+        "gemini-3.1-pro-preview",
+        "gemini-3.6-flash",
+        "glm-5.2",
+        "gpt-5.6-sol",
+        "gpt-5.6-terra"
+      ],
+      "judges": [
+        "claude-fable-5",
+        "glm-5.2",
+        "gpt-5.6-sol"
+      ],
+      "rankings": [
+        {
+          "model": "claude-opus-5",
+          "strength_mean": 1.7293296196538797,
+          "strength_sd": 0.46742887660031407,
+          "hdi_low": 0.8902535882490769,
+          "hdi_high": 2.6172179284400117,
+          "rank": 1,
+          "win_prob_vs_field": 0.8363430604682953,
+          "win_prob_hdi_low": 0.7348999220856022,
+          "win_prob_hdi_high": 0.9381227566148463
+        },
+        {
+          "model": "claude-fable-5",
+          "strength_mean": 0.8699133612951766,
+          "strength_sd": 0.2935694760551433,
+          "hdi_low": 0.3543200358093585,
+          "hdi_high": 1.4428499322735628,
+          "rank": 2,
+          "win_prob_vs_field": 0.6833242725128423,
+          "win_prob_hdi_low": 0.5935688252464952,
+          "win_prob_hdi_high": 0.7700500106737899
+        },
+        {
+          "model": "gpt-5.6-terra",
+          "strength_mean": 0.7936798407551543,
+          "strength_sd": 0.30274788613280607,
+          "hdi_low": 0.27166744119079256,
+          "hdi_high": 1.3779160003939956,
+          "rank": 3,
+          "win_prob_vs_field": 0.6676224255775717,
+          "win_prob_hdi_low": 0.5736764223184568,
+          "win_prob_hdi_high": 0.7561211881125129
+        },
+        {
+          "model": "gpt-5.6-sol",
+          "strength_mean": 0.18273823852676405,
+          "strength_sd": 0.27644129051504235,
+          "hdi_low": -0.3250593374810177,
+          "hdi_high": 0.7059805554592631,
+          "rank": 4,
+          "win_prob_vs_field": 0.5390658750076005,
+          "win_prob_hdi_low": 0.44070140386662643,
+          "win_prob_hdi_high": 0.640047052607394
+        },
+        {
+          "model": "gemini-3.1-pro-preview",
+          "strength_mean": -0.7677274266062194,
+          "strength_sd": 0.2866881823479812,
+          "hdi_low": -1.3303229934889942,
+          "hdi_high": -0.27241710167920696,
+          "rank": 5,
+          "win_prob_vs_field": 0.3384623549953479,
+          "win_prob_hdi_low": 0.24970265038826212,
+          "win_prob_hdi_high": 0.4270369804524669
+        },
+        {
+          "model": "gemini-3.6-flash",
+          "strength_mean": -1.2955089781436606,
+          "strength_sd": 0.35028484638229984,
+          "hdi_low": -1.936385306822403,
+          "hdi_high": -0.6518641111069158,
+          "rank": 6,
+          "win_prob_vs_field": 0.23637257678948143,
+          "win_prob_hdi_low": 0.14452495277963126,
+          "win_prob_hdi_high": 0.3196453992435487
+        },
+        {
+          "model": "glm-5.2",
+          "strength_mean": -1.5124246554810985,
+          "strength_sd": 0.4106623784181248,
+          "hdi_low": -2.2740662842650443,
+          "hdi_high": -0.7656001431440744,
+          "rank": 7,
+          "win_prob_vs_field": 0.1988094346488625,
+          "win_prob_hdi_low": 0.10433666914248069,
+          "win_prob_hdi_high": 0.2947071562594628
+        }
+      ],
+      "judge_effects": [
+        {
+          "judge": "claude-fable-5",
+          "kappa_mean": 6.937906124308864,
+          "kappa_hdi_low": 0.7821768790971305,
+          "kappa_hdi_high": 18.000180300471506,
+          "gamma_mean": 0.24866943212862708,
+          "gamma_hdi_low": -0.558817192435919,
+          "gamma_hdi_high": 1.0796378949157195,
+          "delta_mean": 1.3419156320169896,
+          "delta_hdi_low": -0.4819728444404417,
+          "delta_hdi_high": 3.32220526445534
+        },
+        {
+          "judge": "glm-5.2",
+          "kappa_mean": 3.7239766969088346,
+          "kappa_hdi_low": 0.9813839727300465,
+          "kappa_hdi_high": 7.375926850572476,
+          "gamma_mean": 0.39744208855587326,
+          "gamma_hdi_low": -0.33501413800898394,
+          "gamma_hdi_high": 1.140231741549401,
+          "delta_mean": 1.5271692449182628,
+          "delta_hdi_low": -0.08406814099151694,
+          "delta_hdi_high": 3.336933381663348
+        },
+        {
+          "judge": "gpt-5.6-sol",
+          "kappa_mean": 1.2042567432088012,
+          "kappa_hdi_low": 0.36069676357451746,
+          "kappa_hdi_high": 2.1997555405224003,
+          "gamma_mean": 0.3382404175905439,
+          "gamma_hdi_low": -0.3165263489127947,
+          "gamma_hdi_high": 0.9815060313365493,
+          "delta_mean": 2.441510065511915,
+          "delta_hdi_low": 0.8797220565151873,
+          "delta_hdi_high": 4.2787649215197545
+        }
+      ],
+      "population": {
+        "mu_gamma": {
+          "mean": 0.28298361710064146,
+          "hdi_low": -0.3267868280756387,
+          "hdi_high": 0.8834288839799403
+        },
+        "mu_delta": {
+          "mean": 0.871726031071644,
+          "hdi_low": -0.05488778211865967,
+          "hdi_high": 1.7921008529748614
+        }
+      },
+      "diagnostics": {
+        "max_r_hat": 1.0,
+        "min_ess_bulk": 1945.0,
+        "n_divergences": 3
       }
     }
   }
