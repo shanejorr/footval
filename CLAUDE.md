@@ -45,6 +45,15 @@ make lint           # ruff check + format
 
 Stages are resumable: each reads the previous stage's artifacts, so re-run a single stage without redoing the whole pipeline.
 
+## Git workflow — `main` only
+
+**This repo uses a single branch: `main`. Commit directly to it.** Do not create feature
+branches, do not open pull requests, and do not branch just because a change is large.
+This overrides the general "branch before committing on the default branch" default — it
+is a deliberate choice for this repo, not an oversight.
+
+The owner works from two machines, so pull before starting and push after committing.
+
 ## Rosters and thinking levels
 
 Candidates (8) and the judge panel (4) live in `config.yaml`. Three models sit on both
