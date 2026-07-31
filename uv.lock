@@ -1,5 +1,5 @@
 version = 1
-revision = 2
+revision = 3
 requires-python = ">=3.12"
 resolution-markers = [
     "python_full_version >= '3.14' and sys_platform == 'win32'",
@@ -644,13 +644,11 @@ name = "footval"
 version = "0.1.0"
 source = { editable = "." }
 dependencies = [
-    { name = "altair" },
     { name = "anthropic" },
     { name = "arviz" },
     { name = "google-genai" },
     { name = "h5netcdf" },
     { name = "h5py" },
-    { name = "matplotlib" },
     { name = "numpy" },
     { name = "openai" },
     { name = "polars" },
@@ -662,7 +660,9 @@ dependencies = [
 
 [package.dev-dependencies]
 dev = [
+    { name = "altair" },
     { name = "ipykernel" },
+    { name = "matplotlib" },
     { name = "nbconvert" },
     { name = "pytest" },
     { name = "ruff" },
@@ -671,13 +671,11 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "altair", specifier = ">=6.2.1" },
     { name = "anthropic", specifier = ">=0.109.1" },
     { name = "arviz", specifier = ">=1.2.0" },
     { name = "google-genai", specifier = ">=2.8.0" },
     { name = "h5netcdf", specifier = ">=1.8.1" },
     { name = "h5py", specifier = ">=3.16.0" },
-    { name = "matplotlib", specifier = ">=3.10.9" },
     { name = "numpy", specifier = ">=2.4.6" },
     { name = "openai", specifier = ">=2.41.1" },
     { name = "polars", specifier = ">=1.41.2" },
@@ -689,7 +687,9 @@ requires-dist = [
 
 [package.metadata.requires-dev]
 dev = [
+    { name = "altair", specifier = ">=6.2.1" },
     { name = "ipykernel", specifier = ">=7.3.0" },
+    { name = "matplotlib", specifier = ">=3.10.9" },
     { name = "nbconvert", specifier = ">=7.17.1" },
     { name = "pytest", specifier = ">=9.0.3" },
     { name = "ruff", specifier = ">=0.15.16" },

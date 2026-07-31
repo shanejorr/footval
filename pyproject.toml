@@ -4,13 +4,11 @@ version = "0.1.0"
 description = "Multi-model LLM evaluation: NFL strategy recommendations with calibrated priors"
 requires-python = ">=3.12"
 dependencies = [
-    "altair>=6.2.1",
     "anthropic>=0.109.1",
     "arviz>=1.2.0",
     "google-genai>=2.8.0",
     "h5netcdf>=1.8.1",
     "h5py>=3.16.0",
-    "matplotlib>=3.10.9",
     "numpy>=2.4.6",
     "openai>=2.41.1",
     "polars>=1.41.2",
@@ -33,9 +31,9 @@ include = [
     "/tests",
     "/config.yaml",
     "/footval.prompt.md",
+    "/footval.judge.prompt.md",
     "/initial_prompt.md",
     "/Makefile",
-    "/AGENTS.md",
     "/CLAUDE.md",
     "/.python-version",
 ]
@@ -58,6 +56,10 @@ packages = ["footval"]
 [tool.ruff]
 line-length = 100
 
+[tool.ruff.format]
+# Notebook cells keep their hand-laid layout (chart specs, wide tables)
+exclude = ["*.ipynb"]
+
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B"]
 
@@ -66,13 +68,19 @@ select = ["E", "F", "I", "UP", "B"]
 # they must not be rewrapped
 "footval/pairwise.py" = ["E501"]
 "tests/test_pairwise.py" = ["E501"]
+# Notebook idioms: repeated imports per cell, long chart-spec lines
+"*.ipynb" = ["E402", "E501", "I001"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 
 [dependency-groups]
+# Notebook rendering lives here too: altair/matplotlib are used only by
+# outputs/*.ipynb, never by the footval package itself.
 dev = [
+    "altair>=6.2.1",
     "ipykernel>=7.3.0",
+    "matplotlib>=3.10.9",
     "nbconvert>=7.17.1",
     "pytest>=9.0.3",
     "ruff>=0.15.16",
