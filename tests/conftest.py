@@ -9,7 +9,7 @@ from typing import Any
 from scipy import stats as st
 
 from footval.checks import BUCKETS, TYPES
-from footval.config import Config, ModelCfg, SandboxCfg
+from footval.config import Config, ModelCfg
 from footval.distributions import skewnorm_mode
 
 CELLS = [(b, t) for b in BUCKETS for t in TYPES]
@@ -18,7 +18,7 @@ _FAMILY_PROVIDER = {
     "anthropic": "anthropic",
     "openai": "openai",
     "google": "gemini",
-    "deepseek": "deepseek",
+    "zai": "zai",
 }
 
 # The real judge system prompt, copied byte-for-byte into each test root so
@@ -32,9 +32,16 @@ def make_cfg(
     families: dict[str, str],
     pairwise_judges: tuple[str, ...] = (),
     pairwise_both_orders: bool = False,
+    judge_params: dict[str, dict] | None = None,
 ) -> Config:
+    judge_params = judge_params or {}
     models = {
-        name: ModelCfg(name=name, provider=_FAMILY_PROVIDER.get(fam, "openai"), family=fam)
+        name: ModelCfg(
+            name=name,
+            provider=_FAMILY_PROVIDER.get(fam, "openai"),
+            family=fam,
+            judge_params=judge_params.get(name, {}),
+        )
         for name, fam in families.items()
     }
     (root / "footval.judge.prompt.md").write_text(JUDGE_PROMPT_TEXT)
@@ -46,7 +53,6 @@ def make_cfg(
         judge_temperature=0.0,
         seed=42,
         interval_tol=0.10,
-        sandbox=SandboxCfg(),
         generation_max_output_tokens=1000,
         judging_max_output_tokens=1000,
         judge_max_format_retries=2,
@@ -153,5 +159,4 @@ def valid_response(strategies: list[dict] | None = None) -> dict[str, Any]:
             "support": "unbounded real; positive favors own team",
         },
         "strategies": strategies,
-        "plot_script": "import matplotlib.pyplot as plt\nplt.plot([0, 1])\n",
     }

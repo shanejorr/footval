@@ -44,11 +44,11 @@ def test_truncated_json_fails():
 
 
 def test_redaction_replaces_vendor_names_case_insensitively():
-    text = "I am Claude, by ANTHROPIC, unlike GPT-5.5-pro or Gemini-3.1 or DeepSeek."
+    text = "I am Claude, by ANTHROPIC, unlike GPT-5.6-sol or Gemini-3.6 or GLM-5.2 by Z.ai."
     redacted, count = redact(text)
-    assert count >= 5
+    assert count >= 6
     lowered = redacted.lower()
-    for token in ("claude", "anthropic", "gpt", "gemini", "deepseek"):
+    for token in ("claude", "anthropic", "gpt", "gemini", "glm", "z.ai"):
         assert token not in lowered
 
 

@@ -1,8 +1,13 @@
-"""Stage 3 — deterministic structural and numeric checks on candidate responses.
+"""Stage 2 — deterministic structural and numeric checks on candidate responses.
 
 Pure functions over the stored response (no I/O in the core), plus a thin
-runner. Results are diagnostics fed to judges and stage 6 — never a scored
-criterion, and never a reason to repair a response.
+runner. Results are diagnostics fed to judges and to the published charts —
+never a scored criterion, and never a reason to repair a response.
+
+The prior-mechanics checks (interval sanity, family validity, parameter
+reproduction) still run and are published, but judges no longer see them: the
+pairwise round scores soundness only, so `pairwise.check_summary` shows judges
+just the JSON/grid facts.
 """
 
 from __future__ import annotations
@@ -22,7 +27,7 @@ from .distributions import (
 
 BUCKETS = ("analytics", "intuition")
 TYPES = ("game_management", "offensive", "defensive")
-TOP_LEVEL_KEYS = ("quantity", "strategies", "plot_script")
+TOP_LEVEL_KEYS = ("quantity", "strategies")
 
 CHECK_NAMES = ("json_valid", "grid_complete", "intervals_ok", "family_ok", "params_reproduce_ok")
 

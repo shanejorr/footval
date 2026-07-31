@@ -52,15 +52,6 @@ class Store:
     def generation_error_path(self, iid: str) -> Path:
         return self.instance_dir(iid) / "generation_error.json"
 
-    def plot_script_path(self, iid: str) -> Path:
-        return self.instance_dir(iid) / "plot_script.py"
-
-    def exec_path(self, iid: str) -> Path:
-        return self.instance_dir(iid) / "exec.json"
-
-    def figures_dir(self, iid: str) -> Path:
-        return self.instance_dir(iid) / "figures"
-
     def checks_path(self, iid: str) -> Path:
         return self.instance_dir(iid) / "checks.json"
 
@@ -115,9 +106,6 @@ class Store:
     # --- typed convenience loaders -------------------------------------------
     def load_response(self, iid: str) -> dict[str, Any] | None:
         return self.read_json(self.response_path(iid))
-
-    def load_exec(self, iid: str) -> dict[str, Any] | None:
-        return self.read_json(self.exec_path(iid))
 
     def load_checks(self, iid: str) -> dict[str, Any] | None:
         return self.read_json(self.checks_path(iid))

@@ -32,7 +32,6 @@ def _df() -> pl.DataFrame:
             _row("m1", "m2", "soundness", "m1"),
             _row("m3", "m1", "soundness", "m1"),
             _row("m1", "m3", "soundness", ""),  # blank winner -> dropped
-            _row("m2", "m3", "priors", "m3"),
         ],
         schema=_SCHEMA,
     )
@@ -66,23 +65,26 @@ def test_self_sign_array_matches_rows():
     assert list(d.self_sign) == [0.0, 1.0]
 
 
-# --- track pooling --------------------------------------------------------------------
+# --- tracks ---------------------------------------------------------------------------
 
 
-def test_overall_pools_both_criteria():
-    df = _df()
-    n_sound = bt.build_design(df, "soundness", FAM).n_obs
-    n_priors = bt.build_design(df, "priors", FAM).n_obs
-    n_overall = bt.build_design(df, "overall", FAM).n_obs
-    assert (n_sound, n_priors) == (2, 1)
-    assert n_overall == n_sound + n_priors
+def test_soundness_is_the_only_track():
+    # Judging is a single criterion, so there is no per-criterion facet and no
+    # pooled "overall" track to fit.
+    assert bt.TRACKS == ("soundness",)
+
+
+def test_track_filters_by_criterion():
+    df = pl.concat([_df(), pl.DataFrame([_row("m2", "m3", "other", "m3")], schema=_SCHEMA)])
+    assert bt.build_design(df, "soundness", FAM).n_obs == 2
+    assert bt.build_design(df, "other", FAM).n_obs == 1
 
 
 # --- index maps cover all CSV entities ------------------------------------------------
 
 
 def test_index_maps_cover_entities():
-    d = bt.build_design(_df(), "overall", FAM)
+    d = bt.build_design(_df(), "soundness", FAM)
     assert d.models == ["m1", "m2", "m3"]  # sorted union of model_a/model_b (m4 absent here)
     assert d.judges == ["j1"]
     assert set(d.a_idx) | set(d.b_idx) <= set(range(len(d.models)))
@@ -93,9 +95,9 @@ def test_index_maps_cover_entities():
 
 
 def test_winner_must_be_a_or_b():
-    bad = pl.DataFrame([_row("m1", "m2", "priors", "m3")], schema=_SCHEMA)
+    bad = pl.DataFrame([_row("m1", "m2", "soundness", "m3")], schema=_SCHEMA)
     with pytest.raises(ValueError):
-        bt.build_design(bad, "priors", FAM)
+        bt.build_design(bad, "soundness", FAM)
 
 
 def test_read_results_missing_file(tmp_path):

@@ -2,9 +2,15 @@
 image-block shape, and snapshot-ID read lives here and nowhere else.
 
 Four adapters: anthropic, openai (Responses API), gemini (google-genai),
-deepseek (OpenAI-compatible chat completions). Per-model `params` from
+zai (OpenAI-compatible chat completions, for GLM). Per-model `params` from
 config.yaml are deep-merged verbatim into the call, so parameter drift is a
 config edit, not a code edit.
+
+Prompt caching is expressed on the request, not per call site:
+``LLMRequest.cache_part_idxs`` marks the content parts that end a stable
+prefix (Anthropic turns them into explicit `cache_control` breakpoints; the
+system prompt is always one) and ``cache_key`` becomes OpenAI's
+`prompt_cache_key`. Everyone else caches identical prefixes automatically.
 """
 
 from __future__ import annotations
@@ -17,10 +23,14 @@ from typing import Any, Literal
 
 import httpx
 
-from .config import Config, ModelCfg
+from .config import Config, ModelCfg, deep_merge
 
 _TIMEOUT_S = 1800.0  # max-effort generations can run for many minutes
 _RETRY_DELAYS_S = (2, 8, 30)
+
+# Providers with a 50%-off asynchronous batch endpoint. Anything else has its
+# pairwise items run synchronously through complete().
+BATCH_PROVIDERS = ("anthropic", "openai", "gemini")
 
 
 class TransientAPIError(Exception):
@@ -46,6 +56,13 @@ class LLMRequest:
     temperature: float | None
     seed: int | None
     max_output_tokens: int
+    # Indices into `parts` that end a byte-stable prefix worth caching. Anthropic
+    # needs these spelled out (max 4 breakpoints per request, and the system
+    # prompt takes one); other vendors cache matching prefixes on their own.
+    cache_part_idxs: tuple[int, ...] = ()
+    # OpenAI `prompt_cache_key`: routes requests sharing a prefix to the same
+    # cache. Ignored by every other provider.
+    cache_key: str | None = None
 
 
 @dataclass(frozen=True)
@@ -81,21 +98,11 @@ def _dispatch(req: LLMRequest) -> LLMResult:
         "anthropic": _anthropic,
         "openai": _openai,
         "gemini": _gemini,
-        "deepseek": _deepseek,
+        "zai": _zai,
     }[req.model.provider]
     result = adapter(req)
     had_images = any(p.kind == "image_png" for p in req.parts)
     return replace(result, images_included=images_ok and had_images)
-
-
-def _deep_merge(base: dict[str, Any], override: dict[str, Any]) -> dict[str, Any]:
-    out = dict(base)
-    for key, value in override.items():
-        if isinstance(value, dict) and isinstance(out.get(key), dict):
-            out[key] = _deep_merge(out[key], value)
-        else:
-            out[key] = value
-    return out
 
 
 def _audit(kwargs: dict[str, Any], content_keys: tuple[str, ...]) -> dict[str, Any]:
@@ -106,8 +113,17 @@ def _audit(kwargs: dict[str, Any], content_keys: tuple[str, ...]) -> dict[str, A
 # --- Anthropic --------------------------------------------------------------------
 
 
+_EPHEMERAL = {"type": "ephemeral"}
+
+
 def _anthropic_kwargs(req: LLMRequest) -> dict[str, Any]:
-    """Messages-API kwargs; also the batch `params` body verbatim."""
+    """Messages-API kwargs; also the batch `params` body verbatim.
+
+    Explicit prompt-cache breakpoints go on the system prompt and on every part
+    named by ``req.cache_part_idxs``. Anthropic allows at most four, and reads
+    the longest matching prefix, so ordering stable content first is what makes
+    them pay off.
+    """
     content: list[dict[str, Any]] = []
     for part in req.parts:
         if part.kind == "text":
@@ -123,16 +139,19 @@ def _anthropic_kwargs(req: LLMRequest) -> dict[str, Any]:
                     },
                 }
             )
+    for idx in req.cache_part_idxs:
+        if 0 <= idx < len(content):
+            content[idx]["cache_control"] = dict(_EPHEMERAL)
     kwargs: dict[str, Any] = {
         "model": req.model.name,
         "max_tokens": req.max_output_tokens,
         "messages": [{"role": "user", "content": content}],
     }
     if req.system:
-        kwargs["system"] = req.system
+        kwargs["system"] = [{"type": "text", "text": req.system, "cache_control": dict(_EPHEMERAL)}]
     if req.model.supports_temperature and req.temperature is not None:
         kwargs["temperature"] = req.temperature
-    return _deep_merge(kwargs, req.model.params)
+    return deep_merge(kwargs, req.model.params)
 
 
 def _anthropic(req: LLMRequest) -> LLMResult:
@@ -198,7 +217,9 @@ def _responses_kwargs(req: LLMRequest) -> dict[str, Any]:
         kwargs["temperature"] = req.temperature
     if req.model.supports_seed and req.seed is not None:
         kwargs["seed"] = req.seed
-    return _deep_merge(kwargs, req.model.params)
+    if req.cache_key:
+        kwargs["prompt_cache_key"] = req.cache_key
+    return deep_merge(kwargs, req.model.params)
 
 
 def _openai_responses(client: Any, req: LLMRequest) -> LLMResult:
@@ -247,7 +268,7 @@ def _gemini_config(req: LLMRequest) -> dict[str, Any]:
         config["temperature"] = req.temperature
     if req.model.supports_seed and req.seed is not None:
         config["seed"] = req.seed
-    return _deep_merge(config, req.model.params)
+    return deep_merge(config, req.model.params)
 
 
 def _gemini_contents_dict(req: LLMRequest) -> list[dict[str, Any]]:
@@ -314,11 +335,11 @@ def _gemini(req: LLMRequest) -> LLMResult:
     )
 
 
-# --- DeepSeek (OpenAI-compatible chat completions) -----------------------------------
+# --- Z.ai GLM (OpenAI-compatible chat completions) -----------------------------------
 
 
 def _chat_kwargs(req: LLMRequest) -> dict[str, Any]:
-    """Chat-completions kwargs; DeepSeek sync and the /v1/chat/completions batch body."""
+    """Chat-completions kwargs; z.ai sync and the /v1/chat/completions batch body."""
     content: list[dict[str, Any]] | str
     if any(p.kind == "image_png" for p in req.parts):
         content = []
@@ -345,15 +366,18 @@ def _chat_kwargs(req: LLMRequest) -> dict[str, Any]:
         kwargs["temperature"] = req.temperature
     if req.model.supports_seed and req.seed is not None:
         kwargs["seed"] = req.seed
-    return _deep_merge(kwargs, req.model.params)
+    # OpenAI-only knob; z.ai's compatible endpoint would reject the unknown field.
+    if req.cache_key and req.model.provider == "openai":
+        kwargs["prompt_cache_key"] = req.cache_key
+    return deep_merge(kwargs, req.model.params)
 
 
-def _deepseek(req: LLMRequest) -> LLMResult:
+def _zai(req: LLMRequest) -> LLMResult:
     import openai
 
     client = openai.OpenAI(
         base_url=req.model.base_url,
-        api_key=os.environ.get("DEEPSEEK_API_KEY", ""),
+        api_key=os.environ.get("ZAI_API_KEY", ""),
         timeout=_TIMEOUT_S,
         max_retries=3,
     )
@@ -388,12 +412,17 @@ def _deepseek(req: LLMRequest) -> LLMResult:
 
 # --- probe ----------------------------------------------------------------------
 
+# Thinking/effort knobs, stripped so a probe call costs a handful of tokens.
+_PROBE_STRIP = frozenset(
+    {"thinking", "output_config", "reasoning", "thinking_config", "reasoning_effort"}
+)
+
 
 def probe_cli(cfg: Config, only: list[str] | None = None) -> None:
     """One cheap call per configured model; prints resolved snapshot IDs.
 
     Run this before spending money: 404s mean the model ID in config.yaml
-    needs updating. Thinking params are stripped so the probe stays tiny
+    needs updating. Thinking/effort params are stripped so the probe stays tiny
     (full params are exercised by the first real generation).
     """
     from . import artifacts
@@ -405,7 +434,7 @@ def probe_cli(cfg: Config, only: list[str] | None = None) -> None:
     for name in names:
         mcfg = cfg.model(name)
         probe_model = replace(
-            mcfg, params={k: v for k, v in mcfg.params.items() if k != "thinking"}
+            mcfg, params={k: v for k, v in mcfg.params.items() if k not in _PROBE_STRIP}
         )
         req = LLMRequest(
             model=probe_model,
@@ -434,16 +463,15 @@ def probe_cli(cfg: Config, only: list[str] | None = None) -> None:
 
 
 # --- batch APIs --------------------------------------------------------------------
-# Anthropic / OpenAI / Gemini offer 50%-discount batch endpoints; DeepSeek has
-# none (its items run through complete()). All return a uniform per-item dict:
-# {custom_id, ok, text, error, snapshot_id, stop_reason, usage}.
+# Anthropic / OpenAI / Gemini offer 50%-discount batch endpoints (BATCH_PROVIDERS);
+# z.ai has none, so GLM items run through complete(). All return a uniform per-item
+# dict: {custom_id, ok, text, error, snapshot_id, stop_reason, usage}.
 
 
 @dataclass(frozen=True)
 class BatchItem:
     custom_id: str
     req: LLMRequest
-    cache_part_idx: int | None = None  # anthropic only: content part to mark cacheable
 
 
 def _item_result(custom_id: str | None) -> dict[str, Any]:
@@ -459,21 +487,9 @@ def _item_result(custom_id: str | None) -> dict[str, Any]:
 
 
 def anthropic_batch_params(item: BatchItem) -> dict[str, Any]:
-    """Sync kwargs + explicit prompt-cache breakpoints (system, candidate-A part)."""
-    kwargs = _anthropic_kwargs(item.req)
-    if isinstance(kwargs.get("system"), str):
-        kwargs["system"] = [
-            {
-                "type": "text",
-                "text": kwargs["system"],
-                "cache_control": {"type": "ephemeral"},
-            }
-        ]
-    if item.cache_part_idx is not None:
-        content = kwargs["messages"][0]["content"]
-        if 0 <= item.cache_part_idx < len(content):
-            content[item.cache_part_idx]["cache_control"] = {"type": "ephemeral"}
-    return kwargs
+    """The batch `params` body — byte-identical to the synchronous kwargs,
+    prompt-cache breakpoints included."""
+    return _anthropic_kwargs(item.req)
 
 
 def openai_batch_line(item: BatchItem, endpoint: str) -> dict[str, Any]:

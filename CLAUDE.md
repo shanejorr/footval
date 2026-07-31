@@ -6,60 +6,86 @@ This project used to be called `footbench` but was renamed to `footval`.
 
 ## What this is
 
-Footval is a subjective, multi-model LLM evaluation. Twelve candidate models answer a fixed prompt (NFL strategy recommendations + Bayesian priors + a plotting script). Their responses are executed, auto-checked, and judged by a four-model panel through a **pairwise head-to-head tournament** (every pair compared on soundness and priors, forced A/B choice). The published outputs are a win-percentage tally (`outputs/data/pairwise_results.csv`) and the notebook charts built from it plus the priors. There is **no 1–5 scoring** — that round was removed.
+Footval is a subjective, multi-model LLM evaluation. Eight candidate models answer a fixed prompt (NFL strategy recommendations + Bayesian priors). Their responses are auto-checked and judged by a four-model panel through a **pairwise head-to-head tournament** (every pair compared on a single criterion — soundness — forced A/B choice). The published outputs are a win-percentage tally (`outputs/data/pairwise_results.csv`) and the notebook charts built from it plus the priors. There is **no 1–5 scoring** — that round was removed.
 
 ## Source-of-truth documents
 
 - `footval.prompt.md` — the exact prompt sent to every candidate. **Do not edit casually**; changing it invalidates prior runs.
-- `footval.judge.prompt.md` — the exact system prompt sent to every pairwise judge (rubrics, ground rules, verdict schema). Loaded byte-for-byte by `pairwise.judge_system()`; the same edit caution applies — changing it invalidates prior verdicts.
-- `initial_prompt.md` — full methodology (stages, pairwise judging, data schema). This is authoritative, with one deliberate deviation: stage 6 (spec §9, a web page) was replaced by the owner's decision with static outputs — `outputs/data/pairwise_results.csv` (long form: one row per judge×pair×criterion with the winner) plus the notebook charts (win percentage overall/by criterion/by judge, the prior comparison, and panel-consensus diagnostics). If code and spec disagree elsewhere, fix the code or update the spec deliberately — don't let them drift.
+- `footval.judge.prompt.md` — the exact system prompt sent to every pairwise judge (the soundness rubric, ground rules, verdict schema). Loaded byte-for-byte by `pairwise.judge_system()`; the same edit caution applies — changing it invalidates prior verdicts.
+- `initial_prompt.md` — full methodology (stages, pairwise judging, data schema). This is authoritative, with deliberate deviations recorded in its own revision notes — chiefly that stage 6 (spec §9, a web page) was replaced by the owner's decision with static outputs (`outputs/data/pairwise_results.csv` plus the notebook charts). If code and spec disagree elsewhere, fix the code or update the spec deliberately — don't let them drift.
 
 When asked to implement something, read the spec first; this file is only a fast orientation.
 
 ## Architecture
 
-Four core stages, each reading/writing structured artifacts so they run independently and the run is reproducible. Judging is the separate pairwise tournament (below), run via its own batch lifecycle:
+Three core stages, each reading/writing structured artifacts so they run independently and the run is reproducible. Judging is the separate pairwise tournament (below), run via its own batch lifecycle:
 
 | Stage | Module | Does |
 |---|---|---|
 | 1 Generate | `footval/generate.py` | Call each candidate `n_samples` times → response instances |
-| 2 Execute | `footval/sandbox.py` | Run each `plot_script` in a container, render plots |
-| 3 Check | `footval/checks.py` | Deterministic JSON/structure/parameter checks |
-| 4 Tables | `footval/tables.py` | Consolidate per-instance artifacts into the objective `responses` / `exec_results` / `checks` tables |
+| 2 Check | `footval/checks.py` | Deterministic JSON/structure/parameter checks |
+| 3 Tables | `footval/tables.py` | Consolidate per-instance artifacts into the objective `responses` / `checks` tables |
 
 The unit of analysis everywhere is the **response instance** = (model, sample_idx).
+
+There is no code-execution stage. The prompt used to ask for a `plot_script` that ran in a
+Docker sandbox; Part 3 was removed from the prompt, so `footval/sandbox.py`, the `sandbox/`
+image, and the `exec_results` table are gone with it. Do not reintroduce them without
+restoring Part 3 to the prompt.
 
 ## Commands
 
 ```bash
-make run            # generate → sandbox → check → tables
-make generate       # stage 1 only (then sandbox / check / tables)
-make sandbox-build  # build the code-execution container
+make run            # generate → check → tables
+make generate       # stage 1 only (then check / tables)
+make probe          # one cheap call per configured model; prints resolved snapshot IDs
 make test           # pytest
 make lint           # ruff check + format
 ```
 
 Stages are resumable: each reads the previous stage's artifacts, so re-run a single stage without redoing the whole pipeline.
 
+## Rosters and thinking levels
+
+Candidates (8) and the judge panel (4) live in `config.yaml`. Three models sit on both
+rosters, so `ModelCfg` carries **two** parameter blocks: `params` (used when the model
+answers) and `judge_params` (deep-merged on top when it judges, via `cfg.judge_model()`).
+That is the only way to run a model at candidate effort and judge effort in the same run.
+
+Policy: candidates run one notch above the middle of each provider's effort ladder, judges
+one notch above that.
+
+| Provider | Ladder | Candidate | Judge |
+|---|---|---|---|
+| Anthropic (`output_config.effort`) | low→medium→high→xhigh→max | `high` | `xhigh` |
+| OpenAI (`reasoning.effort`) | low→medium→high→xhigh→max | `high` | `xhigh` |
+| Gemini (`thinking_config.thinking_level`) | minimal→low→medium→high | `HIGH` | `HIGH` (ladder ends — documented deviation) |
+| z.ai GLM (`reasoning_effort`) | high→max | `high` | `max` |
+
 ## Pairwise comparison stage (the judging round)
 
 `footval/pairwise.py` is the only judging stage: it compares every unordered pair of response
-instances (66 pairs for 12 candidates) on two criteria — soundness and priors — as a forced A/B
-choice, text-only, with no numeric scale (the judge prompt uses stronger-vs-weaker prose anchors).
-Judges and the `both_orders` flag live under `pairwise:` in config.yaml. Which model is shown as
-"Response A" is a deterministic per-pair coin flip from the run seed; presentation order is
-recorded so position bias is analyzable.
+instances (28 pairs for 8 candidates) on **one criterion — soundness** — as a forced A/B
+choice, text-only, with no numeric scale (the judge prompt uses stronger-vs-weaker prose
+anchors over five ranked rubric dimensions). Judges and the `both_orders` flag live under
+`pairwise:` in config.yaml. Which model is shown as "Response A" is a deterministic per-pair
+coin flip from the run seed; presentation order is recorded so position bias is analyzable.
 
-Cost design: Anthropic/OpenAI/Gemini go through their 50%-off batch APIs; DeepSeek has no
-batch API and runs synchronously. Prompts share byte-stable prefixes
-(`[system][task][bundle A][bundle B]`), with explicit `cache_control` breakpoints for
-Anthropic and automatic prefix caching elsewhere; requests are sorted so same-candidate-A
-calls are adjacent.
+**Priors are generated but not judged.** The candidates still produce a Bayesian prior per
+strategy (Part 2 of the prompt) and the checks stage still validates them for the published
+charts, but the judge prompt marks them explicitly out of scope and
+`pairwise.check_summary()` withholds the prior-mechanics results (interval sanity, family
+validity, parameter reproduction) from judges so they cannot contaminate the soundness call.
+
+Cost design: Anthropic/OpenAI/Gemini go through their 50%-off batch APIs
+(`providers.BATCH_PROVIDERS`); z.ai has no batch API and runs synchronously. Prompts share
+byte-stable prefixes (`[system][task][bundle A][bundle B]`) and requests are sorted so
+same-candidate-A calls are adjacent.
 
 ```bash
 make pairwise-estimate   # offline: outstanding counts + token estimate
 make pairwise-submit     # submit batches (resubmission IS the retry mechanism)
-make pairwise-deepseek   # run the DeepSeek judge synchronously (anytime)
+make pairwise-sync       # run the non-batch judges (GLM) synchronously (anytime)
 make pairwise-status     # poll batch states
 make pairwise-collect    # fetch ended batches -> verdict files; failures stay outstanding
 make pairwise-csv        # outputs/data/pairwise_results.csv (judge, model_a, model_b, criterion, winner)
@@ -72,21 +98,43 @@ hard-fails), `batches.json` (submitted batch ids + submission order), `attempts.
 output for audit). `outstanding = expected − verdict files`, so every subcommand is
 idempotent and safe to re-run.
 
+## Prompt caching
+
+Caching is declared on the request, not at the call site. `providers.LLMRequest` carries
+`cache_part_idxs` (content parts that close a byte-stable prefix — Anthropic turns each into
+an explicit `cache_control` breakpoint, and the system prompt always gets one) and
+`cache_key` (OpenAI's `prompt_cache_key`; suppressed for other OpenAI-compatible endpoints
+such as z.ai, which would reject the unknown field). Because the breakpoints live on the
+request, the batch body and the synchronous body are byte-identical — a resubmitted
+straggler caches the same way the batch did.
+
+- Judges use `CACHE_PART_IDXS = (0, 1)`: part 0 (the task prompt) closes the prefix shared by
+  *every* comparison; part 1 (candidate A's bundle) closes the prefix shared by every
+  comparison with the same candidate in slot A — which is why `submit` sorts by `instance_a`.
+  With the system prompt that is 3 of Anthropic's 4 allowed breakpoints.
+- Candidates mark the prompt itself cacheable, which pays off for `n_samples > 1`, resumed
+  runs, and re-runs inside the cache TTL.
+- Gemini and z.ai cache matching prefixes automatically; ordering is what makes it work.
+
+If you add a content part, keep the ordering most-stable-first — anything volatile must sit
+after the last breakpoint, or caching silently stops paying.
+
 ## Bradley-Terry aggregation (optional ranking layer)
 
 `footval/bradley_terry.py` (`make bradley-terry`) reads `outputs/data/pairwise_results.csv`
-and fits a hierarchical Bayesian Bradley-Terry model in PyMC, once per track
-(`soundness`, `priors`, `overall`). It turns the forced-choice verdicts into a latent-strength
-ranking **with 94% HDIs**, modeling the judges as raters: per-judge discrimination (`kappa`),
-slot-A/position bias (`gamma`), and self-family preference (`delta`), all partially pooled — so
-`mu_gamma`/`mu_delta` are panel-wide bias estimates (a principled successor to the §7.3 win-rate
-gap). It is **purely additive**: it consumes the published CSV and touches no prompt or prior
-artifact. Outputs to `outputs/data/`: `bradley_terry_rankings.csv` (strength + `win_prob_vs_field`
-with HDIs, rank), `bradley_terry_judge_effects.csv` (per-judge `kappa`/`gamma`/`delta` + a `panel
+and fits a hierarchical Bayesian Bradley-Terry model in PyMC. With a single judged criterion
+there is exactly one track (`soundness`), so `TRACKS = ("soundness",)`. It turns the
+forced-choice verdicts into a latent-strength ranking **with 94% HDIs**, modeling the judges
+as raters: per-judge discrimination (`kappa`), slot-A/position bias (`gamma`), and
+self-family preference (`delta`), all partially pooled — so `mu_gamma`/`mu_delta` are
+panel-wide bias estimates (a principled successor to the §7.3 win-rate gap). It is **purely
+additive**: it consumes the published CSV and touches no prompt or prior artifact. Outputs to
+`outputs/data/`: `bradley_terry_rankings.csv` (strength + `win_prob_vs_field` with HDIs,
+rank), `bradley_terry_judge_effects.csv` (per-judge `kappa`/`gamma`/`delta` + a `panel
 (mean)` row), and `bradley_terry.json` (full results + sampler diagnostics).
 
-The full posterior **traces** are persisted (via `bt.trace_path(cfg, track)`) to
-`artifacts/bradley_terry/{track}.nc` (gitignored) so the notebooks can recompute any HDI /
+The full posterior **trace** is persisted (via `bt.trace_path(cfg, track)`) to
+`artifacts/bradley_terry/soundness.nc` (gitignored) so the notebooks can recompute any HDI /
 posterior-predictive quantity and run ArviZ diagnostics without re-fitting.
 
 Notes: PyMC/ArviZ are imported lazily so the pure data-prep helpers stay testable without the
@@ -99,18 +147,22 @@ decomposition, not a different ordering. Requires `pymc` + `arviz` + `h5netcdf`/
 
 ## Notebooks (`outputs/`)
 
-Both read the persisted BT traces (`import footval`, `az.from_netcdf(bt.trace_path(...))`), so
+Both read the persisted BT trace (`import footval`, `az.from_netcdf(bt.trace_path(...))`), so
 run `make bradley-terry` first. Re-render headlessly with
 `uv run jupyter nbconvert --to notebook --execute --inplace outputs/<nb>.ipynb`.
 
-- `blog_output.ipynb` — the published charts. The leaderboards (overall + by-criterion) plot
-  `win_prob_vs_field` as a point estimate with a thick **50% HDI** and thin **95% HDI** line
-  (no axis rule); the by-judge line chart and the judge/candidate matrix use **posterior-predictive
-  per-judge win probabilities** with HDIs. Subjective-priors, interrater-reliability, and
-  order-consistency charts are unchanged (computed from `responses.json` / raw verdicts). Charts
-  export to `outputs/charts/*.svg`.
-- `model_diagnostics.ipynb` — ArviZ convergence/sampling diagnostics per track (summary tables,
-  trace/rank/energy/forest/ESS plots, BFMI). Assessment-only; reports no results.
+- `blog_output.ipynb` — the published charts. The leaderboard plots `win_prob_vs_field` as a
+  point estimate with a thick **50% HDI** and thin **95% HDI** line (no axis rule); the
+  by-judge line chart and the judge/candidate matrix use **posterior-predictive per-judge win
+  probabilities** with HDIs. Subjective-priors, interrater-reliability, and order-consistency
+  charts are computed from `responses.json` / raw verdicts. Charts export to
+  `outputs/charts/*.svg`. There is no by-criterion leaderboard — with one criterion it would
+  duplicate the overall one.
+- `model_diagnostics.ipynb` — ArviZ convergence/sampling diagnostics for the track (summary
+  tables, trace/rank/energy/forest/ESS plots, BFMI). Assessment-only; reports no results.
+
+Both notebooks still carry stored outputs from the retired 12-model / two-criterion run;
+they are refreshed by re-executing after the next full run.
 
 ## Conventions
 
@@ -121,23 +173,22 @@ run `make bradley-terry` first. Re-render headlessly with
 
 ## Critical constraints — read before writing code
 
-- **Sandbox is mandatory.** Candidate `plot_script` code is untrusted and model-generated. Never execute it on the host. Always run it in the disposable container with **no network, a CPU/memory cap, a hard timeout, and the matplotlib `Agg` backend**. A script that fails or times out is recorded as `ran_ok=false` — it is not an error to fix.
-- **Do not repair candidate output.** Malformed JSON, a missing grid cell, or a broken script is real signal. Capture it; never auto-fix, re-prompt, or hand-edit a candidate response.
-- **Judges see anonymized responses.** Strip any model-identifying text before a response reaches a judge. Judging is the pairwise tournament: each call shows two anonymized responses and forces an A/B winner per criterion (no numeric scale, no ties).
-- **Judging is locked to pairwise:** two criteria (soundness, priors), forced A/B choice, no 1–5 score and no composite. Don't reintroduce a numeric scoring scale without updating the spec. Self- and same-family comparisons are tagged (`is_self_a`/`is_self_b`, `judge_family`) and kept, not dropped.
-- **Objective vs. subjective split:** "does it run / is the grid complete / do parameters reproduce the interval" come from Stages 2–3, not from judge opinion. Judges weigh only the subjective quality, using those reports as ground truth.
-- **Pin model snapshots.** The version strings in `config.yaml` will drift and some may not exist yet — resolve and record the exact API snapshot ID at run time. Never hardcode API keys.
+- **Do not repair candidate output.** Malformed JSON or a missing grid cell is real signal. Capture it; never auto-fix, re-prompt, or hand-edit a candidate response.
+- **Judges see anonymized responses.** Strip any model-identifying text before a response reaches a judge (`parsing.redact` covers the vendor list, including GLM/z.ai). Judging is the pairwise tournament: each call shows two anonymized responses and forces an A/B winner (no numeric scale, no ties).
+- **Judging is locked to one criterion:** soundness, forced A/B choice, no 1–5 score and no composite. Don't reintroduce a numeric scoring scale or a priors criterion without updating the spec. Self- and same-family comparisons are tagged (`is_self_a`/`is_self_b`, `judge_family`) and kept, not dropped.
+- **Objective vs. subjective split:** "did it parse / is the grid complete" comes from Stage 2, not from judge opinion. Judges weigh only the subjective quality, using those reports as ground truth.
+- **Pin model snapshots.** The version strings in `config.yaml` will drift and some may not exist yet — resolve and record the exact API snapshot ID at run time (`make probe`). Never hardcode API keys.
 
 ## Data & artifacts
 
-Stored under `artifacts/` (gitignored; optionally synced to S3). Objective tables (from the `tables` stage): `responses`, `exec_results`, `checks`. Pairwise judging state lives under `artifacts/pairwise/` (manifest, batches, attempts, per-verdict files, raw batch output). Schema is in the spec.
+Stored under `artifacts/` (gitignored; optionally synced to S3). Objective tables (from the `tables` stage): `responses`, `checks`. Pairwise judging state lives under `artifacts/pairwise/` (manifest, batches, attempts, per-verdict files, raw batch output). Schema is in the spec.
 
 ## Secrets
 
-API keys come from environment variables / a gitignored `.env`. Never commit keys, raw responses, or rendered images.
+API keys come from environment variables / a gitignored `.env`: `ANTHROPIC_API_KEY`, `OPENAI_API_KEY`, `GEMINI_API_KEY`, `ZAI_API_KEY`. Never commit keys, raw responses, or rendered images.
 
 ## Publishing outputs
 
 Written to `outputs/` (not auto-committed; owner reviews first). CSV data files live in `outputs/data/`:
 
-- `pairwise_results.csv` — long form: columns `judge, model_a, model_b, criterion, winner`; one row per judge×pair×criterion; blank `winner` where a judge returned no valid verdict. The notebook (`outputs/blog_output.ipynb`) reads this plus `artifacts/tables/responses.json` to build the win-percentage and prior-comparison charts.
+- `pairwise_results.csv` — long form: columns `judge, model_a, model_b, criterion, winner`; one row per judge×pair (the `criterion` column is always `soundness`, kept so the schema survives a future second criterion); blank `winner` where a judge returned no valid verdict. The notebook (`outputs/blog_output.ipynb`) reads this plus `artifacts/tables/responses.json` to build the win-percentage and prior-comparison charts.

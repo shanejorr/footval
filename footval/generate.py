@@ -30,6 +30,9 @@ def run(cfg: Config, only: list[str] | None = None) -> None:
                 skipped.append(iid)
                 continue
             print(f"  generating {iid} ...")
+            # The prompt is byte-identical for every candidate call, so marking it
+            # cacheable pays off whenever a model is called more than once —
+            # n_samples > 1, a resumed run, or a re-run inside the cache TTL.
             req = providers.LLMRequest(
                 model=mcfg,
                 system=None,
@@ -37,6 +40,8 @@ def run(cfg: Config, only: list[str] | None = None) -> None:
                 temperature=cfg.gen_temperature,
                 seed=cfg.seed,
                 max_output_tokens=cfg.generation_max_output_tokens,
+                cache_part_idxs=(0,),
+                cache_key="footval-candidate-prompt",
             )
             try:
                 res = providers.complete(req)
@@ -75,9 +80,6 @@ def run(cfg: Config, only: list[str] | None = None) -> None:
                     "parsed_json": parsed,
                 },
             )
-            script = parsed.get("plot_script") if isinstance(parsed, dict) else None
-            if isinstance(script, str):
-                store.plot_script_path(iid).write_text(script)
             err_path = store.generation_error_path(iid)
             if err_path.exists():
                 err_path.unlink()

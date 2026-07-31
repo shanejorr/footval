@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import os
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from pathlib import Path
 from typing import Any
 
@@ -14,8 +14,19 @@ PROVIDER_ENV_KEYS = {
     "anthropic": "ANTHROPIC_API_KEY",
     "openai": "OPENAI_API_KEY",
     "gemini": "GEMINI_API_KEY",
-    "deepseek": "DEEPSEEK_API_KEY",
+    "zai": "ZAI_API_KEY",
 }
+
+
+def deep_merge(base: dict[str, Any], override: dict[str, Any]) -> dict[str, Any]:
+    """Recursive dict merge; ``override`` wins on conflict."""
+    out = dict(base)
+    for key, value in override.items():
+        if isinstance(value, dict) and isinstance(out.get(key), dict):
+            out[key] = deep_merge(out[key], value)
+        else:
+            out[key] = value
+    return out
 
 
 @dataclass(frozen=True)
@@ -28,15 +39,9 @@ class ModelCfg:
     supports_images: bool = True
     base_url: str | None = None
     params: dict[str, Any] = field(default_factory=dict)
-
-
-@dataclass(frozen=True)
-class SandboxCfg:
-    image: str = "footval-sandbox"
-    timeout_seconds: int = 60
-    memory: str = "1g"
-    cpus: int = 1
-    pids: int = 256
+    # Merged over `params` only when this model judges. Three models sit on both
+    # rosters and judge one effort tier above the level they answer at.
+    judge_params: dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass(frozen=True)
@@ -48,7 +53,6 @@ class Config:
     judge_temperature: float
     seed: int
     interval_tol: float
-    sandbox: SandboxCfg
     generation_max_output_tokens: int
     judging_max_output_tokens: int
     judge_max_format_retries: int
@@ -84,6 +88,13 @@ class Config:
     def model(self, name: str) -> ModelCfg:
         return self.models[name]
 
+    def judge_model(self, name: str) -> ModelCfg:
+        """The model config as it should be sent when this model is judging."""
+        mcfg = self.models[name]
+        if not mcfg.judge_params:
+            return mcfg
+        return replace(mcfg, params=deep_merge(mcfg.params, mcfg.judge_params), judge_params={})
+
 
 def _default_root() -> Path:
     cwd = Path.cwd()
@@ -108,6 +119,7 @@ def load_config(root: Path | None = None) -> Config:
             supports_images=m.get("supports_images", True),
             base_url=m.get("base_url"),
             params=m.get("params") or {},
+            judge_params=m.get("judge_params") or {},
         )
     pairwise = raw.get("pairwise") or {}
     pairwise_judges = tuple(pairwise.get("judges") or ())
@@ -117,7 +129,6 @@ def load_config(root: Path | None = None) -> Config:
         if models[name].provider not in PROVIDER_ENV_KEYS:
             raise ValueError(f"model {name!r} has unknown provider {models[name].provider!r}")
 
-    sb = raw.get("sandbox") or {}
     gen = raw.get("generation") or {}
     judging = raw.get("judging") or {}
     return Config(
@@ -128,13 +139,6 @@ def load_config(root: Path | None = None) -> Config:
         judge_temperature=float(raw["judge_temperature"]),
         seed=int(raw["seed"]),
         interval_tol=float(raw["interval_tol"]),
-        sandbox=SandboxCfg(
-            image=sb.get("image", "footval-sandbox"),
-            timeout_seconds=int(sb.get("timeout_seconds", 60)),
-            memory=str(sb.get("memory", "1g")),
-            cpus=int(sb.get("cpus", 1)),
-            pids=int(sb.get("pids", 256)),
-        ),
         generation_max_output_tokens=int(gen.get("max_output_tokens", 64000)),
         judging_max_output_tokens=int(judging.get("max_output_tokens", 16000)),
         judge_max_format_retries=int(judging.get("max_format_retries", 2)),

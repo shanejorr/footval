@@ -14,7 +14,6 @@ def main(argv: list[str] | None = None) -> None:
         choices=[
             "probe",
             "generate",
-            "sandbox",
             "check",
             "tables",
             "pairwise",
@@ -25,7 +24,7 @@ def main(argv: list[str] | None = None) -> None:
     parser.add_argument(
         "subcommand",
         nargs="?",
-        help="pairwise only: estimate | submit | deepseek | status | collect | csv",
+        help="pairwise only: estimate | submit | sync | status | collect | csv",
     )
     parser.add_argument(
         "--only",
@@ -51,10 +50,6 @@ def main(argv: list[str] | None = None) -> None:
             from . import generate
 
             generate.run(cfg, only=args.only)
-        elif command == "sandbox":
-            from . import sandbox
-
-            sandbox.run(cfg, only_instance=args.instance)
         elif command == "check":
             from . import checks
 
@@ -73,7 +68,7 @@ def main(argv: list[str] | None = None) -> None:
             bradley_terry.run(cfg)
 
     if args.command == "run":
-        for step in ("generate", "sandbox", "check", "tables"):
+        for step in ("generate", "check", "tables"):
             print(f"=== {step} ===")
             do(step)
     else:

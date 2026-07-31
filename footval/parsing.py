@@ -20,6 +20,7 @@ _REDACT_RE = re.compile(
     r"|gpt[\w.\-]*|openai|chatgpt"
     r"|gemini[\w.\-]*|google"
     r"|deepseek[\w.\-]*"
+    r"|glm[\w.\-]*|zhipu|z\.ai|zai"
     r")\b",
     re.IGNORECASE,
 )

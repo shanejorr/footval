@@ -3,20 +3,19 @@
 # Model IDs and API params WILL drift; fix them HERE, never in code.
 # `make probe` makes one cheap call per model and prints resolved snapshot IDs.
 # `params:` is merged verbatim into the provider call (config wins on conflict).
+# `judge_params:` is merged on top of `params:` only when the model is acting as a
+# pairwise judge — three models sit on both rosters and judge at a higher effort
+# than they answer at.
 
 candidate_models:
   - claude-fable-5
-  - claude-opus-4-8
+  - claude-opus-5
   - claude-sonnet-5
-  - claude-haiku-4-5-20251001
-  - gpt-5.5-pro
-  - gpt-5.5
-  - gpt-5.4-mini
+  - gpt-5.6-sol
+  - gpt-5.6-terra
   - gemini-3.1-pro-preview
-  - gemini-3.5-flash
-  - gemini-3.1-flash-lite
-  - deepseek-v4-pro
-  - deepseek-v4-flash
+  - gemini-3.6-flash
+  - glm-5.2
 
 n_samples: 1              # responses generated per candidate
 gen_temperature: 1.0      # fixed for all candidates (where the API accepts it)
@@ -24,37 +23,35 @@ judge_temperature: 0.0    # judges run as deterministically as the APIs allow
 seed: 42                  # where the provider supports it
 interval_tol: 0.10        # relative tolerance for parameter-reproduction check
 
-sandbox:
-  image: footval-sandbox
-  timeout_seconds: 60
-  memory: 1g
-  cpus: 1
-  pids: 256
-
 generation:
   max_output_tokens: 64000
 judging:
   max_output_tokens: 16000
   max_format_retries: 2
 
-# Pairwise comparison stage (criteria 1-2 only, text-only, batch APIs where
-# available). both_orders=true would judge every pair in both presentation
-# orders (doubles cost; default off — A/B is seeded-random per pair instead).
+# Pairwise comparison stage — the only judging round. One criterion (soundness),
+# text-only, forced A/B. Batch APIs where available; z.ai has none, so GLM runs
+# through `make pairwise-sync`.
 pairwise:
   judges:
-    - claude-opus-4-8
-    - gpt-5.5
+    - claude-fable-5
+    - gpt-5.6-sol
     - gemini-3.5-flash
-    - deepseek-v4-pro
+    - glm-5.2
   both_orders: true   # round 2: judge every pair in the reversed order too
-  # opus-4-8 at effort max burned a 16k cap on thinking alone for close
-  # comparisons (28/66 returned zero text); 32k gives deliberation headroom
-  max_output_tokens: 32000  # 5 pathological near-ties needed a one-off 64k resubmission
+  # Judges deliberate at one effort tier above the candidates, so leave room for
+  # thinking tokens — a 16k cap starved the previous panel on close comparisons.
+  max_output_tokens: 32000
 
+# Thinking/effort policy: candidates run one notch above the middle of each
+# provider's ladder, judges one notch above that.
+#   Anthropic / OpenAI  low > medium > high > xhigh > max   candidate high, judge xhigh
+#   Gemini              minimal > low > medium > high       candidate HIGH, judge HIGH (ladder ends)
+#   z.ai GLM            high > max                          candidate high, judge max
 models:
-  # --- Anthropic: highest thinking = adaptive + effort max (spec: max for fable-5).
-  # Fable 5 / Opus 4.8 reject temperature/top_p/top_k (400); thinking-enabled
-  # models can't take temperature either, so it is omitted for all four.
+  # --- Anthropic. Fable 5 / Opus 5 / Sonnet 5 all reject temperature/top_p/top_k
+  # (400), so it is omitted for all three. `thinking: adaptive` + output_config.effort
+  # is the only thinking-depth surface; budget_tokens is rejected.
   claude-fable-5:
     provider: anthropic
     family: anthropic
@@ -63,8 +60,10 @@ models:
     supports_images: true
     params:
       thinking: {type: adaptive}
-      output_config: {effort: max}
-  claude-opus-4-8:
+      output_config: {effort: high}
+    judge_params:
+      output_config: {effort: xhigh}
+  claude-opus-5:
     provider: anthropic
     family: anthropic
     supports_temperature: false
@@ -72,7 +71,7 @@ models:
     supports_images: true
     params:
       thinking: {type: adaptive}
-      output_config: {effort: max}
+      output_config: {effort: high}
   claude-sonnet-5:
     provider: anthropic
     family: anthropic
@@ -80,27 +79,12 @@ models:
     supports_seed: false
     supports_images: true
     params:
-      # Adaptive thinking at effort max made Sonnet 5 think past its 64k output
-      # ceiling and return ZERO text — the same failure mode as Sonnet 4.6, the
-      # model it replaces (see the preserved response.effort-max-attempt.json).
-      # Sonnet 5 removed `thinking: enabled` + budget_tokens (400), so 4.6's
-      # capped-budget fallback doesn't exist; effort is the only thinking-depth
-      # knob. xhigh is the highest configuration this model can complete within
-      # the shared 64k output budget. Documented deviation from "effort max".
       thinking: {type: adaptive}
-      output_config: {effort: xhigh}
-  claude-haiku-4-5-20251001:
-    provider: anthropic
-    family: anthropic
-    supports_temperature: false
-    supports_seed: false
-    supports_images: true
-    params:
-      thinking: {type: enabled, budget_tokens: 32000}  # no adaptive/effort on Haiku 4.5
+      output_config: {effort: high}
 
   # --- OpenAI (Responses API). Reasoning models reject sampling params; no seed
-  # on the Responses API. Raise reasoning.effort here if a higher tier exists.
-  gpt-5.5-pro:
+  # on the Responses API. reasoning.effort ladder: none/low/medium/high/xhigh/max.
+  gpt-5.6-sol:
     provider: openai
     family: openai
     supports_temperature: false
@@ -108,15 +92,9 @@ models:
     supports_images: true
     params:
       reasoning: {effort: high}
-  gpt-5.5:
-    provider: openai
-    family: openai
-    supports_temperature: false
-    supports_seed: false
-    supports_images: true
-    params:
-      reasoning: {effort: high}
-  gpt-5.4-mini:
+    judge_params:
+      reasoning: {effort: xhigh}
+  gpt-5.6-terra:
     provider: openai
     family: openai
     supports_temperature: false
@@ -126,6 +104,9 @@ models:
       reasoning: {effort: high}
 
   # --- Google Gemini (google-genai SDK). params merge into GenerateContentConfig.
+  # thinking_level replaced thinking_budget in Gemini 3.x and tops out at HIGH, so
+  # the judge gets the same level as the candidates — a documented deviation from
+  # "one tier higher".
   gemini-3.1-pro-preview:
     provider: gemini
     family: google
@@ -134,7 +115,7 @@ models:
     supports_images: true
     params:
       thinking_config: {thinking_level: HIGH}
-  gemini-3.5-flash:
+  gemini-3.6-flash:
     provider: gemini
     family: google
     supports_temperature: true
@@ -142,7 +123,7 @@ models:
     supports_images: true
     params:
       thinking_config: {thinking_level: HIGH}
-  gemini-3.1-flash-lite:
+  gemini-3.5-flash:            # judge only — not on the candidate roster
     provider: gemini
     family: google
     supports_temperature: true
@@ -151,21 +132,17 @@ models:
     params:
       thinking_config: {thinking_level: HIGH}
 
-  # --- DeepSeek (OpenAI-compatible chat completions). Vision unverified, so
-  # supports_images=false: the judge falls back to text-only and records it.
-  deepseek-v4-pro:
-    provider: deepseek
-    family: deepseek
-    base_url: https://api.deepseek.com
+  # --- Z.ai GLM (OpenAI-compatible chat completions). No batch API, so its judge
+  # items run synchronously. Vision unverified, so supports_images=false.
+  glm-5.2:
+    provider: zai
+    family: zai
+    base_url: https://api.z.ai/api/paas/v4
     supports_temperature: true
     supports_seed: false
     supports_images: false
-    params: {}
-  deepseek-v4-flash:
-    provider: deepseek
-    family: deepseek
-    base_url: https://api.deepseek.com
-    supports_temperature: true
-    supports_seed: false
-    supports_images: false
-    params: {}
+    params:
+      thinking: {type: enabled}
+      reasoning_effort: high
+    judge_params:
+      reasoning_effort: max

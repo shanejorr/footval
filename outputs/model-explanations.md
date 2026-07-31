@@ -20,12 +20,15 @@ doing the rating.
 ### 1.1 What the data looks like
 
 The input is `outputs/data/pairwise_results.csv`, the long-form output of the
-pairwise tournament. One row per **judge × pair × criterion**:
+pairwise tournament. One row per **judge × pair × criterion** — and since judging
+is now a single criterion, one row per judge × pair, with `criterion` always
+reading `soundness` (the column is kept so the schema survives a future second
+criterion):
 
 | judge | model_a | model_b | criterion | winner |
 |---|---|---|---|---|
-| claude-opus-4-8 | claude-haiku-4-5 | claude-fable-5 | soundness | claude-fable-5 |
-| claude-opus-4-8 | claude-haiku-4-5 | claude-fable-5 | priors | claude-fable-5 |
+| claude-fable-5 | gemini-3.6-flash | claude-opus-5 | soundness | claude-opus-5 |
+| gpt-5.6-sol | gemini-3.6-flash | claude-opus-5 | soundness | gemini-3.6-flash |
 | … | … | … | … | … |
 
 Each row is a single **forced binary comparison**: a judge looked at two
@@ -100,14 +103,15 @@ Two immediate consequences:
 $\beta_i$ is a **latent quality on the log-odds scale**. A one-unit gap in
 $\beta$ means the stronger model is $e^1 \approx 2.7\times$ more likely (in odds
 terms) to win a head-to-head against the weaker one, under a neutral judge.
-Concretely, from the fitted soundness leaderboard, fable-5 sits at
-$\beta \approx 1.92$ and haiku at $\beta \approx -1.48$; the gap of ≈3.4 implies
+Concretely (illustrative numbers, not a result): if the strongest candidate sits
+at $\beta \approx 1.92$ and the weakest at $\beta \approx -1.48$, the gap of ≈3.4
+implies
 
 $$
 \sigma(1.92 - (-1.48)) = \sigma(3.40) \approx 0.968,
 $$
 
-i.e. fable-5 would beat haiku ~97% of the time before any judge effects.
+i.e. the stronger model would win ~97% of the time before any judge effects.
 
 ---
 
@@ -184,7 +188,7 @@ position bias?" estimate, reported with its own HDI.
 
 $\delta_j$ is the **per-judge same-family bias**, and it is multiplied by a signed
 indicator $s$ (`self_sign`) that encodes whether the judge shares a corporate
-"family" (anthropic, openai, gemini, deepseek) with the models in the pair:
+"family" (anthropic, openai, google, zai) with the models in the pair:
 
 $$
 s = \mathbb{1}[\text{fam}(a) = \text{fam}(j)] - \mathbb{1}[\text{fam}(b) = \text{fam}(j)]
@@ -436,10 +440,12 @@ HDI_PROB = 0.94       # credible-interval mass for all reported HDIs
   interval containing 94% of the posterior mass.
 - **`random_seed=seed`** (from config) makes the fit reproducible.
 
-The three tracks — `soundness`, `priors`, and a pooled `overall` — are fit
-**independently** (a fresh model per track), since each criterion is a distinct
-notion of quality and pooling them would blur criterion-specific strengths. The
-`overall` track simply stacks both criteria's comparisons into one fit.
+A separate model is fit **per track**, one track per judged criterion, since each
+criterion is a distinct notion of quality and pooling them would blur
+criterion-specific strengths. Judging is currently a single criterion, so there is
+exactly one track (`soundness`) and no pooled `overall` fit to make — the
+soundness leaderboard *is* the overall leaderboard. (An earlier version fit three:
+`soundness`, `priors`, and a pooled `overall`; the priors criterion was retired.)
 
 ---
 
@@ -508,7 +514,7 @@ any look off (`max_r_hat > 1.01` or any divergence):
   unexplored funnel geometry. Zero is the goal (and the reason for the
   non-centered parameterization and the high `target_accept`).
 
-The full posterior **traces** are persisted to `artifacts/bradley_terry/{track}.nc`
+The full posterior **trace** is persisted to `artifacts/bradley_terry/{track}.nc`
 (NetCDF, written atomically via a temp-file swap to dodge HDF5 read-locks) so the
 diagnostics and blog notebooks can recompute any HDI or posterior-predictive
 quantity and run full ArviZ checks **without re-fitting**.

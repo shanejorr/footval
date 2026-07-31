@@ -1,10 +1,13 @@
 """Pairwise comparison stage.
 
 Every unordered pair of candidate response instances is compared by a panel of
-judges on criteria 1-2 only (soundness, priors) — forced A/B choice per
-criterion, text-only (no exec results or figures). Cost-optimized: batch APIs
-for Anthropic/OpenAI/Gemini (50% off), synchronous calls for DeepSeek (no
-batch API), and cache-friendly byte-stable prompt prefixes everywhere.
+judges on a single criterion — soundness of the recommendations — as a forced
+A/B choice, text-only. The Bayesian priors the candidates also produce are
+generated and published but deliberately not judged.
+
+Cost-optimized: batch APIs for Anthropic/OpenAI/Gemini (50% off), synchronous
+calls for providers without one (z.ai), and cache-friendly byte-stable prompt
+prefixes everywhere.
 
 Lifecycle: submit -> status -> collect -> (submit again for stragglers) -> csv.
 `outstanding = expected - terminal verdict files`, so re-running any
@@ -24,10 +27,16 @@ from typing import Any
 from . import artifacts, parsing, providers
 from .config import Config, ModelCfg
 
-CRITERIA_PAIRWISE = ("soundness", "priors")
+CRITERIA_PAIRWISE = ("soundness",)
 
-# Content part index of the candidate-A bundle (Anthropic cache breakpoint).
-CACHE_PART_IDX = 1
+# Prompt-cache breakpoints, as indices into the content parts built by
+# `build_parts`. Part 0 (the task prompt) closes the prefix shared by *every*
+# comparison this panel makes; part 1 (candidate A's bundle) closes the prefix
+# shared by every comparison with the same candidate in slot A — which is why
+# `submit` sorts requests by `instance_a`. The judge system prompt is cached
+# unconditionally by the provider layer, so this uses 3 of Anthropic's 4
+# allowed breakpoints.
+CACHE_PART_IDXS = (0, 1)
 
 # The judge system prompt (rubrics + ground rules + verdict schema) lives in
 # footval.judge.prompt.md and is sent byte-for-byte, like the candidate prompt.
@@ -43,13 +52,14 @@ def judge_system(cfg: Config) -> str:
 
 
 _INSTRUCTION = (
-    "Compare Response A and Response B on the two criteria and return only the JSON verdict object."
+    "Compare Response A and Response B on the soundness criterion and return only the JSON "
+    "verdict object."
 )
 
 _RETRY_NOTE = (
     "REMINDER: your previous reply was not a valid verdict object. Return ONLY the JSON object "
-    '{"soundness": {"winner": "A" or "B", "justification": "..."}, "priors": {"winner": "A" or '
-    '"B", "justification": "..."}} — no prose, no code fences, no other keys.'
+    '{"soundness": {"winner": "A" or "B", "justification": "..."}} — no prose, no fenced block, '
+    "no other keys."
 )
 
 _CID_RE = re.compile(r"^p(\d{2,4})-(ab|ba)$")
@@ -151,19 +161,16 @@ def check_summary(checks: dict[str, Any] | None) -> str:
     """Compact, judge-facing summary of one instance's automated check report.
 
     Ground-truth context handed to judges so they don't re-derive mechanical facts.
+    Scoped to what the soundness criterion can use — whether the response parsed
+    and whether the 2x3 grid is complete and distinct. The prior-mechanics checks
+    (interval sanity, family validity, parameter reproduction) still run and are
+    published, but they are withheld here: priors are explicitly out of scope for
+    this round, and showing the judge a pass/fail on them invites exactly the
+    contamination the scope rule is meant to prevent.
     """
     if checks is None:
         return "No automated check report available."
-    summary: dict[str, Any] = {
-        name: checks.get(name)
-        for name in (
-            "json_valid",
-            "grid_complete",
-            "intervals_ok",
-            "family_ok",
-            "params_reproduce_ok",
-        )
-    }
+    summary: dict[str, Any] = {name: checks.get(name) for name in ("json_valid", "grid_complete")}
     detail = checks.get("detail") or {}
     summary["parse_mode"] = detail.get("parse_mode")
     grid = detail.get("grid") or {}
@@ -171,52 +178,11 @@ def check_summary(checks: dict[str, Any] | None) -> str:
         k: grid.get(k)
         for k in ("n_strategies", "missing_cells", "duplicate_cells", "duplicate_titles", "issues")
     }
-    raw_strategies = detail.get("strategies") or []
-    strategies = []
-    for s in raw_strategies:
-        strategies.append(
-            {
-                "idx": s.get("idx"),
-                "title": s.get("title"),
-                "cell": s.get("cell"),
-                "interval_sane": s.get("interval_sane"),
-                "family": s.get("family"),
-                "family_valid": s.get("family_valid"),
-                "params_reproduce": s.get("params_ok"),
-                "reason": s.get("reason"),
-            }
-        )
-    summary["per_strategy"] = strategies
-    summary["params_reproduce_summary"] = _repro_summary(raw_strategies)
+    summary["per_strategy"] = [
+        {"idx": s.get("idx"), "title": s.get("title"), "cell": s.get("cell")}
+        for s in (detail.get("strategies") or [])
+    ]
     return json.dumps(summary, indent=2, ensure_ascii=False)
-
-
-def _repro_summary(strategies: list[dict[str, Any]]) -> str:
-    """One-line, common-cause roll-up of parameter-reproduction failures.
-
-    Presents a single repeated conversion mistake as one issue rather than N
-    independent failures, so the judge does not tally correlated cells. Neutral
-    ground-truth context, not a verdict.
-    """
-    n = len(strategies)
-    if n == 0:
-        return "no strategies to check"
-    fails = [s for s in strategies if s.get("params_ok") is False]
-    if not fails:
-        return f"all {n} cells reproduce their stated interval"
-    cells = [s.get("idx") for s in fails]
-    families = {s.get("family") for s in fails}
-    note = ""
-    if len(fails) > 1 and len(families) == 1:
-        fam = next(iter(families))
-        note = (
-            f"; every failing cell uses the same family ({fam}), so this most likely "
-            "reflects one repeated conversion mistake rather than several distinct errors"
-        )
-    return (
-        f"{len(fails)} of {n} cells' reported parameters do not reproduce the stated "
-        f"interval (cells {cells}){note}"
-    )
 
 
 def build_bundle(store: artifacts.Store, iid: str, label: str) -> tuple[str, int]:
@@ -242,9 +208,11 @@ def build_bundle(store: artifacts.Store, iid: str, label: str) -> tuple[str, int
 def build_parts(
     prompt_md: str, bundle_a: str, bundle_b: str, retry: bool
 ) -> tuple[providers.ContentPart, ...]:
+    """Ordered most-stable to least-stable, which is what makes prefix caching work:
+    task (identical everywhere) -> bundle A -> bundle B -> instruction -> retry note."""
     parts = [
         providers.ContentPart(kind="text", text="=== TASK GIVEN TO BOTH MODELS ===\n" + prompt_md),
-        providers.ContentPart(kind="text", text=bundle_a),  # parts[CACHE_PART_IDX]
+        providers.ContentPart(kind="text", text=bundle_a),
         providers.ContentPart(kind="text", text=bundle_b),
         providers.ContentPart(kind="text", text=_INSTRUCTION),
     ]
@@ -263,6 +231,8 @@ def build_request(
         temperature=cfg.judge_temperature,
         seed=cfg.seed,
         max_output_tokens=cfg.pairwise_output_cap,
+        cache_part_idxs=CACHE_PART_IDXS,
+        cache_key=f"footval-pairwise-{judge_cfg.name}",
     )
 
 
@@ -389,7 +359,9 @@ def estimate(cfg: Config, only_judges: list[str] | None = None) -> None:
         est_tokens = int(total_chars / 4)
         grand_tokens += est_tokens
         provider = cfg.model(judge_name).provider
-        batchable = "batch 50% off" if provider != "deepseek" else "sync (no batch API)"
+        batchable = (
+            "batch 50% off" if provider in providers.BATCH_PROVIDERS else "sync (no batch API)"
+        )
         print(
             f"  {judge_name:<22} {len(outstanding):>3} outstanding  "
             f"~{est_tokens / 1e6:.2f}M input tokens  [{provider}: {batchable}]"
@@ -409,7 +381,7 @@ def submit(cfg: Config, only_judges: list[str] | None = None, dump_prompt: bool 
     batches_log = store.read_json(store.pairwise_batches_path) or []
 
     for judge_name in judges:
-        jcfg = cfg.model(judge_name)
+        jcfg = cfg.judge_model(judge_name)
         cids = [cid for _j, cid in outstanding_items(store, manifest, [judge_name])]
         if not cids:
             print(f"  {judge_name}: nothing outstanding")
@@ -424,7 +396,7 @@ def submit(cfg: Config, only_judges: list[str] | None = None, dump_prompt: bool 
             retry = attempts.get(judge_name, {}).get(cid, 0) > 0
             parts = build_parts(prompt_md, a_text, b_text, retry)
             req = build_request(cfg, jcfg, parts)
-            items.append(providers.BatchItem(custom_id=cid, req=req, cache_part_idx=CACHE_PART_IDX))
+            items.append(providers.BatchItem(custom_id=cid, req=req))
         if dump_prompt:
             item = items[0]
             print(f"\n===== pairwise prompt: judge={judge_name} custom_id={item.custom_id} =====")
@@ -432,10 +404,9 @@ def submit(cfg: Config, only_judges: list[str] | None = None, dump_prompt: bool 
             for part in item.req.parts:
                 print(f"--- text part ({len(part.text)} chars) ---\n{part.text[:1500]}\n[...]\n")
             return
-        if jcfg.provider == "deepseek":
+        if jcfg.provider not in providers.BATCH_PROVIDERS:
             print(
-                f"  {judge_name}: {len(cids)} outstanding — no batch API; "
-                "run `make pairwise-deepseek`"
+                f"  {judge_name}: {len(cids)} outstanding — no batch API; run `make pairwise-sync`"
             )
             continue
         endpoint = _openai_endpoint(batches_log) if jcfg.provider == "openai" else None
@@ -464,7 +435,7 @@ def submit(cfg: Config, only_judges: list[str] | None = None, dump_prompt: bool 
         )
         store.write_json(store.pairwise_batches_path, batches_log)
         print(f"    batch_id: {info['batch_id']}")
-    print("submit done — `make pairwise-status` to poll, `make pairwise-deepseek` for sync items.")
+    print("submit done — `make pairwise-status` to poll, `make pairwise-sync` for sync items.")
 
 
 def _openai_endpoint(batches_log: list[dict]) -> str:
@@ -479,19 +450,24 @@ def _openai_endpoint(batches_log: list[dict]) -> str:
     return "/v1/responses"
 
 
-def run_deepseek(cfg: Config, only_judges: list[str] | None = None) -> None:
+def run_sync(cfg: Config, only_judges: list[str] | None = None) -> None:
+    """Judges whose provider has no batch API (z.ai/GLM) run one call at a time."""
     store = artifacts.Store(cfg.artifacts_dir)
     manifest = load_or_write_manifest(cfg, store)
-    judges = [j for j in _select_judges(cfg, only_judges) if cfg.model(j).provider == "deepseek"]
+    judges = [
+        j
+        for j in _select_judges(cfg, only_judges)
+        if cfg.model(j).provider not in providers.BATCH_PROVIDERS
+    ]
     if not judges:
-        print("no deepseek judges configured")
+        print("no synchronous (non-batch) judges configured")
         return
     prompt_md = cfg.prompt_path.read_text()
     bundles = _BundleCache(store)
     for judge_name in judges:
-        jcfg = cfg.model(judge_name)
+        jcfg = cfg.judge_model(judge_name)
         cids = [cid for _j, cid in outstanding_items(store, manifest, [judge_name])]
-        # sequential same-A calls hit DeepSeek's automatic server-side prefix cache
+        # sequential same-A calls hit the provider's automatic server-side prefix cache
         cids.sort(key=lambda c: (manifest["comparisons"][c]["instance_a"], parse_custom_id(c)))
         print(f"  {judge_name}: {len(cids)} comparisons (sync)")
         for cid in cids:
@@ -651,7 +627,7 @@ def collect(cfg: Config) -> None:
         by_judge: dict[str, int] = {}
         for j, _cid in outstanding:
             by_judge[j] = by_judge.get(j, 0) + 1
-        print(f"outstanding: {by_judge} — run `make pairwise-submit` (and/or pairwise-deepseek)")
+        print(f"outstanding: {by_judge} — run `make pairwise-submit` (and/or pairwise-sync)")
     else:
         print("all verdicts collected — run `make pairwise-csv`")
 
@@ -704,7 +680,7 @@ def run_cli(
     subs = {
         "estimate": lambda: estimate(cfg, only),
         "submit": lambda: submit(cfg, only, dump_prompt),
-        "deepseek": lambda: run_deepseek(cfg, only),
+        "sync": lambda: run_sync(cfg, only),
         "status": lambda: status(cfg),
         "collect": lambda: collect(cfg),
         "csv": lambda: write_csv(cfg),

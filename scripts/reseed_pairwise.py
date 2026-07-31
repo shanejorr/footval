@@ -21,8 +21,8 @@ are keyed by (judge, instance_a, instance_b) and rewritten under the new custom_
 `write_csv` maps A/B -> model via the manifest entry, so the winner is preserved.
 
 Usage (run from the footval/ root, AFTER backing up artifacts/pairwise):
-    cp -r artifacts/pairwise artifacts/pairwise.bak-12model
-    uv run python scripts/reseed_pairwise.py --new-model claude-sonnet-5
+    cp -r artifacts/pairwise artifacts/pairwise.bak
+    uv run python scripts/reseed_pairwise.py --new-model claude-sonnet-5 --backup pairwise.bak
 """
 
 from __future__ import annotations
@@ -44,7 +44,7 @@ def main() -> None:
     )
     ap.add_argument(
         "--backup",
-        default="pairwise.bak-12model",
+        default="pairwise.bak",
         help="name of the backup dir under artifacts/ holding the prior pairwise state",
     )
     args = ap.parse_args()
@@ -159,7 +159,7 @@ def main() -> None:
     for j, _cid in still:
         by_judge[j] = by_judge.get(j, 0) + 1
     print(f"outstanding by judge: {by_judge}  (total {len(still)})")
-    print("next: make pairwise-estimate  ->  make pairwise-submit + make pairwise-deepseek")
+    print("next: make pairwise-estimate  ->  make pairwise-submit + make pairwise-sync")
 
 
 if __name__ == "__main__":

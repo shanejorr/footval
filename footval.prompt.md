@@ -73,19 +73,6 @@ You must choose the plausible magnitude yourself. Do not default to round number
 
 ---
 
-## Part 3 — One plotting script
-
-Provide a **single** self-contained Python script (numpy, scipy.stats, matplotlib only) that:
-
-- holds all 6 strategies' family + parameters in an editable list at the top;
-- for each strategy, plots the pdf, marks the most-plausible value, and shades the 95% interval computed from the distribution's own `ppf(0.025)` and `ppf(0.975)` (so any mismatch with your stated interval is visible);
-- labels the x-axis `"Change in own scoring margin (points)"` and titles each plot with the strategy;
-- prints each strategy's family and parameters.
-
-Use `scipy.stats.norm`, `scipy.stats.t`, and `scipy.stats.skewnorm`. Keep it runnable as-is with no other dependencies.
-
----
-
 ## Output format
 
 Return one JSON object:
@@ -123,8 +110,7 @@ Return one JSON object:
         "consistency_check": "Confirmation that most_plausible is inside the interval and support is signed"
       }
     }
-  ],
-  "plot_script": "Single escaped Python string"
+  ]
 }
 ```
 
@@ -132,4 +118,4 @@ Return one JSON object:
 
 - `strategies` must contain exactly 6 objects — one per cell (`analytics`/`intuition` × `game_management`/`offensive`/`defensive`).
 - `parameters` keys must match the chosen family: `mu`/`sigma` for normal; `nu`/`mu`/`sigma` for student_t; `xi`/`omega`/`alpha` for skew_normal.
-- `plot_script` is one string with newlines encoded as `\n` and internal double quotes escaped.
+- Return the JSON object and nothing else — no prose before or after it.

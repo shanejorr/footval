@@ -48,12 +48,19 @@ def test_fenced_parse_mode_recorded_but_valid():
 
 def test_missing_top_level_key_fails_json_valid():
     resp = valid_response()
-    del resp["plot_script"]
+    del resp["quantity"]
     report = check(resp)
     assert report["json_valid"] is False
-    assert "plot_script" in report["detail"]["json"]["missing_keys"]
+    assert "quantity" in report["detail"]["json"]["missing_keys"]
     for name in CHECK_NAMES:
         assert report[name] is False
+
+
+def test_plot_script_no_longer_required():
+    # Part 3 was removed from the prompt; a response without a plot_script is complete.
+    resp = valid_response()
+    assert "plot_script" not in resp
+    assert check(resp)["json_valid"] is True
 
 
 def test_top_level_not_object_fails():

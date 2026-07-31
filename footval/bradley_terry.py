@@ -1,8 +1,8 @@
 """Hierarchical Bayesian Bradley-Terry aggregation of the pairwise verdicts.
 
 Reads the long-form `outputs/data/pairwise_results.csv` produced by `pairwise csv`
-and fits, per track (`soundness`, `priors`, `overall`), a rater-aware Bradley-Terry
-model in PyMC:
+and fits, per track, a rater-aware Bradley-Terry model in PyMC. Judging is a single
+criterion (soundness), so there is exactly one track:
 
     eta = kappa_j * (beta_a - beta_b) + gamma_j + delta_j * self_sign
     won_a ~ Bernoulli(logit_p = eta)
@@ -31,8 +31,8 @@ import polars as pl
 
 from .config import Config
 
-# Tracks fit independently: each per-criterion plus a pooled "overall".
-TRACKS = ("soundness", "priors", "overall")
+# One track per judged criterion — mirrors `pairwise.CRITERIA_PAIRWISE`.
+TRACKS = ("soundness",)
 
 # Sampler settings. Hierarchical pieces are non-centered, but target_accept is
 # kept high to keep divergences at zero on this small panel.
@@ -100,7 +100,7 @@ def self_sign(family_of: dict[str, str], model_a: str, model_b: str, judge: str)
 
 
 def _track_frame(df: pl.DataFrame, track: str) -> pl.DataFrame:
-    rows = df if track == "overall" else df.filter(pl.col("criterion") == track)
+    rows = df.filter(pl.col("criterion") == track)
     # Drop comparisons where the judge returned no valid verdict (blank winner).
     return rows.filter(pl.col("winner").is_not_null() & (pl.col("winner").str.strip_chars() != ""))
 
