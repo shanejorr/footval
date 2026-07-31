@@ -51,7 +51,7 @@ You must choose the plausible magnitude yourself. Do not default to round number
 **1. Belief summaries** (interpretable, not a raw SD):
 
 - `most_plausible_value` — the single most likely effect.
-- `interval_95` — `[low, high]` you are ~95% sure contains the true effect.
+- `interval_95_low` / `interval_95_high` — bounds (with `interval_95_low < interval_95_high`) you are ~95% sure contain the true effect.
 - `shape` — `symmetric`, `right_skewed` (longer upside tail), or `left_skewed` (longer downside tail).
 - `tails` — `light`/`moderate` (effect unlikely to land far from center) or `heavy` (non-trivial chance of a large effect).
 
@@ -61,13 +61,15 @@ You must choose the plausible magnitude yourself. Do not default to round number
 - `student_t` — symmetric, heavy tails (more chance of a surprisingly large |effect|).
 - `skew_normal` — asymmetric (upside and downside tails differ).
 
+A symmetric family cannot reproduce an interval that is not roughly symmetric about `most_plausible_value` — if yours is asymmetric, choose `skew_normal` or revisit your summaries.
+
 **3. Parameters** — convert summaries to the family's parameters and show the math:
 
 - `normal(μ, σ)`: `μ = most_plausible`; `σ = (high − low) / (2 × 1.96) = (high − low) / 3.92`.
 - `student_t(ν, μ, σ)`: pick `ν` for tail heaviness (smaller = heavier; ν≈4 is clearly heavy, ν≳30 ≈ normal); `μ = most_plausible`; `σ = (high − low) / (2 × t_{0.975,ν})`, where `t_{0.975,ν}` is the t critical value (≈2.78 at ν=4, ≈2.36 at ν=7, ≈2.04 at ν=30). State the value you used. (Here σ is the scale parameter, not the SD.)
-- `skew_normal(ξ, ω, α)`: set `α` from the direction/strength of skew (α>0 right, α<0 left), then fit `ξ` and `ω` numerically so the mode ≈ `most_plausible` and the central 95% mass ≈ `interval_95`. Report the fitted ξ, ω, α; approximate values are acceptable; say you fit them numerically.
+- `skew_normal(ξ, ω, α)`: set `α` for the direction of skew (α>0 right, α<0 left), then fit `ξ` and `ω` numerically — adjusting `α` as needed — so the mode ≈ `most_plausible` and the central 95% mass ≈ `[interval_95_low, interval_95_high]`. Report the fitted ξ, ω, α; approximate values are acceptable; say you fit them numerically.
 
-**4. Self-consistency check** — confirm `most_plausible_value` lies inside `interval_95` and that the family's support covers signed values. Note any approximation.
+**4. Self-consistency check** — confirm `most_plausible_value` lies inside the reported 95% interval and that the family's support covers signed values. Note any approximation.
 
 **5. Honesty** — this is a prior constructed to match your qualitative beliefs, not a readout of a precise internal number. Do not artificially widen or narrow it; make it match what you actually believe.
 
@@ -88,7 +90,7 @@ Return one JSON object:
     {
       "bucket": "analytics | intuition",
       "type": "game_management | offensive | defensive",
-      "title": "Short strategy name",
+      "title": "Short, unique strategy name",
       "recommendation": "1-3 sentence description",
       "rationale": "Why this raises win probability",
       "prior": {
@@ -104,7 +106,8 @@ Return one JSON object:
           "justification": "1-2 sentences"
         },
         "parameters": {
-          "...": 0.0,
+          "mu": 0.0,
+          "sigma": 0.0,
           "conversion_note": "Explicit derivation, including any critical value used"
         },
         "consistency_check": "Confirmation that most_plausible is inside the interval and support is signed"
@@ -117,5 +120,5 @@ Return one JSON object:
 **Rules:**
 
 - `strategies` must contain exactly 6 objects — one per cell (`analytics`/`intuition` × `game_management`/`offensive`/`defensive`).
-- `parameters` keys must match the chosen family: `mu`/`sigma` for normal; `nu`/`mu`/`sigma` for student_t; `xi`/`omega`/`alpha` for skew_normal.
-- Return the JSON object and nothing else — no prose before or after it.
+- `parameters` keys must match the chosen family: `mu`/`sigma` for normal (as shown in the example above); `nu`/`mu`/`sigma` for student_t; `xi`/`omega`/`alpha` for skew_normal. Always include `conversion_note`.
+- Return the JSON object and nothing else — no prose before or after it, and no markdown code fences.
