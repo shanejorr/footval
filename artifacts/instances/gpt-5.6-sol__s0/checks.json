@@ -1,0 +1,179 @@
+{
+  "detail": {
+    "grid": {
+      "duplicate_cells": [],
+      "duplicate_titles": [],
+      "issues": [],
+      "missing_cells": [],
+      "n_strategies": 6
+    },
+    "json": {
+      "missing_keys": []
+    },
+    "parse_mode": "direct",
+    "strategies": [
+      {
+        "cell": "analytics/game_management",
+        "errors": {
+          "center": 0.0,
+          "high": 0.0004399999999997739,
+          "low": 0.00043999999999999595
+        },
+        "family": "normal",
+        "family_valid": true,
+        "idx": 0,
+        "interval_sane": true,
+        "params_ok": true,
+        "reason": null,
+        "recomputed": {
+          "center": 0.47,
+          "high": 1.3304399999999998,
+          "low": -0.39044
+        },
+        "reported": {
+          "high": 1.33,
+          "low": -0.39,
+          "most_plausible_value": 0.47
+        },
+        "title": "Model-Guided Fourth-Down Aggression",
+        "tol_abs": 0.17200000000000004
+      },
+      {
+        "cell": "analytics/offensive",
+        "errors": {
+          "center": 0.0,
+          "high": 0.0006800000000000139,
+          "low": 0.0006800000000000139
+        },
+        "family": "normal",
+        "family_valid": true,
+        "idx": 1,
+        "interval_sane": true,
+        "params_ok": true,
+        "reason": null,
+        "recomputed": {
+          "center": 0.63,
+          "high": 1.8706800000000001,
+          "low": -0.61068
+        },
+        "reported": {
+          "high": 1.87,
+          "low": -0.61,
+          "most_plausible_value": 0.63
+        },
+        "title": "Neutral-Down Passing Shift",
+        "tol_abs": 0.248
+      },
+      {
+        "cell": "analytics/defensive",
+        "errors": {
+          "center": 0.0,
+          "high": 0.0008799999999999919,
+          "low": 0.0008799999999999919
+        },
+        "family": "normal",
+        "family_valid": true,
+        "idx": 2,
+        "interval_sane": true,
+        "params_ok": true,
+        "reason": null,
+        "recomputed": {
+          "center": 0.24,
+          "high": 1.45912,
+          "low": -0.97912
+        },
+        "reported": {
+          "high": 1.46,
+          "low": -0.98,
+          "most_plausible_value": 0.24
+        },
+        "title": "Pass-First Light-Box Defense",
+        "tol_abs": 0.244
+      },
+      {
+        "cell": "intuition/game_management",
+        "errors": {
+          "center": 0.0,
+          "high": 7.999999999996898e-05,
+          "low": 7.999999999996898e-05
+        },
+        "family": "normal",
+        "family_valid": true,
+        "idx": 3,
+        "interval_sane": true,
+        "params_ok": true,
+        "reason": null,
+        "recomputed": {
+          "center": 0.03,
+          "high": 0.81008,
+          "low": -0.75008
+        },
+        "reported": {
+          "high": 0.81,
+          "low": -0.75,
+          "most_plausible_value": 0.03
+        },
+        "title": "First-Half Mismatch Timeout",
+        "tol_abs": 0.15600000000000003
+      },
+      {
+        "cell": "intuition/offensive",
+        "errors": {
+          "center": 0.0,
+          "high": 0.0023663197711583095,
+          "low": 0.0023663197711583095
+        },
+        "family": "student_t",
+        "family_valid": true,
+        "idx": 4,
+        "interval_sane": true,
+        "params_ok": true,
+        "reason": null,
+        "recomputed": {
+          "center": 0.17,
+          "high": 1.6276336802288416,
+          "low": -1.2876336802288417
+        },
+        "reported": {
+          "high": 1.63,
+          "low": -1.29,
+          "most_plausible_value": 0.17
+        },
+        "title": "Abrupt Within-Drive Tempo Changes",
+        "tol_abs": 0.292
+      },
+      {
+        "cell": "intuition/defensive",
+        "errors": {
+          "center": 0.0,
+          "high": 0.0036160288305879806,
+          "low": 0.0036160288305879806
+        },
+        "family": "student_t",
+        "family_valid": true,
+        "idx": 5,
+        "interval_sane": true,
+        "params_ok": true,
+        "reason": null,
+        "recomputed": {
+          "center": 0.09,
+          "high": 1.836383971169412,
+          "low": -1.656383971169412
+        },
+        "reported": {
+          "high": 1.84,
+          "low": -1.66,
+          "most_plausible_value": 0.09
+        },
+        "title": "Money-Down Primary-Weapon Brackets",
+        "tol_abs": 0.35000000000000003
+      }
+    ]
+  },
+  "family_ok": true,
+  "grid_complete": true,
+  "instance_id": "gpt-5.6-sol__s0",
+  "intervals_ok": true,
+  "json_valid": true,
+  "params_reproduce_ok": true
+}

@@ -1,0 +1,187 @@
+{
+  "hdi_prob": 0.94,
+  "sampler": {
+    "draws": 2000,
+    "tune": 2000,
+    "chains": 4,
+    "target_accept": 0.95
+  },
+  "tracks": {
+    "soundness": {
+      "n_obs": 224,
+      "models": [
+        "claude-fable-5",
+        "claude-opus-5",
+        "claude-sonnet-5",
+        "gemini-3.1-pro-preview",
+        "gemini-3.6-flash",
+        "glm-5.2",
+        "gpt-5.6-sol",
+        "gpt-5.6-terra"
+      ],
+      "judges": [
+        "claude-fable-5",
+        "gemini-3.5-flash",
+        "glm-5.2",
+        "gpt-5.6-sol"
+      ],
+      "rankings": [
+        {
+          "model": "claude-opus-5",
+          "strength_mean": 2.512067170519315,
+          "strength_sd": 0.4637041174612797,
+          "hdi_low": 1.6663608493564297,
+          "hdi_high": 3.4014157044833744,
+          "rank": 1,
+          "win_prob_vs_field": 0.9298000698406045,
+          "win_prob_hdi_low": 0.8728329649588089,
+          "win_prob_hdi_high": 0.9824267413829452
+        },
+        {
+          "model": "gemini-3.1-pro-preview",
+          "strength_mean": 0.6238777387859109,
+          "strength_sd": 0.31719338282065573,
+          "hdi_low": 0.05394871312222835,
+          "hdi_high": 1.252689354381895,
+          "rank": 2,
+          "win_prob_vs_field": 0.6546827476967586,
+          "win_prob_hdi_low": 0.53730619053699,
+          "win_prob_hdi_high": 0.767868222337482
+        },
+        {
+          "model": "gpt-5.6-terra",
+          "strength_mean": 0.18506703486126114,
+          "strength_sd": 0.275609268977134,
+          "hdi_low": -0.3035089556830618,
+          "hdi_high": 0.7124207965413037,
+          "rank": 3,
+          "win_prob_vs_field": 0.5615785802460695,
+          "win_prob_hdi_low": 0.45288596076046733,
+          "win_prob_hdi_high": 0.6707531374546158
+        },
+        {
+          "model": "claude-sonnet-5",
+          "strength_mean": -0.31034767429247845,
+          "strength_sd": 0.27851801620485417,
+          "hdi_low": -0.8420986508545073,
+          "hdi_high": 0.20206446521590857,
+          "rank": 4,
+          "win_prob_vs_field": 0.44847623799585895,
+          "win_prob_hdi_low": 0.3348336504046889,
+          "win_prob_hdi_high": 0.5662479505330132
+        },
+        {
+          "model": "gpt-5.6-sol",
+          "strength_mean": -0.38698608455143413,
+          "strength_sd": 0.27272572806741274,
+          "hdi_low": -0.915226776783482,
+          "hdi_high": 0.10568090530521311,
+          "rank": 5,
+          "win_prob_vs_field": 0.43078122493500154,
+          "win_prob_hdi_low": 0.3188742571377812,
+          "win_prob_hdi_high": 0.5438326678577784
+        },
+        {
+          "model": "claude-fable-5",
+          "strength_mean": -0.3994259479295864,
+          "strength_sd": 0.27036963558930716,
+          "hdi_low": -0.8937988880750158,
+          "hdi_high": 0.1114191867150015,
+          "rank": 6,
+          "win_prob_vs_field": 0.42794853744791894,
+          "win_prob_hdi_low": 0.316134104827408,
+          "win_prob_hdi_high": 0.538435647266015
+        },
+        {
+          "model": "glm-5.2",
+          "strength_mean": -0.8618972109328835,
+          "strength_sd": 0.30760658861607515,
+          "hdi_low": -1.460128937157982,
+          "hdi_high": -0.30615109218047554,
+          "rank": 7,
+          "win_prob_vs_field": 0.32430008601983223,
+          "win_prob_hdi_low": 0.20478071770069325,
+          "win_prob_hdi_high": 0.43767653930746586
+        },
+        {
+          "model": "gemini-3.6-flash",
+          "strength_mean": -1.362355026460089,
+          "strength_sd": 0.32808414042095685,
+          "hdi_low": -1.9915915250434184,
+          "hdi_high": -0.7779714698809369,
+          "rank": 8,
+          "win_prob_vs_field": 0.22243251581795465,
+          "win_prob_hdi_low": 0.12185432070251448,
+          "win_prob_hdi_high": 0.3220191645663429
+        }
+      ],
+      "judge_effects": [
+        {
+          "judge": "claude-fable-5",
+          "kappa_mean": 0.9907535766727267,
+          "kappa_hdi_low": 0.5857512156187683,
+          "kappa_hdi_high": 1.3934677519577252,
+          "gamma_mean": 0.8661438823845721,
+          "gamma_hdi_low": 0.37744160259147935,
+          "gamma_hdi_high": 1.4091382007876223,
+          "delta_mean": 0.8402988164481363,
+          "delta_hdi_low": 0.1634879971492688,
+          "delta_hdi_high": 1.5929423368164077
+        },
+        {
+          "judge": "gemini-3.5-flash",
+          "kappa_mean": 1.1293098750142567,
+          "kappa_hdi_low": 0.6845382771461465,
+          "kappa_hdi_high": 1.7435246175468047,
+          "gamma_mean": 0.7738392722578685,
+          "gamma_hdi_low": 0.3027476566504002,
+          "gamma_hdi_high": 1.252357269564588,
+          "delta_mean": 0.7644855570244438,
+          "delta_hdi_low": 0.04325631272714618,
+          "delta_hdi_high": 1.4767611452780363
+        },
+        {
+          "judge": "glm-5.2",
+          "kappa_mean": 1.139301411586653,
+          "kappa_hdi_low": 0.6460462248468697,
+          "kappa_hdi_high": 1.8016654942185626,
+          "gamma_mean": 0.6071933824836468,
+          "gamma_hdi_low": 0.1169915800354763,
+          "gamma_hdi_high": 1.069878499119279,
+          "delta_mean": 0.5357874579125932,
+          "delta_hdi_low": -0.32575571039850026,
+          "delta_hdi_high": 1.3102966249569197
+        },
+        {
+          "judge": "gpt-5.6-sol",
+          "kappa_mean": 1.0852296867659363,
+          "kappa_hdi_low": 0.6880980212340506,
+          "kappa_hdi_high": 1.5876521098657015,
+          "gamma_mean": 0.7030350735562872,
+          "gamma_hdi_low": 0.2529333627776023,
+          "gamma_hdi_high": 1.171365249711022,
+          "delta_mean": 0.7894255646233844,
+          "delta_hdi_low": 0.1376377556468048,
+          "delta_hdi_high": 1.5270839542163783
+        }
+      ],
+      "population": {
+        "mu_gamma": {
+          "mean": 0.6701724471174015,
+          "hdi_low": 0.24108672529929456,
+          "hdi_high": 1.0904945896155216
+        },
+        "mu_delta": {
+          "mean": 0.6359406376845064,
+          "hdi_low": 0.09186979305437169,
+          "hdi_high": 1.1747877008419152
+        }
+      },
+      "diagnostics": {
+        "max_r_hat": 1.0,
+        "min_ess_bulk": 2931.0,
+        "n_divergences": 0
+      }
+    }
+  }
+}

@@ -1,9 +1,11 @@
 """Pairwise comparison stage.
 
 Every unordered pair of candidate response instances is compared by a panel of
-judges on a single criterion — soundness of the recommendations — as a forced
-A/B choice, text-only. The Bayesian priors the candidates also produce are
-generated and published but deliberately not judged.
+judges on two criteria — analytical reasoning (over the `analytics` grid row)
+and intuitive reasoning (over the `intuition` row) — each as its own forced
+A/B call scoped to just that row, text-only. The Bayesian priors the
+candidates also produce are generated and published but deliberately not
+judged.
 
 Cost-optimized: batch APIs for Anthropic/OpenAI/Gemini (50% off), synchronous
 calls for providers without one (z.ai), and cache-friendly byte-stable prompt
@@ -26,42 +28,51 @@ from typing import Any
 from . import artifacts, parsing, providers
 from .config import Config, ModelCfg
 
-CRITERIA_PAIRWISE = ("soundness",)
+CRITERIA_PAIRWISE = ("analytical_reasoning", "intuitive_reasoning")
+
+# Which grid row each criterion judges; the judge-facing bundle is scoped to it.
+CRITERION_BUCKET = {"analytical_reasoning": "analytics", "intuitive_reasoning": "intuition"}
 
 # Prompt-cache breakpoints, as indices into the content parts built by
-# `build_parts`. Part 0 (the task prompt) closes the prefix shared by *every*
-# comparison this panel makes; part 1 (candidate A's bundle) closes the prefix
+# `build_parts`. Part 0 (the task prompt) closes the prefix shared by every
+# comparison a judge makes on one criterion (the system prompt above it differs
+# per criterion); part 1 (candidate A's row-scoped bundle) closes the prefix
 # shared by every comparison with the same candidate in slot A — which is why
-# `submit` sorts requests by `instance_a`. The judge system prompt is cached
-# unconditionally by the provider layer, so this uses 3 of Anthropic's 4
-# allowed breakpoints.
+# `submit` sorts requests by (criterion, instance_a). The judge system prompt
+# is cached unconditionally by the provider layer, so this uses 3 of
+# Anthropic's 4 allowed breakpoints.
 CACHE_PART_IDXS = (0, 1)
 
-# The judge system prompt (rubrics + ground rules + verdict schema) lives in
-# footval.judge.prompt.md and is sent byte-for-byte, like the candidate prompt.
+# The judge system prompts (rubric + ground rules + verdict schema, one file
+# per criterion) are sent byte-for-byte, like the candidate prompt.
 _judge_system_cache: dict[str, str] = {}
 
 
-def judge_system(cfg: Config) -> str:
-    path = cfg.judge_prompt_path
+def judge_system(cfg: Config, criterion: str) -> str:
+    path = cfg.judge_prompt_path(criterion)
     key = str(path)
     if key not in _judge_system_cache:
         _judge_system_cache[key] = path.read_text()
     return _judge_system_cache[key]
 
 
-_INSTRUCTION = (
-    "Compare Response A and Response B on the soundness criterion and return only the JSON "
-    "verdict object."
-)
+def _instruction(criterion: str) -> str:
+    label = criterion.replace("_", " ")
+    return (
+        f"Compare Response A and Response B on the {label} criterion and return only the JSON "
+        "verdict object."
+    )
 
-_RETRY_NOTE = (
-    "REMINDER: your previous reply was not a valid verdict object. Return ONLY the JSON object "
-    '{"soundness": {"winner": "A" or "B", "justification": "..."}} — no prose, no fenced block, '
-    "no other keys."
-)
 
-_CID_RE = re.compile(r"^p(\d{2,4})-(ab|ba)$")
+def _retry_note(criterion: str) -> str:
+    return (
+        "REMINDER: your previous reply was not a valid verdict object. Return ONLY the JSON object "
+        f'{{"{criterion}": {{"winner": "A" or "B", "justification": "..."}}}} — no prose, '
+        "no fenced block, no other keys."
+    )
+
+
+_CID_RE = re.compile(rf"^p(\d{{2,4}})-(ab|ba)-({'|'.join(CRITERIA_PAIRWISE)})$")
 
 _POLLERS = {
     "anthropic": "poll_anthropic_batch",
@@ -73,15 +84,15 @@ _POLLERS = {
 # --- pair enumeration & ids -----------------------------------------------------
 
 
-def custom_id_for(pair_idx: int, order: str) -> str:
-    return f"p{pair_idx:02d}-{order}"
+def custom_id_for(pair_idx: int, order: str, criterion: str) -> str:
+    return f"p{pair_idx:02d}-{order}-{criterion}"
 
 
-def parse_custom_id(cid: str) -> tuple[int, str]:
+def parse_custom_id(cid: str) -> tuple[int, str, str]:
     m = _CID_RE.match(cid)
     if not m:
         raise ValueError(f"bad pairwise custom_id {cid!r}")
-    return int(m.group(1)), m.group(2)
+    return int(m.group(1)), m.group(2), m.group(3)
 
 
 def _assign_a(seed: int, iid_lo: str, iid_hi: str) -> str:
@@ -98,14 +109,18 @@ def enumerate_comparisons(cfg: Config, instance_ids: list[str]) -> dict[str, dic
         orders = ("ab", "ba") if cfg.pairwise_both_orders else ("ab",)
         for order in orders:
             ia, ib = (first, second) if order == "ab" else (second, first)
-            out[custom_id_for(idx, order)] = {
-                "pair_idx": idx,
-                "order": order,
-                "instance_a": ia,
-                "instance_b": ib,
-                "model_a": artifacts.model_from_instance_id(ia),
-                "model_b": artifacts.model_from_instance_id(ib),
-            }
+            # The A/B coin flip is per pair, shared by both criteria, so the two
+            # rows of one response pair are always shown in the same slots.
+            for criterion in CRITERIA_PAIRWISE:
+                out[custom_id_for(idx, order, criterion)] = {
+                    "pair_idx": idx,
+                    "order": order,
+                    "criterion": criterion,
+                    "instance_a": ia,
+                    "instance_b": ib,
+                    "model_a": artifacts.model_from_instance_id(ia),
+                    "model_b": artifacts.model_from_instance_id(ib),
+                }
     return out
 
 
@@ -117,6 +132,7 @@ def build_manifest(cfg: Config, store: artifacts.Store) -> dict[str, Any]:
     return {
         "seed": cfg.seed,
         "both_orders": cfg.pairwise_both_orders,
+        "criteria": list(CRITERIA_PAIRWISE),
         "judges": list(cfg.pairwise_judges),
         "instances": sorted(iids),
         "comparisons": enumerate_comparisons(cfg, iids),
@@ -186,7 +202,7 @@ def check_summary(checks: dict[str, Any] | None) -> str:
 
 def strip_priors(parsed: Any) -> Any:
     """Judge-facing copy of a parsed response with each strategy's `prior`
-    block removed. Priors are out of scope for the soundness round; like the
+    block removed. Priors are out of scope for both judged criteria; like the
     withheld prior-mechanics check results, removing them closes the
     contamination vector instead of relying on judges to ignore them — and
     drops roughly half of every bundle's (uncached) tokens from every judge
@@ -200,21 +216,37 @@ def strip_priors(parsed: Any) -> Any:
     return {**parsed, "strategies": strategies}
 
 
-def build_bundle(store: artifacts.Store, iid: str, label: str) -> tuple[str, int]:
-    """One candidate's full anonymized package. Deterministic from on-disk
-    artifacts, so every call sharing this (iid, label) gets identical bytes —
-    the property provider-side prefix caching depends on."""
+def scope_to_row(parsed: Any, bucket: str) -> Any:
+    """Judge-facing copy keeping only the strategies in one grid row. Each
+    criterion is judged in its own call over its own row so a strong analytics
+    row cannot halo-carry a weak intuition row (or vice versa). Strategies
+    whose bucket is malformed belong to neither row; the check report still
+    tells the judge about them."""
+    if not isinstance(parsed, dict) or not isinstance(parsed.get("strategies"), list):
+        return parsed
+    strategies = [
+        s for s in parsed["strategies"] if isinstance(s, dict) and s.get("bucket") == bucket
+    ]
+    return {**parsed, "strategies": strategies}
+
+
+def build_bundle(store: artifacts.Store, iid: str, label: str, criterion: str) -> tuple[str, int]:
+    """One candidate's anonymized, row-scoped package for one criterion.
+    Deterministic from on-disk artifacts, so every call sharing this
+    (iid, label, criterion) gets identical bytes — the property provider-side
+    prefix caching depends on."""
     resp = store.load_response(iid) or {}
     parsed = resp.get("parsed_json")
+    bucket = CRITERION_BUCKET[criterion]
     if isinstance(parsed, dict | list):
-        body = json.dumps(strip_priors(parsed), indent=2, ensure_ascii=False)
+        body = json.dumps(strip_priors(scope_to_row(parsed, bucket)), indent=2, ensure_ascii=False)
         body_label = (
-            f"Response {label} parsed as JSON; it follows pretty-printed, with the "
-            "out-of-scope prior blocks removed."
+            f"Response {label} parsed as JSON; its `{bucket}`-row strategies follow "
+            "pretty-printed, with the other row and the out-of-scope prior blocks removed."
         )
     else:
         body = resp.get("raw_text") or ""
-        body_label = f"Response {label} did NOT parse as JSON; the raw text follows."
+        body_label = f"Response {label} did NOT parse as JSON; the raw text follows in full."
     text = (
         f"=== RESPONSE {label} ===\n{body_label}\n\n{body}\n\n"
         f"=== AUTOMATED CHECK REPORT FOR RESPONSE {label} (ground truth) ===\n"
@@ -223,42 +255,46 @@ def build_bundle(store: artifacts.Store, iid: str, label: str) -> tuple[str, int
     return parsing.redact(text)
 
 
-def build_parts(prompt_md: str, bundle_a: str, bundle_b: str, retry: bool) -> tuple[str, ...]:
+def build_parts(
+    prompt_md: str, bundle_a: str, bundle_b: str, criterion: str, retry: bool
+) -> tuple[str, ...]:
     """Ordered most-stable to least-stable, which is what makes prefix caching work:
     task (identical everywhere) -> bundle A -> bundle B -> instruction -> retry note."""
     parts = [
         "=== TASK GIVEN TO BOTH MODELS ===\n" + prompt_md,
         bundle_a,
         bundle_b,
-        _INSTRUCTION,
+        _instruction(criterion),
     ]
     if retry:
-        parts.append(_RETRY_NOTE)
+        parts.append(_retry_note(criterion))
     return tuple(parts)
 
 
-def build_request(cfg: Config, judge_cfg: ModelCfg, parts: tuple[str, ...]) -> providers.LLMRequest:
+def build_request(
+    cfg: Config, judge_cfg: ModelCfg, parts: tuple[str, ...], criterion: str
+) -> providers.LLMRequest:
     return providers.LLMRequest(
         model=judge_cfg,
-        system=judge_system(cfg),
+        system=judge_system(cfg, criterion),
         parts=parts,
         temperature=cfg.judge_temperature,
         seed=cfg.seed,
         max_output_tokens=cfg.pairwise_max_output_tokens,
         cache_part_idxs=CACHE_PART_IDXS,
-        cache_key=f"footval-pairwise-{judge_cfg.name}",
+        cache_key=f"footval-pairwise-{criterion}-{judge_cfg.name}",
     )
 
 
 class _BundleCache:
     def __init__(self, store: artifacts.Store):
         self.store = store
-        self._cache: dict[tuple[str, str], tuple[str, int]] = {}
+        self._cache: dict[tuple[str, str, str], tuple[str, int]] = {}
 
-    def get(self, iid: str, label: str) -> tuple[str, int]:
-        key = (iid, label)
+    def get(self, iid: str, label: str, criterion: str) -> tuple[str, int]:
+        key = (iid, label, criterion)
         if key not in self._cache:
-            self._cache[key] = build_bundle(self.store, iid, label)
+            self._cache[key] = build_bundle(self.store, iid, label, criterion)
         return self._cache[key]
 
 
@@ -287,23 +323,22 @@ def _load_attempts(store: artifacts.Store) -> dict[str, dict[str, int]]:
 # --- verdicts ------------------------------------------------------------------------
 
 
-def parse_verdicts(text: str) -> dict[str, Any] | None:
+def parse_verdicts(text: str, criterion: str) -> dict[str, Any] | None:
+    """Each judge call carries exactly one criterion; its key must be present
+    and well-formed. Extra keys a judge volunteers are ignored."""
     parsed, _mode = parsing.parse_candidate_json(text)
     if not isinstance(parsed, dict):
         return None
-    out: dict[str, Any] = {}
-    for crit in CRITERIA_PAIRWISE:
-        entry = parsed.get(crit)
-        if not isinstance(entry, dict):
-            return None
-        winner = entry.get("winner")
-        if winner not in ("A", "B"):
-            return None
-        justification = entry.get("justification")
-        if not isinstance(justification, str) or not justification.strip():
-            return None
-        out[crit] = {"winner": winner, "justification": justification.strip()}
-    return out
+    entry = parsed.get(criterion)
+    if not isinstance(entry, dict):
+        return None
+    winner = entry.get("winner")
+    if winner not in ("A", "B"):
+        return None
+    justification = entry.get("justification")
+    if not isinstance(justification, str) or not justification.strip():
+        return None
+    return {criterion: {"winner": winner, "justification": justification.strip()}}
 
 
 def _verdict_record(
@@ -355,11 +390,10 @@ def estimate(cfg: Config, only_judges: list[str] | None = None) -> None:
     judges = _select_judges(cfg, only_judges)
     bundles = _BundleCache(store)
     prompt_md = cfg.prompt_path.read_text()
-    shared_chars = len(judge_system(cfg)) + len(prompt_md) + len(_INSTRUCTION)
     print(
         f"pairs: {len({e['pair_idx'] for e in manifest['comparisons'].values()})}, "
-        f"comparisons per judge: {len(manifest['comparisons'])}, "
-        f"both_orders: {manifest['both_orders']}"
+        f"comparisons per judge: {len(manifest['comparisons'])} "
+        f"({len(CRITERIA_PAIRWISE)} criteria), both_orders: {manifest['both_orders']}"
     )
     grand_tokens = 0
     for judge_name in judges:
@@ -367,9 +401,11 @@ def estimate(cfg: Config, only_judges: list[str] | None = None) -> None:
         total_chars = 0
         for _j, cid in outstanding:
             entry = manifest["comparisons"][cid]
-            a_text, _ = bundles.get(entry["instance_a"], "A")
-            b_text, _ = bundles.get(entry["instance_b"], "B")
-            total_chars += shared_chars + len(a_text) + len(b_text)
+            crit = entry["criterion"]
+            a_text, _ = bundles.get(entry["instance_a"], "A", crit)
+            b_text, _ = bundles.get(entry["instance_b"], "B", crit)
+            shared = len(judge_system(cfg, crit)) + len(prompt_md) + len(_instruction(crit))
+            total_chars += shared + len(a_text) + len(b_text)
         est_tokens = int(total_chars / 4)
         grand_tokens += est_tokens
         provider = cfg.model(judge_name).provider
@@ -400,16 +436,24 @@ def submit(cfg: Config, only_judges: list[str] | None = None, dump_prompt: bool 
         if not cids:
             print(f"  {judge_name}: nothing outstanding")
             continue
-        # adjacency by candidate-A maximizes provider-side prefix-cache hits
-        cids.sort(key=lambda c: (manifest["comparisons"][c]["instance_a"], parse_custom_id(c)))
+        # group by criterion (shared system prompt), then candidate-A adjacency,
+        # to maximize provider-side prefix-cache hits
+        cids.sort(
+            key=lambda c: (
+                manifest["comparisons"][c]["criterion"],
+                manifest["comparisons"][c]["instance_a"],
+                parse_custom_id(c),
+            )
+        )
         items = []
         for cid in cids:
             entry = manifest["comparisons"][cid]
-            a_text, _ = bundles.get(entry["instance_a"], "A")
-            b_text, _ = bundles.get(entry["instance_b"], "B")
+            crit = entry["criterion"]
+            a_text, _ = bundles.get(entry["instance_a"], "A", crit)
+            b_text, _ = bundles.get(entry["instance_b"], "B", crit)
             retry = attempts.get(judge_name, {}).get(cid, 0) > 0
-            parts = build_parts(prompt_md, a_text, b_text, retry)
-            req = build_request(cfg, jcfg, parts)
+            parts = build_parts(prompt_md, a_text, b_text, crit, retry)
+            req = build_request(cfg, jcfg, parts, crit)
             items.append(providers.BatchItem(custom_id=cid, req=req))
         if dump_prompt:
             item = items[0]
@@ -481,25 +525,33 @@ def run_sync(cfg: Config, only_judges: list[str] | None = None) -> None:
     for judge_name in judges:
         jcfg = cfg.judge_model(judge_name)
         cids = [cid for _j, cid in outstanding_items(store, manifest, [judge_name])]
-        # sequential same-A calls hit the provider's automatic server-side prefix cache
-        cids.sort(key=lambda c: (manifest["comparisons"][c]["instance_a"], parse_custom_id(c)))
+        # criterion grouping + sequential same-A calls hit the provider's
+        # automatic server-side prefix cache
+        cids.sort(
+            key=lambda c: (
+                manifest["comparisons"][c]["criterion"],
+                manifest["comparisons"][c]["instance_a"],
+                parse_custom_id(c),
+            )
+        )
         print(f"  {judge_name}: {len(cids)} comparisons (sync)")
         for cid in cids:
             entry = manifest["comparisons"][cid]
-            a_text, a_n = bundles.get(entry["instance_a"], "A")
-            b_text, b_n = bundles.get(entry["instance_b"], "B")
+            crit = entry["criterion"]
+            a_text, a_n = bundles.get(entry["instance_a"], "A", crit)
+            b_text, b_n = bundles.get(entry["instance_b"], "B", crit)
             verdicts = None
             res = None
             error = None
             attempt = 0
             for attempt in range(cfg.pairwise_max_format_retries + 1):
-                parts = build_parts(prompt_md, a_text, b_text, retry=attempt > 0)
+                parts = build_parts(prompt_md, a_text, b_text, crit, retry=attempt > 0)
                 try:
-                    res = providers.complete(build_request(cfg, jcfg, parts))
+                    res = providers.complete(build_request(cfg, jcfg, parts, crit))
                 except (providers.ModelConfigError, providers.TransientAPIError) as exc:
                     error = f"{type(exc).__name__}: {exc}"
                     break
-                verdicts = parse_verdicts(res.text)
+                verdicts = parse_verdicts(res.text, crit)
                 if verdicts is not None:
                     break
                 error = "judge output did not match the required verdict schema"
@@ -520,8 +572,7 @@ def run_sync(cfg: Config, only_judges: list[str] | None = None) -> None:
             )
             store.write_json(store.pairwise_verdict_path(judge_name, cid), record)
             if verdicts:
-                summary = {c: verdicts[c]["winner"] for c in CRITERIA_PAIRWISE}
-                print(f"    {cid}: {summary}")
+                print(f"    {cid}: {verdicts[crit]['winner']}")
             else:
                 print(f"    {cid}: NO VALID VERDICT ({error})")
 
@@ -587,7 +638,8 @@ def collect(cfg: Config) -> None:
             vpath = store.pairwise_verdict_path(b["judge"], cid)
             if vpath.exists():
                 continue
-            verdicts = parse_verdicts(rec["text"] or "") if rec["ok"] else None
+            crit = manifest["comparisons"][cid]["criterion"]
+            verdicts = parse_verdicts(rec["text"] or "", crit) if rec["ok"] else None
             prior_attempts = attempts.get(b["judge"], {}).get(cid, 0)
             if verdicts is not None:
                 record = _verdict_record(
@@ -664,13 +716,13 @@ def write_csv(cfg: Config) -> None:
                 if verdict is None:
                     missing += 1
                     continue
-                for crit in CRITERIA_PAIRWISE:
-                    winner = ""
-                    if verdict.get("verdicts"):
-                        side = verdict["verdicts"][crit]["winner"]
-                        winner = entry["model_a"] if side == "A" else entry["model_b"]
-                        wins[(winner, crit)] = wins.get((winner, crit), 0) + 1
-                    writer.writerow([judge_name, entry["model_a"], entry["model_b"], crit, winner])
+                crit = entry["criterion"]
+                winner = ""
+                if verdict.get("verdicts"):
+                    side = verdict["verdicts"][crit]["winner"]
+                    winner = entry["model_a"] if side == "A" else entry["model_b"]
+                    wins[(winner, crit)] = wins.get((winner, crit), 0) + 1
+                writer.writerow([judge_name, entry["model_a"], entry["model_b"], crit, winner])
     print(f"wrote {out_path}")
     if missing:
         print(f"WARNING: {missing} comparisons have no verdict file yet (rows omitted)")

@@ -133,11 +133,11 @@ makes dozens of answers comparable and machine-checkable.
 
 ## Candidate models (the test-takers)
 
-Eight models take the test — four "families" spanning flagship and mid-tier options:
+Seven models take the test — four "families" spanning flagship and mid-tier options:
 
 | Family | Models |
 |---|---|
-| Anthropic (Claude) | `claude-fable-5`, `claude-opus-5`, `claude-sonnet-5` |
+| Anthropic (Claude) | `claude-fable-5`, `claude-opus-5` |
 | OpenAI (GPT) | `gpt-5.6-sol`, `gpt-5.6-terra` |
 | Google (Gemini) | `gemini-3.1-pro-preview`, `gemini-3.6-flash` |
 | Z.ai (GLM) | `glm-5.2` |
@@ -154,23 +154,21 @@ signal about the model, not a bug to fix.
 ## Judge models (the graders)
 
 Footval is a **subjective** evaluation, so the grading is done by other AI models acting as
-judges. A single four-model panel renders every head-to-head comparison (described under
+judges. A single three-model panel renders every head-to-head comparison (described under
 [Scoring](#scoring)):
 
-`claude-fable-5`, `gpt-5.6-sol`, `gemini-3.5-flash`, `glm-5.2`.
+`claude-fable-5`, `gpt-5.6-sol`, `glm-5.2`.
 
 Judges deliberate at **one reasoning tier above the candidates** — the graders are given more
-thinking room than the test-takers. (Gemini's ladder tops out at the candidates' level, so its
-judge is the one exception.) Judges run as deterministically as their APIs allow
+thinking room than the test-takers. Judges run as deterministically as their APIs allow
 (temperature 0).
 
 Two facts about the judges are important and are disclosed as limitations:
 
-- **The judges are mostly contestants.** Three of the four judges are themselves on the
-  candidate roster, and the fourth is a sibling of two candidates, so a judge will sometimes
-  grade its own or a stablemate's answer. Rather than throw that data away, Footval *keeps*
-  it, *labels* it ("is this the judge's own answer? its own family?"), and separately measures
-  whether judges favor their own family.
+- **Every judge is a contestant.** All three judges are themselves on the candidate roster,
+  so a judge will sometimes grade its own or a stablemate's answer. Rather than throw that
+  data away, Footval *keeps* it, *labels* it ("is this the judge's own answer? its own
+  family?"), and separately measures whether judges favor their own family.
 - **Judges never see who wrote an answer.** Before any answer reaches a judge, every brand and
   model name (Claude, GPT, Gemini, GLM, etc.) is automatically stripped out and replaced
   with `[redacted]`, so judging is blind.
@@ -200,12 +198,22 @@ The grading is a **tournament**: every model's answer is compared directly again
 model's answer, and judges pick a winner each time. There are **no 1–5 ratings** — only
 head-to-head wins.
 
-- **Every unordered pair** of the 8 answers is compared. That's **28 pairs**.
-- Comparisons cover **one criterion — soundness of the recommendations**: are the six picks
-  genuinely underused, credibly win-positive, correctly filed in the grid, and defended with
-  real football reasoning? Judges get a five-dimension rubric with an explicit priority order
-  for close calls, and plain descriptions of what a *stronger* versus a *weaker* answer looks
-  like — no numeric scale.
+- **Every unordered pair** of the 7 answers is compared. That's **21 pairs**.
+- Each pair is judged on **two criteria, in two separate calls**, each scoped to just the
+  relevant half of the answer:
+  - **Analytical reasoning** — over the `analytics` row only: does the answer represent what
+    public football research actually says, draw a valid inference from it, name a credible
+    win mechanism with honest costs, and get specific about when the edge applies?
+  - **Intuitive reasoning** — over the `intuition` row only: does the answer stake out a real
+    position the data can't settle, tell a causal story a coordinator would recognize, stay
+    original without drifting into fantasy, and wear its uncertainty honestly?
+- The rubrics measure **reasoning, not knowledge of the current NFL meta**. Judges are told to
+  *judge the inference, not the conclusion* — and "is this really underutilized?" is treated
+  as a case the answer must argue (why would coaches underuse this?), not a fact the judge
+  settles from its own, possibly outdated, picture of the league.
+- Judges get a five-dimension rubric per criterion with an explicit priority order for close
+  calls, and plain descriptions of what a *stronger* versus a *weaker* answer looks like — no
+  numeric scale.
 - Judges are told what **not** to reward: length, formatting polish, confident tone,
   statistics they can't verify, and exotic ideas that wouldn't survive an actual NFL Sunday.
 - Each comparison is a **forced choice**: the judge *must* pick "A" or "B" — **ties are not
@@ -214,20 +222,22 @@ head-to-head wins.
   fixed, reproducible coin-flip tied to the run's random seed. On top of that, every pair is
   judged in **both orders** (A-vs-B *and* B-vs-A), and the presentation order is recorded — so
   any tendency to favor whichever answer is shown first can be detected and measured.
-- The **four-model judge panel** (listed above) each renders every comparison.
+- The **three-model judge panel** (listed above) each renders every comparison.
 
-Putting that together: 28 pairs × 2 presentation orders × 4 judges = **224 head-to-head
-verdicts.** Judges see only anonymized answers — with the unjudged prior blocks stripped
-out — and are handed the relevant objective check results as ground truth.
+Putting that together: 21 pairs × 2 presentation orders × 2 criteria × 3 judges = **252
+head-to-head verdicts.** Judges see only anonymized answers — reduced to the row being
+judged, with the unjudged prior blocks stripped out — and are handed the relevant objective
+check results as ground truth.
 
-The output is a simple tally — for each model, its **win percentage** (head-to-head wins ÷
-comparisons). Two judge-agreement diagnostics ride alongside it: how decisively the four-judge
-panel agreed on each comparison (unanimous / 3–1 / 2–2 split), and whether each judge kept the
-same winner when the two answers were swapped. A **self-preference** read — each judge's win
-rate for its own family versus the rest — flags conflicts of interest.
+The output is a simple tally per criterion — for each model, its **win percentage**
+(head-to-head wins ÷ comparisons) on analytical reasoning and on intuitive reasoning. Two
+judge-agreement diagnostics ride alongside it: how decisively the three-judge panel agreed on
+each comparison (unanimous / 2–1 split), and whether each judge kept the same winner when the
+two answers were swapped. A **self-preference** read — each judge's win rate for its own
+family versus the rest — flags conflicts of interest.
 
 > **Cost note.** Because this round is large, comparisons are sent through the model providers'
-> 50%-off batch processing where available (Anthropic, OpenAI, Google), and run synchronously for
+> 50%-off batch processing where available (Anthropic, OpenAI), and run synchronously for
 > GLM, which has no batch option. The prompts are also built to be byte-stable, and carry explicit
 > cache markers, so providers' prompt caching kicks in.
 
@@ -243,7 +253,7 @@ reproducible and any single stage can be re-run on its own:
 | 1. Generate | Each candidate answers the prompt |
 | 2. Check | The objective structural/numeric checks run |
 | 3. Tables | The objective per-instance results are consolidated into tables |
-| (judge) Pairwise | The head-to-head tournament: every pair compared on soundness |
+| (judge) Pairwise | The head-to-head tournament: every pair compared on analytical and intuitive reasoning |
 | Publish | Win-percentage results and charts are written out |
 
 ---
@@ -251,7 +261,7 @@ reproducible and any single stage can be re-run on its own:
 ## Where things live
 
 - [`footval.prompt.md`](footval.prompt.md) — the exact prompt every candidate receives.
-- [`footval.judge.prompt.md`](footval.judge.prompt.md) — the exact system prompt every pairwise judge receives (the soundness rubric, ground rules, verdict schema).
+- [`footval.judge.analytical.prompt.md`](footval.judge.analytical.prompt.md) / [`footval.judge.intuitive.prompt.md`](footval.judge.intuitive.prompt.md) — the exact system prompts pairwise judges receive, one per criterion (rubric, ground rules, verdict schema).
 - [`initial_prompt.md`](initial_prompt.md) — the full methodology specification.
 - [`config.yaml`](config.yaml) — the candidate list, the pairwise judge panel, and per-model settings (including the separate candidate/judge reasoning levels).
 - [`CLAUDE.md`](CLAUDE.md) — orientation for developers working on the code.
@@ -263,7 +273,7 @@ reproducible and any single stage can be re-run on its own:
 - `outputs/blog_output.ipynb` — builds the published charts (Bayesian leaderboard with 50% / 95%
   HDIs, posterior-predictive per-judge charts, and the prior/agreement diagnostics).
 - `outputs/model_diagnostics.ipynb` — ArviZ convergence diagnostics for the Bradley-Terry fit.
-- `artifacts/bradley_terry/soundness.nc` — the persisted PyMC posterior trace both notebooks read (not committed).
+- `artifacts/bradley_terry/<criterion>.nc` — the persisted PyMC posterior traces both notebooks read (not committed).
 
 ---
 
@@ -275,15 +285,14 @@ taking the numbers at face value is below, roughly in order of how much it shoul
 
 ### 1. The judges are the contestants — the whole thing is somewhat circular
 
-Every judge is drawn from the model families being tested — three of the four are candidates
-themselves — and there is **no human, no expert, and no external ground truth anywhere in the
-loop**. That creates two distinct problems:
+Every judge is a candidate itself, and there is **no human, no expert, and no external ground
+truth anywhere in the loop**. That creates two distinct problems:
 
 - **Self-preference.** A model grading (a disguised copy of) its own answer has an obvious
   conflict of interest. Footval mitigates this — judging is blind, every pair is judged in both
   presentation orders, and a per-judge own-family-vs-others win-rate gap is reported — but
-  mitigation isn't elimination. With only four judges, all of them contestants or siblings of
-  contestants, a shared family lean can still tilt results.
+  mitigation isn't elimination. With only three judges, all of them contestants, a shared
+  family lean can still tilt results.
 - **Shared blind spots masquerading as agreement.** If the judges absorbed the same popular
   football takes from the same internet during training, they will agree *with each other* and
   *with candidates that echo those takes* — even if those takes are wrong. High inter-rater
@@ -302,24 +311,25 @@ the regex doesn't list, and could over-redact ordinary football words that happe
 
 ### 3. There is no ground truth for the thing actually being judged
 
-The single judged criterion rewards a judgment that **cannot be checked against reality**.
-Whether a strategy is genuinely underused *and* win-positive is a contested, opinion-laden
-call. In the previous run the four-judge panel reached unanimous verdicts *least* often on
-exactly this criterion (the most 3–1 and 2–2 splits) — so what is now the whole leaderboard was
-the noisiest part of the old one, and narrow win-percentage gaps are close to meaningless.
+Both judged criteria reward a judgment that **cannot be checked against reality**. Whether a
+line of football reasoning is sound is a contested, opinion-laden call, and "judge the
+inference, not the conclusion" can only push a judge's own football opinions so far out of
+the verdict.
 
-Footval can tell you which answers *other LLMs like*, not which answers are *actually good
-coaching*.
+Footval can tell you which reasoning *other LLMs prefer*, not which reasoning is *actually
+good coaching*.
 
 ### 4. "Underutilized" drifts with time and training data
 
 What counts as underused in the NFL moves every season — fourth-down aggression was a daring
 analytics pick a decade ago and is closer to mainstream now. A model with a later training
-cutoff has a different picture of "the current meta" than one with an earlier cutoff, both as a
-*candidate* (what it proposes) and as a *judge* (what it considers underused). The judge prompt
-tells judges to grade against *current* adoption rather than novelty, but that instruction can
-only work as well as the judge's own knowledge of the current league. The evaluation therefore
-partly rewards recency of training data, which has nothing to do with reasoning quality.
+cutoff has a different picture of "the current meta" than one with an earlier cutoff. An
+earlier version of the rubric asked judges to grade adoption against the *current* league,
+which made the round partly a test of training-data recency — for candidates and judges
+alike. The current rubrics instead treat under-adoption as a case the answer must argue, and
+tell judges not to overrule it from their own picture of the league unless it is flagrantly
+wrong. That reduces the recency confound but cannot remove it: what reads as "flagrantly
+wrong" still depends on the judge's cutoff.
 
 ### 5. One sample, at maximum randomness
 
@@ -385,7 +395,7 @@ but catching it is left entirely to judges who may not.
 
 ### 11. The summary statistics are themselves shaky
 
-- Win percentages come from **8 candidates and 4 judges** on a single set of answers — a small
+- Win percentages come from **7 candidates and 3 judges** on a single set of answers — a small
   sample whose own uncertainty is wide. The optional Bradley-Terry layer reports that
   uncertainty as HDIs; the raw win-percentage tally does not. Read the ordering loosely; narrow
   gaps are within the noise.
@@ -414,5 +424,5 @@ Footval is best read as **"which answers did a small panel of frontier LLMs pref
 quirky football task, on one day"** — an interesting lens on model behavior and a nice showcase
 of structured-output evaluation, not a definitive verdict on which model is the better reasoner.
 The most trustworthy outputs are the *objective* ones (is the JSON well-formed, is the grid
-complete, do the parameters reproduce the interval); the *subjective* ranking deserves the most
-skepticism, and the design's own weak agreement on "soundness" is the clearest evidence of that.
+complete, do the parameters reproduce the interval); the *subjective* rankings deserve the most
+skepticism, and the panel's own disagreement rates are the clearest evidence of that.

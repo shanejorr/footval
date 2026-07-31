@@ -21,9 +21,17 @@ _FAMILY_PROVIDER = {
     "zai": "zai",
 }
 
-# The real judge system prompt, copied byte-for-byte into each test root so
-# judge_system(cfg) resolves against the same text the pipeline uses.
-JUDGE_PROMPT_TEXT = (Path(__file__).resolve().parent.parent / "footval.judge.prompt.md").read_text()
+# The real judge system prompts (one per criterion), copied byte-for-byte into
+# each test root so judge_system(cfg, criterion) resolves against the same text
+# the pipeline uses.
+_REPO_ROOT = Path(__file__).resolve().parent.parent
+JUDGE_PROMPT_FILES = {
+    "analytical_reasoning": "footval.judge.analytical.prompt.md",
+    "intuitive_reasoning": "footval.judge.intuitive.prompt.md",
+}
+JUDGE_PROMPTS = {
+    crit: (_REPO_ROOT / fname).read_text() for crit, fname in JUDGE_PROMPT_FILES.items()
+}
 
 
 def make_cfg(
@@ -44,7 +52,8 @@ def make_cfg(
         )
         for name, fam in families.items()
     }
-    (root / "footval.judge.prompt.md").write_text(JUDGE_PROMPT_TEXT)
+    for crit, fname in JUDGE_PROMPT_FILES.items():
+        (root / fname).write_text(JUDGE_PROMPTS[crit])
     return Config(
         root=root,
         candidate_models=tuple(candidates),

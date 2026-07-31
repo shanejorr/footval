@@ -1,0 +1,179 @@
+{
+  "detail": {
+    "grid": {
+      "duplicate_cells": [],
+      "duplicate_titles": [],
+      "issues": [],
+      "missing_cells": [],
+      "n_strategies": 6
+    },
+    "json": {
+      "missing_keys": []
+    },
+    "parse_mode": "direct",
+    "strategies": [
+      {
+        "cell": "analytics/game_management",
+        "errors": {
+          "center": 0.0,
+          "high": 7.999999999996898e-05,
+          "low": 8.000000000001062e-05
+        },
+        "family": "normal",
+        "family_valid": true,
+        "idx": 0,
+        "interval_sane": true,
+        "params_ok": true,
+        "reason": null,
+        "recomputed": {
+          "center": 0.15,
+          "high": 0.34992,
+          "low": -0.04991999999999999
+        },
+        "reported": {
+          "high": 0.35,
+          "low": -0.05,
+          "most_plausible_value": 0.15
+        },
+        "title": "Down 14 Go-For-2 in 4th Quarter",
+        "tol_abs": 0.04
+      },
+      {
+        "cell": "analytics/offensive",
+        "errors": {
+          "center": 0.0,
+          "high": 0.0005757145545532971,
+          "low": 0.0005757145545532971
+        },
+        "family": "student_t",
+        "family_valid": true,
+        "idx": 1,
+        "interval_sane": true,
+        "params_ok": true,
+        "reason": null,
+        "recomputed": {
+          "center": 1.2,
+          "high": 2.3994242854454466,
+          "low": 0.0005757145545532971
+        },
+        "reported": {
+          "high": 2.4,
+          "low": 0.0,
+          "most_plausible_value": 1.2
+        },
+        "title": "High-Frequency Fast At-Snap Motion",
+        "tol_abs": 0.24
+      },
+      {
+        "cell": "analytics/defensive",
+        "errors": {
+          "center": 0.0,
+          "high": 0.00024000000000001798,
+          "low": 0.00023999999999999022
+        },
+        "family": "normal",
+        "family_valid": true,
+        "idx": 2,
+        "interval_sane": true,
+        "params_ok": true,
+        "reason": null,
+        "recomputed": {
+          "center": 0.7,
+          "high": 1.29976,
+          "low": 0.10024
+        },
+        "reported": {
+          "high": 1.3,
+          "low": 0.1,
+          "most_plausible_value": 0.7
+        },
+        "title": "Zero-Blitz Elimination on Early Downs",
+        "tol_abs": 0.12
+      },
+      {
+        "cell": "intuition/game_management",
+        "errors": {
+          "center": 0.0025958174645864807,
+          "high": 0.38101809110705,
+          "low": 0.085402134879912
+        },
+        "family": "skew_normal",
+        "family_valid": true,
+        "idx": 3,
+        "interval_sane": true,
+        "params_ok": false,
+        "reason": "recomputed high deviates from reported by 0.381 (tolerance 0.23 = 0.1 x interval width)",
+        "recomputed": {
+          "center": 0.2025958174645865,
+          "high": 1.41898190889295,
+          "low": -0.414597865120088
+        },
+        "reported": {
+          "high": 1.8,
+          "low": -0.5,
+          "most_plausible_value": 0.2
+        },
+        "title": "Pre-Scripted Go/No-Go 4th Down Embedded Decisions",
+        "tol_abs": 0.22999999999999998
+      },
+      {
+        "cell": "intuition/offensive",
+        "errors": {
+          "center": 0.0,
+          "high": 0.0005921660664274242,
+          "low": 0.0005921660664274242
+        },
+        "family": "student_t",
+        "family_valid": true,
+        "idx": 4,
+        "interval_sane": true,
+        "params_ok": true,
+        "reason": null,
+        "recomputed": {
+          "center": 1.0,
+          "high": 3.4994078339335726,
+          "low": -1.4994078339335726
+        },
+        "reported": {
+          "high": 3.5,
+          "low": -1.5,
+          "most_plausible_value": 1.0
+        },
+        "title": "21 Personnel Pass-First Base Offense",
+        "tol_abs": 0.5
+      },
+      {
+        "cell": "intuition/defensive",
+        "errors": {
+          "center": 0.12073647522389222,
+          "high": 0.2783075207035942,
+          "low": 0.4344569996349774
+        },
+        "family": "skew_normal",
+        "family_valid": true,
+        "idx": 5,
+        "interval_sane": true,
+        "params_ok": false,
+        "reason": "recomputed low deviates from reported by 0.4345 (tolerance 0.35 = 0.1 x interval width)",
+        "recomputed": {
+          "center": -0.12073647522389222,
+          "high": 0.7216924792964058,
+          "low": -2.0655430003650226
+        },
+        "reported": {
+          "high": 1.0,
+          "low": -2.5,
+          "most_plausible_value": 0.0
+        },
+        "title": "Mid-Drive D-Line Hockey Shifts",
+        "tol_abs": 0.35000000000000003
+      }
+    ]
+  },
+  "family_ok": true,
+  "grid_complete": true,
+  "instance_id": "gemini-3.1-pro-preview__s0",
+  "intervals_ok": true,
+  "json_valid": true,
+  "params_reproduce_ok": false
+}

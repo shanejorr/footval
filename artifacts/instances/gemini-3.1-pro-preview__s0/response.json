@@ -1,0 +1,197 @@
+{
+  "instance_id": "gemini-3.1-pro-preview__s0",
+  "model": "gemini-3.1-pro-preview",
+  "parse_mode": "direct",
+  "parsed_json": {
+    "quantity": {
+      "description": "Change in own-team expected single-game scoring margin from adopting the strategy",
+      "support": "unbounded real; positive favors own team",
+      "units": "points"
+    },
+    "strategies": [
+      {
+        "bucket": "analytics",
+        "prior": {
+          "belief_summaries": {
+            "interval_95_high": 0.35,
+            "interval_95_low": -0.05,
+            "most_plausible_value": 0.15,
+            "shape": "symmetric",
+            "tails": "light"
+          },
+          "consistency_check": "most_plausible_value (0.15) is exactly centered in the [-0.05, 0.35] interval, and normal distribution support covers signed real values.",
+          "distribution_family": {
+            "justification": "The situational frequency is low, resulting in a small average per-game effect that is well-behaved, symmetric, and tightly clustered around a slight positive impact.",
+            "name": "normal"
+          },
+          "parameters": {
+            "conversion_note": "mu = most_plausible = 0.15; sigma = (0.35 - -0.05) / 3.92 = 0.40 / 3.92 = 0.102",
+            "mu": 0.15,
+            "sigma": 0.102
+          }
+        },
+        "rationale": "Expected points and win probability models universally agree this increases regulation win probability by setting up a win with a subsequent extra point, while leaving a chance to tie with another 2-point conversion if the first fails. It prevents playing for overtime where win probability reverts to a coin flip.",
+        "recommendation": "When trailing by 14 points in the 4th quarter, go for 2 after scoring the first touchdown.",
+        "title": "Down 14 Go-For-2 in 4th Quarter",
+        "type": "game_management"
+      },
+      {
+        "bucket": "analytics",
+        "prior": {
+          "belief_summaries": {
+            "interval_95_high": 2.4,
+            "interval_95_low": 0.0,
+            "most_plausible_value": 1.2,
+            "shape": "symmetric",
+            "tails": "heavy"
+          },
+          "consistency_check": "most_plausible_value (1.2) is exactly centered in the [0.0, 2.4] interval. Support covers unbounded signed reals.",
+          "distribution_family": {
+            "justification": "While the average effect is heavily positive, defenses occasionally fail to adapt entirely (fat right tail of blown coverages) or occasionally successfully zero-blitz the motion to disrupt timing (fat left tail).",
+            "name": "student_t"
+          },
+          "parameters": {
+            "conversion_note": "Chose nu = 4 for heavy tails. Critical value t_{0.975,4} = 2.776. mu = most_plausible = 1.2; sigma (scale) = (2.4 - 0.0) / (2 * 2.776) = 2.4 / 5.552 = 0.432",
+            "mu": 1.2,
+            "nu": 4,
+            "sigma": 0.432
+          }
+        },
+        "rationale": "Public analytics continuously confirm this gives receivers a running start against man coverage and forces zone-match defenders to hesitate, significantly boosting EPA/play without increasing turnover risk.",
+        "recommendation": "Utilize high-speed, horizontal at-snap 'cheat' motion on over 40% of early down passing plays.",
+        "title": "High-Frequency Fast At-Snap Motion",
+        "type": "offensive"
+      },
+      {
+        "bucket": "analytics",
+        "prior": {
+          "belief_summaries": {
+            "interval_95_high": 1.3,
+            "interval_95_low": 0.1,
+            "most_plausible_value": 0.7,
+            "shape": "symmetric",
+            "tails": "moderate"
+          },
+          "consistency_check": "most_plausible_value (0.7) is in the precise middle of the [0.1, 1.3] bounds, with normal support covering signed reals.",
+          "distribution_family": {
+            "justification": "A consistent, steady scheme adjustment applied over a large sample of early downs yields a stable, predictable, and moderately distributed scoring suppression.",
+            "name": "normal"
+          },
+          "parameters": {
+            "conversion_note": "mu = most_plausible = 0.7; sigma = (1.3 - 0.1) / 3.92 = 1.2 / 3.92 = 0.306",
+            "mu": 0.7,
+            "sigma": 0.306
+          }
+        },
+        "rationale": "Public EPA models overwhelmingly show offenses pass highly efficiently against early-down blitzes, punishing aggressive calls. Limiting explosive passing by forcing underneath throws significantly reduces opponent expected points.",
+        "recommendation": "Drop blitz rates below 15% on 1st and 2nd downs, heavily leaning on two-high coverage shells.",
+        "title": "Zero-Blitz Elimination on Early Downs",
+        "type": "defensive"
+      },
+      {
+        "bucket": "intuition",
+        "prior": {
+          "belief_summaries": {
+            "interval_95_high": 1.8,
+            "interval_95_low": -0.5,
+            "most_plausible_value": 0.2,
+            "shape": "right_skewed",
+            "tails": "moderate"
+          },
+          "consistency_check": "most_plausible_value (0.2) sits securely inside the asymmetric [-0.5, 1.8] interval. Skew normal covers the entire unbounded real line.",
+          "distribution_family": {
+            "justification": "Right-skewed because the downside is firmly capped (a standard failed 4th down or burned timeout), while the upside is occasionally catching an unprepared defense for a massive, game-altering touchdown.",
+            "name": "skew_normal"
+          },
+          "parameters": {
+            "alpha": 2.5,
+            "conversion_note": "Fitted numerically: an alpha of 2.5 pulls the mode to the right of location xi. Setting xi = -0.15 and scale omega = 0.7 places the mode approximately at 0.2 and captures ~95% of the central mass roughly between -0.5 and 1.8.",
+            "omega": 0.7,
+            "xi": -0.15
+          }
+        },
+        "rationale": "Public analytics evaluate 4th down probabilities in a vacuum but are completely silent on the unmeasurable value of eliminating coaching hesitation and sideline communication lag. My coaching judgment dictates that bypassing the communication chain catches defenses in base sub-packages and eliminates wasted timeouts.",
+        "recommendation": "Embed 4th-down decisions and specific play calls directly into the first 15 scripted plays so the offense can rush the line on 4th down without sideline input.",
+        "title": "Pre-Scripted Go/No-Go 4th Down Embedded Decisions",
+        "type": "game_management"
+      },
+      {
+        "bucket": "intuition",
+        "prior": {
+          "belief_summaries": {
+            "interval_95_high": 3.5,
+            "interval_95_low": -1.5,
+            "most_plausible_value": 1.0,
+            "shape": "symmetric",
+            "tails": "heavy"
+          },
+          "consistency_check": "most_plausible_value (1.0) is the exact midpoint of [-1.5, 3.5], and the t-distribution provides the required unbounded support.",
+          "distribution_family": {
+            "justification": "Symmetric with heavy tails due to massive uncertainty. Biting on the fullback could yield wide-open passing lanes (fat right tail), but if defenses simply refuse to respect the FB as a viable threat, we effectively play 10-on-11 (fat left tail).",
+            "name": "student_t"
+          },
+          "parameters": {
+            "conversion_note": "Chose nu = 7 for moderately heavy tails. Critical value t_{0.975,7} = 2.365. mu = most_plausible = 1.0; sigma (scale) = (3.5 - -1.5) / (2 * 2.365) = 5.0 / 4.73 = 1.057",
+            "mu": 1.0,
+            "nu": 7,
+            "sigma": 1.057
+          }
+        },
+        "rationale": "While analytics universally agree that passing on early downs is highly efficient, models are silent on true fullbacks because the modern sample size evaporated a decade ago. My intuition is that 21 personnel structurally forces heavy base linebackers onto the field, generating a massive speed mismatch for the passing game.",
+        "recommendation": "Deploy a true fullback (21 personnel) on over 50% of first downs, but throw the ball 65% of the time from this heavier alignment.",
+        "title": "21 Personnel Pass-First Base Offense",
+        "type": "offensive"
+      },
+      {
+        "bucket": "intuition",
+        "prior": {
+          "belief_summaries": {
+            "interval_95_high": 1.0,
+            "interval_95_low": -2.5,
+            "most_plausible_value": 0.0,
+            "shape": "left_skewed",
+            "tails": "moderate"
+          },
+          "consistency_check": "most_plausible_value (0.0) is validly inside the asymmetric bounds [-2.5, 1.0]. Support encompasses signed impacts for a strategy likely hovering near zero with negative skew.",
+          "distribution_family": {
+            "justification": "Left-skewed to reflect honest weakness: while fresh legs occasionally kill a drive, the severe penalty for a botched mid-drive substitution (12-men on the field yielding a free play) creates a dangerous downside tail.",
+            "name": "skew_normal"
+          },
+          "parameters": {
+            "alpha": -3.0,
+            "conversion_note": "Fitted numerically: negative alpha (-3.0) forces the mode left of xi. Setting xi = 0.4 and omega = 1.1 positions the mode near 0.0, capturing the 95% interval effectively in [-2.5, 1.0].",
+            "omega": 1.1,
+            "xi": 0.4
+          }
+        },
+        "rationale": "Public analytics focus on isolated pass-rush win rates but rarely model the invisible cumulative fatigue of long drives. My intuition is that a completely fresh rotation beats an exhausted elite offensive line, despite this being a weak candidate due to grave logistical risks.",
+        "recommendation": "Substitute the entire defensive line simultaneously every 3 to 4 plays during a long sustained opponent drive, disregarding down and distance.",
+        "title": "Mid-Drive D-Line Hockey Shifts",
+        "type": "defensive"
+      }
+    ]
+  },
+  "raw_text": "{\n  \"quantity\": {\n    \"description\": \"Change in own-team expected single-game scoring margin from adopting the strategy\",\n    \"units\": \"points\",\n    \"support\": \"unbounded real; positive favors own team\"\n  },\n  \"strategies\": [\n    {\n      \"bucket\": \"analytics\",\n      \"type\": \"game_management\",\n      \"title\": \"Down 14 Go-For-2 in 4th Quarter\",\n      \"recommendation\": \"When trailing by 14 points in the 4th quarter, go for 2 after scoring the first touchdown.\",\n      \"rationale\": \"Expected points and win probability models universally agree this increases regulation win probability by setting up a win with a subsequent extra point, while leaving a chance to tie with another 2-point conversion if the first fails. It prevents playing for overtime where win probability reverts to a coin flip.\",\n      \"prior\": {\n        \"belief_summaries\": {\n          \"most_plausible_value\": 0.15,\n          \"interval_95_low\": -0.05,\n          \"interval_95_high\": 0.35,\n          \"shape\": \"symmetric\",\n          \"tails\": \"light\"\n        },\n        \"distribution_family\": {\n          \"name\": \"normal\",\n          \"justification\": \"The situational frequency is low, resulting in a small average per-game effect that is well-behaved, symmetric, and tightly clustered around a slight positive impact.\"\n        },\n        \"parameters\": {\n          \"mu\": 0.15,\n          \"sigma\": 0.102,\n          \"conversion_note\": \"mu = most_plausible = 0.15; sigma = (0.35 - -0.05) / 3.92 = 0.40 / 3.92 = 0.102\"\n        },\n        \"consistency_check\": \"most_plausible_value (0.15) is exactly centered in the [-0.05, 0.35] interval, and normal distribution support covers signed real values.\"\n      }\n    },\n    {\n      \"bucket\": \"analytics\",\n      \"type\": \"offensive\",\n      \"title\": \"High-Frequency Fast At-Snap Motion\",\n      \"recommendation\": \"Utilize high-speed, horizontal at-snap 'cheat' motion on over 40% of early down passing plays.\",\n      \"rationale\": \"Public analytics continuously confirm this gives receivers a running start against man coverage and forces zone-match defenders to hesitate, significantly boosting EPA/play without increasing turnover risk.\",\n      \"prior\": {\n        \"belief_summaries\": {\n          \"most_plausible_value\": 1.2,\n          \"interval_95_low\": 0.0,\n          \"interval_95_high\": 2.4,\n          \"shape\": \"symmetric\",\n          \"tails\": \"heavy\"\n        },\n        \"distribution_family\": {\n          \"name\": \"student_t\",\n          \"justification\": \"While the average effect is heavily positive, defenses occasionally fail to adapt entirely (fat right tail of blown coverages) or occasionally successfully zero-blitz the motion to disrupt timing (fat left tail).\"\n        },\n        \"parameters\": {\n          \"nu\": 4,\n          \"mu\": 1.2,\n          \"sigma\": 0.432,\n          \"conversion_note\": \"Chose nu = 4 for heavy tails. Critical value t_{0.975,4} = 2.776. mu = most_plausible = 1.2; sigma (scale) = (2.4 - 0.0) / (2 * 2.776) = 2.4 / 5.552 = 0.432\"\n        },\n        \"consistency_check\": \"most_plausible_value (1.2) is exactly centered in the [0.0, 2.4] interval. Support covers unbounded signed reals.\"\n      }\n    },\n    {\n      \"bucket\": \"analytics\",\n      \"type\": \"defensive\",\n      \"title\": \"Zero-Blitz Elimination on Early Downs\",\n      \"recommendation\": \"Drop blitz rates below 15% on 1st and 2nd downs, heavily leaning on two-high coverage shells.\",\n      \"rationale\": \"Public EPA models overwhelmingly show offenses pass highly efficiently against early-down blitzes, punishing aggressive calls. Limiting explosive passing by forcing underneath throws significantly reduces opponent expected points.\",\n      \"prior\": {\n        \"belief_summaries\": {\n          \"most_plausible_value\": 0.7,\n          \"interval_95_low\": 0.1,\n          \"interval_95_high\": 1.3,\n          \"shape\": \"symmetric\",\n          \"tails\": \"moderate\"\n        },\n        \"distribution_family\": {\n          \"name\": \"normal\",\n          \"justification\": \"A consistent, steady scheme adjustment applied over a large sample of early downs yields a stable, predictable, and moderately distributed scoring suppression.\"\n        },\n        \"parameters\": {\n          \"mu\": 0.7,\n          \"sigma\": 0.306,\n          \"conversion_note\": \"mu = most_plausible = 0.7; sigma = (1.3 - 0.1) / 3.92 = 1.2 / 3.92 = 0.306\"\n        },\n        \"consistency_check\": \"most_plausible_value (0.7) is in the precise middle of the [0.1, 1.3] bounds, with normal support covering signed reals.\"\n      }\n    },\n    {\n      \"bucket\": \"intuition\",\n      \"type\": \"game_management\",\n      \"title\": \"Pre-Scripted Go/No-Go 4th Down Embedded Decisions\",\n      \"recommendation\": \"Embed 4th-down decisions and specific play calls directly into the first 15 scripted plays so the offense can rush the line on 4th down without sideline input.\",\n      \"rationale\": \"Public analytics evaluate 4th down probabilities in a vacuum but are completely silent on the unmeasurable value of eliminating coaching hesitation and sideline communication lag. My coaching judgment dictates that bypassing the communication chain catches defenses in base sub-packages and eliminates wasted timeouts.\",\n      \"prior\": {\n        \"belief_summaries\": {\n          \"most_plausible_value\": 0.2,\n          \"interval_95_low\": -0.5,\n          \"interval_95_high\": 1.8,\n          \"shape\": \"right_skewed\",\n          \"tails\": \"moderate\"\n        },\n        \"distribution_family\": {\n          \"name\": \"skew_normal\",\n          \"justification\": \"Right-skewed because the downside is firmly capped (a standard failed 4th down or burned timeout), while the upside is occasionally catching an unprepared defense for a massive, game-altering touchdown.\"\n        },\n        \"parameters\": {\n          \"xi\": -0.15,\n          \"omega\": 0.7,\n          \"alpha\": 2.5,\n          \"conversion_note\": \"Fitted numerically: an alpha of 2.5 pulls the mode to the right of location xi. Setting xi = -0.15 and scale omega = 0.7 places the mode approximately at 0.2 and captures ~95% of the central mass roughly between -0.5 and 1.8.\"\n        },\n        \"consistency_check\": \"most_plausible_value (0.2) sits securely inside the asymmetric [-0.5, 1.8] interval. Skew normal covers the entire unbounded real line.\"\n      }\n    },\n    {\n      \"bucket\": \"intuition\",\n      \"type\": \"offensive\",\n      \"title\": \"21 Personnel Pass-First Base Offense\",\n      \"recommendation\": \"Deploy a true fullback (21 personnel) on over 50% of first downs, but throw the ball 65% of the time from this heavier alignment.\",\n      \"rationale\": \"While analytics universally agree that passing on early downs is highly efficient, models are silent on true fullbacks because the modern sample size evaporated a decade ago. My intuition is that 21 personnel structurally forces heavy base linebackers onto the field, generating a massive speed mismatch for the passing game.\",\n      \"prior\": {\n        \"belief_summaries\": {\n          \"most_plausible_value\": 1.0,\n          \"interval_95_low\": -1.5,\n          \"interval_95_high\": 3.5,\n          \"shape\": \"symmetric\",\n          \"tails\": \"heavy\"\n        },\n        \"distribution_family\": {\n          \"name\": \"student_t\",\n          \"justification\": \"Symmetric with heavy tails due to massive uncertainty. Biting on the fullback could yield wide-open passing lanes (fat right tail), but if defenses simply refuse to respect the FB as a viable threat, we effectively play 10-on-11 (fat left tail).\"\n        },\n        \"parameters\": {\n          \"nu\": 7,\n          \"mu\": 1.0,\n          \"sigma\": 1.057,\n          \"conversion_note\": \"Chose nu = 7 for moderately heavy tails. Critical value t_{0.975,7} = 2.365. mu = most_plausible = 1.0; sigma (scale) = (3.5 - -1.5) / (2 * 2.365) = 5.0 / 4.73 = 1.057\"\n        },\n        \"consistency_check\": \"most_plausible_value (1.0) is the exact midpoint of [-1.5, 3.5], and the t-distribution provides the required unbounded support.\"\n      }\n    },\n    {\n      \"bucket\": \"intuition\",\n      \"type\": \"defensive\",\n      \"title\": \"Mid-Drive D-Line Hockey Shifts\",\n      \"recommendation\": \"Substitute the entire defensive line simultaneously every 3 to 4 plays during a long sustained opponent drive, disregarding down and distance.\",\n      \"rationale\": \"Public analytics focus on isolated pass-rush win rates but rarely model the invisible cumulative fatigue of long drives. My intuition is that a completely fresh rotation beats an exhausted elite offensive line, despite this being a weak candidate due to grave logistical risks.\",\n      \"prior\": {\n        \"belief_summaries\": {\n          \"most_plausible_value\": 0.0,\n          \"interval_95_low\": -2.5,\n          \"interval_95_high\": 1.0,\n          \"shape\": \"left_skewed\",\n          \"tails\": \"moderate\"\n        },\n        \"distribution_family\": {\n          \"name\": \"skew_normal\",\n          \"justification\": \"Left-skewed to reflect honest weakness: while fresh legs occasionally kill a drive, the severe penalty for a botched mid-drive substitution (12-men on the field yielding a free play) creates a dangerous downside tail.\"\n        },\n        \"parameters\": {\n          \"xi\": 0.4,\n          \"omega\": 1.1,\n          \"alpha\": -3.0,\n          \"conversion_note\": \"Fitted numerically: negative alpha (-3.0) forces the mode left of xi. Setting xi = 0.4 and omega = 1.1 positions the mode near 0.0, capturing the 95% interval effectively in [-2.5, 1.0].\"\n        },\n        \"consistency_check\": \"most_plausible_value (0.0) is validly inside the asymmetric bounds [-2.5, 1.0]. Support encompasses signed impacts for a strategy likely hovering near zero with negative skew.\"\n      }\n    }\n  ]\n}",
+  "request_params": {
+    "config": {
+      "max_output_tokens": 64000,
+      "seed": 42,
+      "temperature": 1.0,
+      "thinking_config": {
+        "thinking_level": "HIGH"
+      }
+    },
+    "model": "gemini-3.1-pro-preview"
+  },
+  "sample_idx": 0,
+  "seed": 42,
+  "snapshot_id": "gemini-3.1-pro-preview",
+  "stop_reason": "STOP",
+  "temperature": 1.0,
+  "ts": "2026-07-31T03:54:10Z",
+  "usage": {
+    "input_tokens": 1694,
+    "output_tokens": 2702,
+    "thoughts_tokens": 5452
+  }
+}

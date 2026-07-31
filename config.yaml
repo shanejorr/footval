@@ -4,13 +4,12 @@
 # `make probe` makes one cheap call per model and prints resolved snapshot IDs.
 # `params:` is merged verbatim into the provider call (config wins on conflict).
 # `judge_params:` is merged on top of `params:` only when the model is acting as a
-# pairwise judge — three models sit on both rosters and judge at a higher effort
-# than they answer at.
+# pairwise judge — all three judges are also candidates and judge at a higher
+# effort than they answer at.
 
 candidate_models:
   - claude-fable-5
   - claude-opus-5
-  - claude-sonnet-5
   - gpt-5.6-sol
   - gpt-5.6-terra
   - gemini-3.1-pro-preview
@@ -26,14 +25,14 @@ interval_tol: 0.10        # relative tolerance for parameter-reproduction check
 generation:
   max_output_tokens: 64000
 
-# Pairwise comparison stage — the only judging round. One criterion (soundness),
-# text-only, forced A/B. Batch APIs where available; z.ai has none, so GLM runs
-# through `make pairwise-sync`.
+# Pairwise comparison stage — the only judging round. Two criteria, judged in
+# separate row-scoped calls (analytical_reasoning over the analytics row,
+# intuitive_reasoning over the intuition row), text-only, forced A/B. Batch APIs
+# where available; z.ai has none, so GLM runs through `make pairwise-sync`.
 pairwise:
   judges:
     - claude-fable-5
     - gpt-5.6-sol
-    - gemini-3.5-flash
     - glm-5.2
   both_orders: true   # round 2: judge every pair in the reversed order too
   # Judges deliberate at one effort tier above the candidates, so leave room for
@@ -44,7 +43,7 @@ pairwise:
 # Thinking/effort policy: candidates run one notch above the middle of each
 # provider's ladder, judges one notch above that.
 #   Anthropic / OpenAI  low > medium > high > xhigh > max   candidate high, judge xhigh
-#   Gemini              minimal > low > medium > high       candidate HIGH, judge HIGH (ladder ends)
+#   Gemini              minimal > low > medium > high       candidate HIGH (no Gemini judge)
 #   z.ai GLM            high > max                          candidate high, judge max
 models:
   # --- Anthropic. Fable 5 / Opus 5 / Sonnet 5 all reject temperature/top_p/top_k
@@ -68,15 +67,6 @@ models:
     params:
       thinking: {type: adaptive}
       output_config: {effort: high}
-  claude-sonnet-5:
-    provider: anthropic
-    family: anthropic
-    supports_temperature: false
-    supports_seed: false
-    params:
-      thinking: {type: adaptive}
-      output_config: {effort: high}
-
   # --- OpenAI (Responses API). Reasoning models reject sampling params; no seed
   # on the Responses API. reasoning.effort ladder: none/low/medium/high/xhigh/max.
   gpt-5.6-sol:
@@ -97,9 +87,8 @@ models:
       reasoning: {effort: high}
 
   # --- Google Gemini (google-genai SDK). params merge into GenerateContentConfig.
-  # thinking_level replaced thinking_budget in Gemini 3.x and tops out at HIGH, so
-  # the judge gets the same level as the candidates — a documented deviation from
-  # "one tier higher".
+  # thinking_level replaced thinking_budget in Gemini 3.x and tops out at HIGH.
+  # Candidates only — no Gemini model sits on the judge panel.
   gemini-3.1-pro-preview:
     provider: gemini
     family: google
@@ -108,13 +97,6 @@ models:
     params:
       thinking_config: {thinking_level: HIGH}
   gemini-3.6-flash:
-    provider: gemini
-    family: google
-    supports_temperature: true
-    supports_seed: true
-    params:
-      thinking_config: {thinking_level: HIGH}
-  gemini-3.5-flash:            # judge only — not on the candidate roster
     provider: gemini
     family: google
     supports_temperature: true

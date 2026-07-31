@@ -1,0 +1,179 @@
+{
+  "detail": {
+    "grid": {
+      "duplicate_cells": [],
+      "duplicate_titles": [],
+      "issues": [],
+      "missing_cells": [],
+      "n_strategies": 6
+    },
+    "json": {
+      "missing_keys": []
+    },
+    "parse_mode": "direct",
+    "strategies": [
+      {
+        "cell": "analytics/game_management",
+        "errors": {
+          "center": 0.07539335711276685,
+          "high": 0.10687806329478611,
+          "low": 0.10271122983380526
+        },
+        "family": "skew_normal",
+        "family_valid": true,
+        "idx": 0,
+        "interval_sane": true,
+        "params_ok": true,
+        "reason": null,
+        "recomputed": {
+          "center": 0.5246066428872331,
+          "high": 1.893121936705214,
+          "low": -0.3027112298338053
+        },
+        "reported": {
+          "high": 2.0,
+          "low": -0.2,
+          "most_plausible_value": 0.6
+        },
+        "title": "Model-Driven Fourth-Down Aggression",
+        "tol_abs": 0.22000000000000003
+      },
+      {
+        "cell": "analytics/offensive",
+        "errors": {
+          "center": 0.0,
+          "high": 0.000320000000000098,
+          "low": 0.000320000000000098
+        },
+        "family": "normal",
+        "family_valid": true,
+        "idx": 1,
+        "interval_sane": true,
+        "params_ok": true,
+        "reason": null,
+        "recomputed": {
+          "center": 0.4,
+          "high": 1.1996799999999999,
+          "low": -0.3996799999999999
+        },
+        "reported": {
+          "high": 1.2,
+          "low": -0.4,
+          "most_plausible_value": 0.4
+        },
+        "title": "Early-Down Pass and Play-Action Rate Increase",
+        "tol_abs": 0.16000000000000003
+      },
+      {
+        "cell": "analytics/defensive",
+        "errors": {
+          "center": 0.0,
+          "high": 0.00035999999999991594,
+          "low": 0.00036000000000002697
+        },
+        "family": "normal",
+        "family_valid": true,
+        "idx": 2,
+        "interval_sane": true,
+        "params_ok": true,
+        "reason": null,
+        "recomputed": {
+          "center": 0.3,
+          "high": 1.19964,
+          "low": -0.59964
+        },
+        "reported": {
+          "high": 1.2,
+          "low": -0.6,
+          "most_plausible_value": 0.3
+        },
+        "title": "Blitz Less, Play More Two-High Coverage",
+        "tol_abs": 0.18
+      },
+      {
+        "cell": "intuition/game_management",
+        "errors": {
+          "center": 0.0,
+          "high": 0.00012000000000000899,
+          "low": 0.00012000000000000899
+        },
+        "family": "normal",
+        "family_valid": true,
+        "idx": 3,
+        "interval_sane": true,
+        "params_ok": true,
+        "reason": null,
+        "recomputed": {
+          "center": 0.05,
+          "high": 0.34987999999999997,
+          "low": -0.24988
+        },
+        "reported": {
+          "high": 0.35,
+          "low": -0.25,
+          "most_plausible_value": 0.05
+        },
+        "title": "Intentional Delay-of-Game Before Plus-Territory Punts",
+        "tol_abs": 0.06
+      },
+      {
+        "cell": "intuition/offensive",
+        "errors": {
+          "center": 0.0,
+          "high": 0.0009671004217917112,
+          "low": 0.0009671004217914891
+        },
+        "family": "student_t",
+        "family_valid": true,
+        "idx": 4,
+        "interval_sane": true,
+        "params_ok": true,
+        "reason": null,
+        "recomputed": {
+          "center": 0.3,
+          "high": 1.7009671004217917,
+          "low": -1.1009671004217916
+        },
+        "reported": {
+          "high": 1.7,
+          "low": -1.1,
+          "most_plausible_value": 0.3
+        },
+        "title": "Scripted Tempo Bursts After Explosive Plays",
+        "tol_abs": 0.27999999999999997
+      },
+      {
+        "cell": "intuition/defensive",
+        "errors": {
+          "center": 0.0,
+          "high": 0.0006399999999999739,
+          "low": 0.0006399999999999739
+        },
+        "family": "normal",
+        "family_valid": true,
+        "idx": 5,
+        "interval_sane": true,
+        "params_ok": true,
+        "reason": null,
+        "recomputed": {
+          "center": 0.15,
+          "high": 1.00064,
+          "low": -0.7006399999999999
+        },
+        "reported": {
+          "high": 1.0,
+          "low": -0.7,
+          "most_plausible_value": 0.15
+        },
+        "title": "Dedicated Elite-Athlete QB Spy on Late Downs vs Mobile QBs",
+        "tol_abs": 0.17
+      }
+    ]
+  },
+  "family_ok": true,
+  "grid_complete": true,
+  "instance_id": "claude-fable-5__s0",
+  "intervals_ok": true,
+  "json_valid": true,
+  "params_reproduce_ok": true
+}

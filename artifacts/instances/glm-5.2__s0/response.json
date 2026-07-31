@@ -1,0 +1,196 @@
+{
+  "instance_id": "glm-5.2__s0",
+  "model": "glm-5.2",
+  "parse_mode": "fenced",
+  "parsed_json": {
+    "quantity": {
+      "description": "Change in own-team expected single-game scoring margin from adopting the strategy",
+      "support": "unbounded real; positive favors own team",
+      "units": "points"
+    },
+    "strategies": [
+      {
+        "bucket": "analytics",
+        "prior": {
+          "belief_summaries": {
+            "interval_95_high": 1.6,
+            "interval_95_low": 0.2,
+            "most_plausible_value": 0.8,
+            "shape": "symmetric",
+            "tails": "light"
+          },
+          "consistency_check": "Most plausible value 0.8 lies within [0.2, 1.6]; normal support is the full real line, covering signed effects. No approximation needed.",
+          "distribution_family": {
+            "justification": "The effect is well-studied with a central estimate and bounded plausible range; no reason to expect a heavy tail or strong asymmetry.",
+            "name": "normal"
+          },
+          "parameters": {
+            "conversion_note": "sigma = (1.6 - 0.2) / 3.92 = 1.4 / 3.92 = 0.357; mu = most_plausible_value = 0.8.",
+            "mu": 0.8,
+            "sigma": 0.357
+          }
+        },
+        "rationale": "Public EPA and win-probability models consistently show that punting from midfield trades meaningful expected points for marginal field-position gain; the breakeven is well below typical NFL conversion rates, yet league behavior lags the math.",
+        "recommendation": "On 4th-and-3 or shorter between your own 40 and the opponent's 35, go for it by default rather than punting or attempting long field goals, regardless of game script.",
+        "title": "Aggressive 4th-down conversion in midfield 'go' zones",
+        "type": "game_management"
+      },
+      {
+        "bucket": "analytics",
+        "prior": {
+          "belief_summaries": {
+            "interval_95_high": 1.5,
+            "interval_95_low": 0.1,
+            "most_plausible_value": 0.7,
+            "shape": "symmetric",
+            "tails": "moderate"
+          },
+          "consistency_check": "Most plausible value 0.7 lies within [0.1, 1.5]; normal support is signed. No approximation needed.",
+          "distribution_family": {
+            "justification": "A central, roughly symmetric belief with moderate uncertainty about opponent adjustment; no strong skew justification.",
+            "name": "normal"
+          },
+          "parameters": {
+            "conversion_note": "sigma = (1.5 - 0.1) / 3.92 = 1.4 / 3.92 = 0.357; mu = most_plausible_value = 0.7.",
+            "mu": 0.7,
+            "sigma": 0.357
+          }
+        },
+        "rationale": "EPA-per-play models show passing outperforms rushing on early downs in most situations, yet play-callers still run too often to 'establish the run'; the gap between modeled efficiency and observed behavior is the available edge.",
+        "recommendation": "Shift early-down play selection toward pass (including RPOs and play-action) in neutral game scripts, reducing 1st/2nd-down run rate by roughly 10-15 percentage points relative to league average.",
+        "title": "Pass-rate increase on 1st and 2nd down",
+        "type": "offensive"
+      },
+      {
+        "bucket": "analytics",
+        "prior": {
+          "belief_summaries": {
+            "interval_95_high": 1.3,
+            "interval_95_low": -0.1,
+            "most_plausible_value": 0.5,
+            "shape": "right_skewed",
+            "tails": "moderate"
+          },
+          "consistency_check": "Most plausible value 0.5 lies within [-0.1, 1.3]; skew_normal support is the full real line, covering signed effects. Slight interval-matching approximation noted.",
+          "distribution_family": {
+            "justification": "Asymmetric interval with a longer upside tail (if opponent QB is explosion-dependent, benefit is large); downside is bounded because a fallback to single-high is cheap.",
+            "name": "skew_normal"
+          },
+          "parameters": {
+            "alpha": 3.0,
+            "conversion_note": "Fitted numerically: alpha=3.0 chosen for moderate right skew; with delta=alpha/sqrt(1+alpha^2)=0.949, mean = xi + 0.757*omega = 0.15 + 0.454 = 0.604, SD = omega*sqrt(1-2*delta^2/pi) = 0.6*0.653 = 0.392, giving 95% mass approx [0.604 - 0.77, 0.604 + 0.77] = [-0.17, 1.37], close to target [-0.1, 1.3]; mode approx 0.5 as desired.",
+            "omega": 0.6,
+            "xi": 0.15
+          }
+        },
+        "rationale": "Defensive EPA research emphasizes that explosion plays drive scoring; two-high shells reduce explosive pass EPA enough to offset modest run-defense costs, yet many teams still over-index on single-high/man coverage.",
+        "recommendation": "Default to two-deep safety structures on early downs, accepting lighter boxes in exchange for suppressing explosive pass plays, rotating to single-high only in clear pass situations.",
+        "title": "Two-high safety default with light-box run fits",
+        "type": "defensive"
+      },
+      {
+        "bucket": "intuition",
+        "prior": {
+          "belief_summaries": {
+            "interval_95_high": 0.7,
+            "interval_95_low": -0.3,
+            "most_plausible_value": 0.2,
+            "shape": "right_skewed",
+            "tails": "moderate"
+          },
+          "consistency_check": "Most plausible value 0.2 lies within [-0.3, 0.7]; skew_normal support is signed. Weak candidate acknowledged: most plausible effect is small; interval nearly includes zero.",
+          "distribution_family": {
+            "justification": "Asymmetric belief: upside (scoring before half) is meaningful but bounded; downside (wasted timeout) is small and bounded, producing a longer right tail.",
+            "name": "skew_normal"
+          },
+          "parameters": {
+            "alpha": 2.5,
+            "conversion_note": "Fitted numerically: alpha=2.5 for mild right skew; delta=2.5/sqrt(1+6.25)=0.928, mean = xi + 0.741*omega = -0.08 + 0.334 = 0.254, SD = omega*sqrt(1-2*delta^2/pi) = 0.45*0.672 = 0.302, giving 95% mass approx [0.254 - 0.59, 0.254 + 0.59] = [-0.34, 0.84], close to target [-0.3, 0.7]; mode approx 0.2.",
+            "omega": 0.45,
+            "xi": -0.08
+          }
+        },
+        "rationale": "Public analytics focus on end-game timeout value and largely ignore halftime preservation; my read is that the expected value of a pre-half possession is underpriced because coaches irrationally hoard timeouts they rarely use productively.",
+        "recommendation": "Burn a defensive timeout in the final 90 seconds of the first half when the opponent is in clock-killing mode, even absent a stop, to retain a realistic chance at a scoring drive before halftime.",
+        "title": "Pre-half defensive timeout to preserve two-minute response window",
+        "type": "game_management"
+      },
+      {
+        "bucket": "intuition",
+        "prior": {
+          "belief_summaries": {
+            "interval_95_high": 1.5,
+            "interval_95_low": -0.4,
+            "most_plausible_value": 0.5,
+            "shape": "right_skewed",
+            "tails": "moderate"
+          },
+          "consistency_check": "Most plausible value 0.5 lies within [-0.4, 1.5]; skew_normal support is signed. Approximation: heavy-tail belief is only partially captured; omega widened to partially compensate.",
+          "distribution_family": {
+            "justification": "Strong right skew: upside is a quick-score burst; downside (three-and-out, fatigue, turnover risk) is real but bounded. Note: true tails may be heavier than skew_normal captures; omega slightly inflated to approximate.",
+            "name": "skew_normal"
+          },
+          "parameters": {
+            "alpha": 4.0,
+            "conversion_note": "Fitted numerically: alpha=4.0 for pronounced right skew; delta=4/sqrt(17)=0.970, mean = xi + 0.774*omega = 0.02 + 0.581 = 0.601, SD = omega*sqrt(1-2*delta^2/pi) = 0.75*0.633 = 0.475, giving 95% mass approx [0.601 - 0.93, 0.601 + 0.93] = [-0.33, 1.53], close to target [-0.4, 1.5]; mode approx 0.5.",
+            "omega": 0.75,
+            "xi": 0.02
+          }
+        },
+        "rationale": "General tempo analytics are mixed and silent on takeaway-specific sequencing; my intuition is that the post-takeaway moment combines emotional momentum, field-position advantage, and a substituting defense in ways public models have not isolated.",
+        "recommendation": "On the first offensive series following a takeaway, go no-huddle with a pre-scripted 4-6 play sequence to exploit defensive personnel mismatches and fatigue before substitutions settle.",
+        "title": "Scripted no-huddle immediately after defensive takeaways",
+        "type": "offensive"
+      },
+      {
+        "bucket": "intuition",
+        "prior": {
+          "belief_summaries": {
+            "interval_95_high": 1.2,
+            "interval_95_low": -0.5,
+            "most_plausible_value": 0.3,
+            "shape": "right_skewed",
+            "tails": "moderate"
+          },
+          "consistency_check": "Most plausible value 0.3 lies within [-0.5, 1.2]; skew_normal support is signed. Slight interval-matching approximation noted.",
+          "distribution_family": {
+            "justification": "Right-skewed: a well-timed bluff produces a takeaway or sack (large upside); a misread by our own defense yields a coverage bust, but the bail-to-zone design limits catastrophic exposure.",
+            "name": "skew_normal"
+          },
+          "parameters": {
+            "alpha": 3.0,
+            "conversion_note": "Fitted numerically: alpha=3.0 for moderate right skew; delta=0.949, mean = xi + 0.757*omega = -0.09 + 0.492 = 0.402, SD = omega*0.653 = 0.424, giving 95% mass approx [0.402 - 0.83, 0.402 + 0.83] = [-0.43, 1.23], close to target [-0.5, 1.2]; mode approx 0.3.",
+            "omega": 0.65,
+            "xi": -0.09
+          }
+        },
+        "rationale": "No public analytics isolate bluff-to-zone sequencing; my coaching read is that quarterbacks trained to beat Cover-0 with hot reads are increasingly vulnerable to disguised zone that punishes those pre-programmed throws.",
+        "recommendation": "Show zero-blitz alignment pre-snap with corners pressed and a single deep safety, then bail into zone coverage post-snap to bait the quarterback into hot-route throws against disguised zones.",
+        "title": "Pre-snap Cover-0 bluff bailing to zone",
+        "type": "defensive"
+      }
+    ]
+  },
+  "raw_text": "```json\n{\n  \"quantity\": {\n    \"description\": \"Change in own-team expected single-game scoring margin from adopting the strategy\",\n    \"units\": \"points\",\n    \"support\": \"unbounded real; positive favors own team\"\n  },\n  \"strategies\": [\n    {\n      \"bucket\": \"analytics\",\n      \"type\": \"game_management\",\n      \"title\": \"Aggressive 4th-down conversion in midfield 'go' zones\",\n      \"recommendation\": \"On 4th-and-3 or shorter between your own 40 and the opponent's 35, go for it by default rather than punting or attempting long field goals, regardless of game script.\",\n      \"rationale\": \"Public EPA and win-probability models consistently show that punting from midfield trades meaningful expected points for marginal field-position gain; the breakeven is well below typical NFL conversion rates, yet league behavior lags the math.\",\n      \"prior\": {\n        \"belief_summaries\": {\n          \"most_plausible_value\": 0.8,\n          \"interval_95_low\": 0.2,\n          \"interval_95_high\": 1.6,\n          \"shape\": \"symmetric\",\n          \"tails\": \"light\"\n        },\n        \"distribution_family\": {\n          \"name\": \"normal\",\n          \"justification\": \"The effect is well-studied with a central estimate and bounded plausible range; no reason to expect a heavy tail or strong asymmetry.\"\n        },\n        \"parameters\": {\n          \"mu\": 0.8,\n          \"sigma\": 0.357,\n          \"conversion_note\": \"sigma = (1.6 - 0.2) / 3.92 = 1.4 / 3.92 = 0.357; mu = most_plausible_value = 0.8.\"\n        },\n        \"consistency_check\": \"Most plausible value 0.8 lies within [0.2, 1.6]; normal support is the full real line, covering signed effects. No approximation needed.\"\n      }\n    },\n    {\n      \"bucket\": \"analytics\",\n      \"type\": \"offensive\",\n      \"title\": \"Pass-rate increase on 1st and 2nd down\",\n      \"recommendation\": \"Shift early-down play selection toward pass (including RPOs and play-action) in neutral game scripts, reducing 1st/2nd-down run rate by roughly 10-15 percentage points relative to league average.\",\n      \"rationale\": \"EPA-per-play models show passing outperforms rushing on early downs in most situations, yet play-callers still run too often to 'establish the run'; the gap between modeled efficiency and observed behavior is the available edge.\",\n      \"prior\": {\n        \"belief_summaries\": {\n          \"most_plausible_value\": 0.7,\n          \"interval_95_low\": 0.1,\n          \"interval_95_high\": 1.5,\n          \"shape\": \"symmetric\",\n          \"tails\": \"moderate\"\n        },\n        \"distribution_family\": {\n          \"name\": \"normal\",\n          \"justification\": \"A central, roughly symmetric belief with moderate uncertainty about opponent adjustment; no strong skew justification.\"\n        },\n        \"parameters\": {\n          \"mu\": 0.7,\n          \"sigma\": 0.357,\n          \"conversion_note\": \"sigma = (1.5 - 0.1) / 3.92 = 1.4 / 3.92 = 0.357; mu = most_plausible_value = 0.7.\"\n        },\n        \"consistency_check\": \"Most plausible value 0.7 lies within [0.1, 1.5]; normal support is signed. No approximation needed.\"\n      }\n    },\n    {\n      \"bucket\": \"analytics\",\n      \"type\": \"defensive\",\n      \"title\": \"Two-high safety default with light-box run fits\",\n      \"recommendation\": \"Default to two-deep safety structures on early downs, accepting lighter boxes in exchange for suppressing explosive pass plays, rotating to single-high only in clear pass situations.\",\n      \"rationale\": \"Defensive EPA research emphasizes that explosion plays drive scoring; two-high shells reduce explosive pass EPA enough to offset modest run-defense costs, yet many teams still over-index on single-high/man coverage.\",\n      \"prior\": {\n        \"belief_summaries\": {\n          \"most_plausible_value\": 0.5,\n          \"interval_95_low\": -0.1,\n          \"interval_95_high\": 1.3,\n          \"shape\": \"right_skewed\",\n          \"tails\": \"moderate\"\n        },\n        \"distribution_family\": {\n          \"name\": \"skew_normal\",\n          \"justification\": \"Asymmetric interval with a longer upside tail (if opponent QB is explosion-dependent, benefit is large); downside is bounded because a fallback to single-high is cheap.\"\n        },\n        \"parameters\": {\n          \"xi\": 0.15,\n          \"omega\": 0.6,\n          \"alpha\": 3.0,\n          \"conversion_note\": \"Fitted numerically: alpha=3.0 chosen for moderate right skew; with delta=alpha/sqrt(1+alpha^2)=0.949, mean = xi + 0.757*omega = 0.15 + 0.454 = 0.604, SD = omega*sqrt(1-2*delta^2/pi) = 0.6*0.653 = 0.392, giving 95% mass approx [0.604 - 0.77, 0.604 + 0.77] = [-0.17, 1.37], close to target [-0.1, 1.3]; mode approx 0.5 as desired.\"\n        },\n        \"consistency_check\": \"Most plausible value 0.5 lies within [-0.1, 1.3]; skew_normal support is the full real line, covering signed effects. Slight interval-matching approximation noted.\"\n      }\n    },\n    {\n      \"bucket\": \"intuition\",\n      \"type\": \"game_management\",\n      \"title\": \"Pre-half defensive timeout to preserve two-minute response window\",\n      \"recommendation\": \"Burn a defensive timeout in the final 90 seconds of the first half when the opponent is in clock-killing mode, even absent a stop, to retain a realistic chance at a scoring drive before halftime.\",\n      \"rationale\": \"Public analytics focus on end-game timeout value and largely ignore halftime preservation; my read is that the expected value of a pre-half possession is underpriced because coaches irrationally hoard timeouts they rarely use productively.\",\n      \"prior\": {\n        \"belief_summaries\": {\n          \"most_plausible_value\": 0.2,\n          \"interval_95_low\": -0.3,\n          \"interval_95_high\": 0.7,\n          \"shape\": \"right_skewed\",\n          \"tails\": \"moderate\"\n        },\n        \"distribution_family\": {\n          \"name\": \"skew_normal\",\n          \"justification\": \"Asymmetric belief: upside (scoring before half) is meaningful but bounded; downside (wasted timeout) is small and bounded, producing a longer right tail.\"\n        },\n        \"parameters\": {\n          \"xi\": -0.08,\n          \"omega\": 0.45,\n          \"alpha\": 2.5,\n          \"conversion_note\": \"Fitted numerically: alpha=2.5 for mild right skew; delta=2.5/sqrt(1+6.25)=0.928, mean = xi + 0.741*omega = -0.08 + 0.334 = 0.254, SD = omega*sqrt(1-2*delta^2/pi) = 0.45*0.672 = 0.302, giving 95% mass approx [0.254 - 0.59, 0.254 + 0.59] = [-0.34, 0.84], close to target [-0.3, 0.7]; mode approx 0.2.\"\n        },\n        \"consistency_check\": \"Most plausible value 0.2 lies within [-0.3, 0.7]; skew_normal support is signed. Weak candidate acknowledged: most plausible effect is small; interval nearly includes zero.\"\n      }\n    },\n    {\n      \"bucket\": \"intuition\",\n      \"type\": \"offensive\",\n      \"title\": \"Scripted no-huddle immediately after defensive takeaways\",\n      \"recommendation\": \"On the first offensive series following a takeaway, go no-huddle with a pre-scripted 4-6 play sequence to exploit defensive personnel mismatches and fatigue before substitutions settle.\",\n      \"rationale\": \"General tempo analytics are mixed and silent on takeaway-specific sequencing; my intuition is that the post-takeaway moment combines emotional momentum, field-position advantage, and a substituting defense in ways public models have not isolated.\",\n      \"prior\": {\n        \"belief_summaries\": {\n          \"most_plausible_value\": 0.5,\n          \"interval_95_low\": -0.4,\n          \"interval_95_high\": 1.5,\n          \"shape\": \"right_skewed\",\n          \"tails\": \"moderate\"\n        },\n        \"distribution_family\": {\n          \"name\": \"skew_normal\",\n          \"justification\": \"Strong right skew: upside is a quick-score burst; downside (three-and-out, fatigue, turnover risk) is real but bounded. Note: true tails may be heavier than skew_normal captures; omega slightly inflated to approximate.\"\n        },\n        \"parameters\": {\n          \"xi\": 0.02,\n          \"omega\": 0.75,\n          \"alpha\": 4.0,\n          \"conversion_note\": \"Fitted numerically: alpha=4.0 for pronounced right skew; delta=4/sqrt(17)=0.970, mean = xi + 0.774*omega = 0.02 + 0.581 = 0.601, SD = omega*sqrt(1-2*delta^2/pi) = 0.75*0.633 = 0.475, giving 95% mass approx [0.601 - 0.93, 0.601 + 0.93] = [-0.33, 1.53], close to target [-0.4, 1.5]; mode approx 0.5.\"\n        },\n        \"consistency_check\": \"Most plausible value 0.5 lies within [-0.4, 1.5]; skew_normal support is signed. Approximation: heavy-tail belief is only partially captured; omega widened to partially compensate.\"\n      }\n    },\n    {\n      \"bucket\": \"intuition\",\n      \"type\": \"defensive\",\n      \"title\": \"Pre-snap Cover-0 bluff bailing to zone\",\n      \"recommendation\": \"Show zero-blitz alignment pre-snap with corners pressed and a single deep safety, then bail into zone coverage post-snap to bait the quarterback into hot-route throws against disguised zones.\",\n      \"rationale\": \"No public analytics isolate bluff-to-zone sequencing; my coaching read is that quarterbacks trained to beat Cover-0 with hot reads are increasingly vulnerable to disguised zone that punishes those pre-programmed throws.\",\n      \"prior\": {\n        \"belief_summaries\": {\n          \"most_plausible_value\": 0.3,\n          \"interval_95_low\": -0.5,\n          \"interval_95_high\": 1.2,\n          \"shape\": \"right_skewed\",\n          \"tails\": \"moderate\"\n        },\n        \"distribution_family\": {\n          \"name\": \"skew_normal\",\n          \"justification\": \"Right-skewed: a well-timed bluff produces a takeaway or sack (large upside); a misread by our own defense yields a coverage bust, but the bail-to-zone design limits catastrophic exposure.\"\n        },\n        \"parameters\": {\n          \"xi\": -0.09,\n          \"omega\": 0.65,\n          \"alpha\": 3.0,\n          \"conversion_note\": \"Fitted numerically: alpha=3.0 for moderate right skew; delta=0.949, mean = xi + 0.757*omega = -0.09 + 0.492 = 0.402, SD = omega*0.653 = 0.424, giving 95% mass approx [0.402 - 0.83, 0.402 + 0.83] = [-0.43, 1.23], close to target [-0.5, 1.2]; mode approx 0.3.\"\n        },\n        \"consistency_check\": \"Most plausible value 0.3 lies within [-0.5, 1.2]; skew_normal support is signed. Slight interval-matching approximation noted.\"\n      }\n    }\n  ]\n}\n```",
+  "request_params": {
+    "extra_body": {
+      "thinking": {
+        "type": "enabled"
+      }
+    },
+    "max_tokens": 64000,
+    "model": "glm-5.2",
+    "reasoning_effort": "high",
+    "temperature": 1.0
+  },
+  "sample_idx": 0,
+  "seed": null,
+  "snapshot_id": "glm-5.2",
+  "stop_reason": "stop",
+  "temperature": 1.0,
+  "ts": "2026-07-31T03:56:43Z",
+  "usage": {
+    "input_tokens": 1594,
+    "output_tokens": 5368
+  }
+}

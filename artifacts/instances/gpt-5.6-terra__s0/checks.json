@@ -1,0 +1,179 @@
+{
+  "detail": {
+    "grid": {
+      "duplicate_cells": [],
+      "duplicate_titles": [],
+      "issues": [],
+      "missing_cells": [],
+      "n_strategies": 6
+    },
+    "json": {
+      "missing_keys": []
+    },
+    "parse_mode": "direct",
+    "strategies": [
+      {
+        "cell": "analytics/game_management",
+        "errors": {
+          "center": 0.0,
+          "high": 1.6000000000016e-05,
+          "low": 1.5999999999974368e-05
+        },
+        "family": "normal",
+        "family_valid": true,
+        "idx": 0,
+        "interval_sane": true,
+        "params_ok": true,
+        "reason": null,
+        "recomputed": {
+          "center": 0.37,
+          "high": 0.820016,
+          "low": -0.08001599999999998
+        },
+        "reported": {
+          "high": 0.82,
+          "low": -0.08,
+          "most_plausible_value": 0.37
+        },
+        "title": "Aggressive fourth-down conversion policy",
+        "tol_abs": 0.09
+      },
+      {
+        "cell": "analytics/offensive",
+        "errors": {
+          "center": 0.0,
+          "high": 0.0009953007692006244,
+          "low": 0.0009953007692006244
+        },
+        "family": "student_t",
+        "family_valid": true,
+        "idx": 1,
+        "interval_sane": true,
+        "params_ok": true,
+        "reason": null,
+        "recomputed": {
+          "center": 0.24,
+          "high": 0.7509953007692006,
+          "low": -0.27099530076920064
+        },
+        "reported": {
+          "high": 0.75,
+          "low": -0.27,
+          "most_plausible_value": 0.24
+        },
+        "title": "Early-down play-action without run prerequisites",
+        "tol_abs": 0.10200000000000001
+      },
+      {
+        "cell": "analytics/defensive",
+        "errors": {
+          "center": 0.0,
+          "high": 2.399999999991298e-05,
+          "low": 2.4000000000024002e-05
+        },
+        "family": "normal",
+        "family_valid": true,
+        "idx": 2,
+        "interval_sane": true,
+        "params_ok": true,
+        "reason": null,
+        "recomputed": {
+          "center": 0.16,
+          "high": 0.709976,
+          "low": -0.389976
+        },
+        "reported": {
+          "high": 0.71,
+          "low": -0.39,
+          "most_plausible_value": 0.16
+        },
+        "title": "Four-rush simulated-pressure default",
+        "tol_abs": 0.11000000000000001
+      },
+      {
+        "cell": "intuition/game_management",
+        "errors": {
+          "center": 0.0,
+          "high": 0.0008815272686196751,
+          "low": 0.0008815272686197861
+        },
+        "family": "student_t",
+        "family_valid": true,
+        "idx": 3,
+        "interval_sane": true,
+        "params_ok": true,
+        "reason": null,
+        "recomputed": {
+          "center": 0.05,
+          "high": 0.7291184727313803,
+          "low": -0.6291184727313802
+        },
+        "reported": {
+          "high": 0.73,
+          "low": -0.63,
+          "most_plausible_value": 0.05
+        },
+        "title": "Anti-chaos timeout override",
+        "tol_abs": 0.13599999999999998
+      },
+      {
+        "cell": "intuition/offensive",
+        "errors": {
+          "center": 0.0,
+          "high": 2.4000000000024002e-05,
+          "low": 2.399999999996849e-05
+        },
+        "family": "normal",
+        "family_valid": true,
+        "idx": 4,
+        "interval_sane": true,
+        "params_ok": true,
+        "reason": null,
+        "recomputed": {
+          "center": 0.09,
+          "high": 0.639976,
+          "low": -0.45997600000000005
+        },
+        "reported": {
+          "high": 0.64,
+          "low": -0.46,
+          "most_plausible_value": 0.09
+        },
+        "title": "Immediate complementary-concept sequencing",
+        "tol_abs": 0.11000000000000001
+      },
+      {
+        "cell": "intuition/defensive",
+        "errors": {
+          "center": 0.0,
+          "high": 0.0009055153750594513,
+          "low": 0.0009055153750594513
+        },
+        "family": "student_t",
+        "family_valid": true,
+        "idx": 5,
+        "interval_sane": true,
+        "params_ok": true,
+        "reason": null,
+        "recomputed": {
+          "center": 0.11,
+          "high": 0.8390944846249405,
+          "low": -0.6190944846249405
+        },
+        "reported": {
+          "high": 0.84,
+          "low": -0.62,
+          "most_plausible_value": 0.11
+        },
+        "title": "One-voice road-noise coverage protocol",
+        "tol_abs": 0.146
+      }
+    ]
+  },
+  "family_ok": true,
+  "grid_complete": true,
+  "instance_id": "gpt-5.6-terra__s0",
+  "intervals_ok": true,
+  "json_valid": true,
+  "params_reproduce_ok": true
+}

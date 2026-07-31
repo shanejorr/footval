@@ -1,8 +1,8 @@
 """Hierarchical Bayesian Bradley-Terry aggregation of the pairwise verdicts.
 
 Reads the long-form `outputs/data/pairwise_results.csv` produced by `pairwise csv`
-and fits, per track, a rater-aware Bradley-Terry model in PyMC. Judging is a single
-criterion (soundness), so there is exactly one track:
+and fits, per track, a rater-aware Bradley-Terry model in PyMC. Judging covers two
+criteria (analytical_reasoning, intuitive_reasoning), one track each:
 
     eta = kappa_j * (beta_a - beta_b) + gamma_j + delta_j * self_sign
     won_a ~ Bernoulli(logit_p = eta)
@@ -32,7 +32,7 @@ import polars as pl
 from .config import Config
 
 # One track per judged criterion — mirrors `pairwise.CRITERIA_PAIRWISE`.
-TRACKS = ("soundness",)
+TRACKS = ("analytical_reasoning", "intuitive_reasoning")
 
 # Sampler settings. Hierarchical pieces are non-centered, but target_accept is
 # kept high to keep divergences at zero on this small panel.

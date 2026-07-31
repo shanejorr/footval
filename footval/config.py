@@ -17,6 +17,12 @@ PROVIDER_ENV_KEYS = {
     "zai": "ZAI_API_KEY",
 }
 
+# One judge system prompt per pairwise criterion, loaded byte-for-byte.
+JUDGE_PROMPT_FILES = {
+    "analytical_reasoning": "footval.judge.analytical.prompt.md",
+    "intuitive_reasoning": "footval.judge.intuitive.prompt.md",
+}
+
 
 def deep_merge(base: dict[str, Any], override: dict[str, Any]) -> dict[str, Any]:
     """Recursive dict merge; ``override`` wins on conflict."""
@@ -75,9 +81,8 @@ class Config:
     def prompt_path(self) -> Path:
         return self.root / "footval.prompt.md"
 
-    @property
-    def judge_prompt_path(self) -> Path:
-        return self.root / "footval.judge.prompt.md"
+    def judge_prompt_path(self, criterion: str) -> Path:
+        return self.root / JUDGE_PROMPT_FILES[criterion]
 
     def model(self, name: str) -> ModelCfg:
         return self.models[name]

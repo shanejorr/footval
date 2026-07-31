@@ -1,0 +1,193 @@
+{
+  "instance_id": "claude-fable-5__s0",
+  "model": "claude-fable-5",
+  "parse_mode": "direct",
+  "parsed_json": {
+    "quantity": {
+      "description": "Change in own-team expected single-game scoring margin from adopting the strategy",
+      "support": "unbounded real; positive favors own team",
+      "units": "points"
+    },
+    "strategies": [
+      {
+        "bucket": "analytics",
+        "prior": {
+          "belief_summaries": {
+            "interval_95_high": 2.0,
+            "interval_95_low": -0.2,
+            "most_plausible_value": 0.6,
+            "shape": "right_skewed",
+            "tails": "moderate"
+          },
+          "consistency_check": "Mode 0.6 lies inside [-0.2, 2.0]; skew-normal support is all real numbers, covering negative (backfire) effects. Quantile fit is approximate.",
+          "distribution_family": {
+            "justification": "The downside is bounded (worst case is roughly reverting to conventional decisions plus a few bad conversions), while the upside from consistently harvesting modeled EV is larger, so the interval is clearly asymmetric around the mode.",
+            "name": "skew_normal"
+          },
+          "parameters": {
+            "alpha": 2.0,
+            "conversion_note": "Fit numerically: with alpha=2 the standardized SN mode is ~0.65 and central 95% quantiles are roughly (-0.55, 2.25); omega=0.8 gives interval width ~2.2 and xi=0.6-0.65*0.8=0.08~0.1, so mode ~0.6 and 95% mass ~[-0.34, 1.9], approximately matching my summaries.",
+            "omega": 0.8,
+            "xi": 0.1
+          }
+        },
+        "rationale": "Public WP/EPA models (nfl4th, Baldwin/Burke-style analyses) consistently show teams punt and kick far too often; capturing even most of the modeled surplus adds meaningful expected points and win probability over a season, and the edge is largest in close games where marginal points matter most.",
+        "recommendation": "Go for it on fourth down whenever win-probability models show going for it is at least break-even, especially 4th-and-short between the opponent 45 and their 35 and near the goal line, instead of punting or kicking short field goals.",
+        "title": "Model-Driven Fourth-Down Aggression",
+        "type": "game_management"
+      },
+      {
+        "bucket": "analytics",
+        "prior": {
+          "belief_summaries": {
+            "interval_95_high": 1.2,
+            "interval_95_low": -0.4,
+            "most_plausible_value": 0.4,
+            "shape": "symmetric",
+            "tails": "moderate"
+          },
+          "consistency_check": "Mode 0.4 lies inside [-0.4, 1.2]; normal support is all real numbers, covering signed effects.",
+          "distribution_family": {
+            "justification": "Uncertainty is roughly symmetric — defenses may partially adapt (downside) or the per-play EPA gap may transfer nearly intact (upside) — with no strong reason to expect extreme surprises.",
+            "name": "normal"
+          },
+          "parameters": {
+            "conversion_note": "mu = most_plausible = 0.4; sigma = (1.2 - (-0.4)) / 3.92 = 1.6 / 3.92 = 0.408, using the 1.96 normal critical value.",
+            "mu": 0.4,
+            "sigma": 0.408
+          }
+        },
+        "rationale": "Published EPA research repeatedly shows early-down passes and play-action dropbacks outperform standard runs by a wide per-play margin, and that play-action efficiency does not require an established run game; shifting the play mix converts more drives into scores.",
+        "recommendation": "Raise pass rate on first and second down in neutral game states (roughly to a 60-65% early-down pass rate) and increase play-action usage toward 30%+ of dropbacks, cutting low-value first-down runs into stacked boxes.",
+        "title": "Early-Down Pass and Play-Action Rate Increase",
+        "type": "offensive"
+      },
+      {
+        "bucket": "analytics",
+        "prior": {
+          "belief_summaries": {
+            "interval_95_high": 1.2,
+            "interval_95_low": -0.6,
+            "most_plausible_value": 0.3,
+            "shape": "symmetric",
+            "tails": "moderate"
+          },
+          "consistency_check": "Mode 0.3 lies inside [-0.6, 1.2]; normal support is all real numbers, covering signed effects.",
+          "distribution_family": {
+            "justification": "The effect depends symmetrically on personnel fit — a weak four-man rush could make passivity costly, while good coverage talent could amplify the gain — with no strong asymmetry or fat-tail mechanism.",
+            "name": "normal"
+          },
+          "parameters": {
+            "conversion_note": "mu = most_plausible = 0.3; sigma = (1.2 - (-0.6)) / 3.92 = 1.8 / 3.92 = 0.459, using the 1.96 normal critical value.",
+            "mu": 0.3,
+            "sigma": 0.459
+          }
+        },
+        "rationale": "Analytics on defensive EPA shows explosive pass plays drive scoring far more than incremental rushing yards, and blitzes on average concede more EPA than four-man rushes with coverage help; trading small run losses for fewer explosives lowers opponent expected points.",
+        "recommendation": "Cut blitz rate to the league's low end and default to two-high, light-box structures in neutral and passing situations, rushing four and prioritizing prevention of explosive passes even at the cost of extra short runs.",
+        "title": "Blitz Less, Play More Two-High Coverage",
+        "type": "defensive"
+      },
+      {
+        "bucket": "intuition",
+        "prior": {
+          "belief_summaries": {
+            "interval_95_high": 0.35,
+            "interval_95_low": -0.25,
+            "most_plausible_value": 0.05,
+            "shape": "symmetric",
+            "tails": "light"
+          },
+          "consistency_check": "Mode 0.05 lies inside [-0.25, 0.35]; normal support is all real numbers, covering the honest possibility this backfires. This is admittedly the weakest cell and the prior reflects that.",
+          "distribution_family": {
+            "justification": "This is a low-frequency, small-stakes decision; the plausible effect is near zero in either direction with no mechanism for a large surprise, so a light-tailed symmetric family fits.",
+            "name": "normal"
+          },
+          "parameters": {
+            "conversion_note": "mu = most_plausible = 0.05; sigma = (0.35 - (-0.25)) / 3.92 = 0.6 / 3.92 = 0.153, using the 1.96 normal critical value.",
+            "mu": 0.05,
+            "sigma": 0.153
+          }
+        },
+        "rationale": "My judgment is that 5 yards of punter workspace is worth more than 5 yards of field position in this specific zone because touchbacks destroy pin value; public analytics is essentially silent or anecdotal on this micro-decision, so this rests on coaching feel about punter behavior, which is why it is intuition rather than analytics.",
+        "recommendation": "When punting from between midfield and the opponent 40, deliberately take a 5-yard delay-of-game penalty to give the punter more operating room and reduce touchback risk, aiming to pin inside the 10 rather than the 20.",
+        "title": "Intentional Delay-of-Game Before Plus-Territory Punts",
+        "type": "game_management"
+      },
+      {
+        "bucket": "intuition",
+        "prior": {
+          "belief_summaries": {
+            "interval_95_high": 1.7,
+            "interval_95_low": -1.1,
+            "most_plausible_value": 0.3,
+            "shape": "symmetric",
+            "tails": "heavy"
+          },
+          "consistency_check": "Mode 0.3 lies inside [-1.1, 1.7]; Student-t support is all real numbers, covering signed effects.",
+          "distribution_family": {
+            "justification": "Tempo effects could plausibly be much larger than expected in either direction — trapping defenses in bad personnel, or shortening drives and exhausting my own defense — so I want heavy tails around a roughly symmetric center.",
+            "name": "student_t"
+          },
+          "parameters": {
+            "conversion_note": "nu = 5 chosen for clearly heavy tails; t_{0.975,5} = 2.571; mu = most_plausible = 0.3; sigma = (1.7 - (-1.1)) / (2 * 2.571) = 2.8 / 5.142 = 0.545 (scale parameter, not SD).",
+            "mu": 0.3,
+            "nu": 5,
+            "sigma": 0.545
+          }
+        },
+        "rationale": "My coaching read is that defenses are most vulnerable in the 40 seconds after an explosive play (fatigue, personnel mismatch, disguise breakdown); public analytics on tempo is genuinely mixed — it confounds team quality and game state and has no clean causal estimate of conditional tempo — so this is judgment, not established analytics.",
+        "recommendation": "Pre-script 3-play no-huddle bursts triggered immediately after any gain of 15+ yards, attacking before the defense can substitute, align, or communicate, then reverting to normal tempo.",
+        "title": "Scripted Tempo Bursts After Explosive Plays",
+        "type": "offensive"
+      },
+      {
+        "bucket": "intuition",
+        "prior": {
+          "belief_summaries": {
+            "interval_95_high": 1.0,
+            "interval_95_low": -0.7,
+            "most_plausible_value": 0.15,
+            "shape": "symmetric",
+            "tails": "moderate"
+          },
+          "consistency_check": "Mode 0.15 lies inside [-0.7, 1.0]; normal support is all real numbers, covering the possibility the vacated coverage costs more than the spy saves.",
+          "distribution_family": {
+            "justification": "Removing a coverage defender could hurt roughly as easily as removing scramble yardage helps, and the situational frequency caps the magnitude, so a symmetric moderate-tailed family matches my belief.",
+            "name": "normal"
+          },
+          "parameters": {
+            "conversion_note": "mu = most_plausible = 0.15; sigma = (1.0 - (-0.7)) / 3.92 = 1.7 / 3.92 = 0.434, using the 1.96 normal critical value.",
+            "mu": 0.15,
+            "sigma": 0.434
+          }
+        },
+        "rationale": "Scramble conversions on late downs are drive-extending, momentum-swinging plays that I believe standard coverage systematically underweights; public analytics has no reliable causal estimate of spy usage (usage data is sparse and scheme-confounded), so this sits on film-based judgment rather than an analytics consensus.",
+        "recommendation": "Against top scrambling quarterbacks, assign the defense's fastest off-ball player as a dedicated spy on 3rd/4th-and-medium-plus, rushing four with the spy mirroring the QB rather than dropping into a standard zone.",
+        "title": "Dedicated Elite-Athlete QB Spy on Late Downs vs Mobile QBs",
+        "type": "defensive"
+      }
+    ]
+  },
+  "raw_text": "{\n  \"quantity\": {\n    \"description\": \"Change in own-team expected single-game scoring margin from adopting the strategy\",\n    \"units\": \"points\",\n    \"support\": \"unbounded real; positive favors own team\"\n  },\n  \"strategies\": [\n    {\n      \"bucket\": \"analytics\",\n      \"type\": \"game_management\",\n      \"title\": \"Model-Driven Fourth-Down Aggression\",\n      \"recommendation\": \"Go for it on fourth down whenever win-probability models show going for it is at least break-even, especially 4th-and-short between the opponent 45 and their 35 and near the goal line, instead of punting or kicking short field goals.\",\n      \"rationale\": \"Public WP/EPA models (nfl4th, Baldwin/Burke-style analyses) consistently show teams punt and kick far too often; capturing even most of the modeled surplus adds meaningful expected points and win probability over a season, and the edge is largest in close games where marginal points matter most.\",\n      \"prior\": {\n        \"belief_summaries\": {\n          \"most_plausible_value\": 0.6,\n          \"interval_95_low\": -0.2,\n          \"interval_95_high\": 2.0,\n          \"shape\": \"right_skewed\",\n          \"tails\": \"moderate\"\n        },\n        \"distribution_family\": {\n          \"name\": \"skew_normal\",\n          \"justification\": \"The downside is bounded (worst case is roughly reverting to conventional decisions plus a few bad conversions), while the upside from consistently harvesting modeled EV is larger, so the interval is clearly asymmetric around the mode.\"\n        },\n        \"parameters\": {\n          \"xi\": 0.1,\n          \"omega\": 0.8,\n          \"alpha\": 2.0,\n          \"conversion_note\": \"Fit numerically: with alpha=2 the standardized SN mode is ~0.65 and central 95% quantiles are roughly (-0.55, 2.25); omega=0.8 gives interval width ~2.2 and xi=0.6-0.65*0.8=0.08~0.1, so mode ~0.6 and 95% mass ~[-0.34, 1.9], approximately matching my summaries.\"\n        },\n        \"consistency_check\": \"Mode 0.6 lies inside [-0.2, 2.0]; skew-normal support is all real numbers, covering negative (backfire) effects. Quantile fit is approximate.\"\n      }\n    },\n    {\n      \"bucket\": \"analytics\",\n      \"type\": \"offensive\",\n      \"title\": \"Early-Down Pass and Play-Action Rate Increase\",\n      \"recommendation\": \"Raise pass rate on first and second down in neutral game states (roughly to a 60-65% early-down pass rate) and increase play-action usage toward 30%+ of dropbacks, cutting low-value first-down runs into stacked boxes.\",\n      \"rationale\": \"Published EPA research repeatedly shows early-down passes and play-action dropbacks outperform standard runs by a wide per-play margin, and that play-action efficiency does not require an established run game; shifting the play mix converts more drives into scores.\",\n      \"prior\": {\n        \"belief_summaries\": {\n          \"most_plausible_value\": 0.4,\n          \"interval_95_low\": -0.4,\n          \"interval_95_high\": 1.2,\n          \"shape\": \"symmetric\",\n          \"tails\": \"moderate\"\n        },\n        \"distribution_family\": {\n          \"name\": \"normal\",\n          \"justification\": \"Uncertainty is roughly symmetric — defenses may partially adapt (downside) or the per-play EPA gap may transfer nearly intact (upside) — with no strong reason to expect extreme surprises.\"\n        },\n        \"parameters\": {\n          \"mu\": 0.4,\n          \"sigma\": 0.408,\n          \"conversion_note\": \"mu = most_plausible = 0.4; sigma = (1.2 - (-0.4)) / 3.92 = 1.6 / 3.92 = 0.408, using the 1.96 normal critical value.\"\n        },\n        \"consistency_check\": \"Mode 0.4 lies inside [-0.4, 1.2]; normal support is all real numbers, covering signed effects.\"\n      }\n    },\n    {\n      \"bucket\": \"analytics\",\n      \"type\": \"defensive\",\n      \"title\": \"Blitz Less, Play More Two-High Coverage\",\n      \"recommendation\": \"Cut blitz rate to the league's low end and default to two-high, light-box structures in neutral and passing situations, rushing four and prioritizing prevention of explosive passes even at the cost of extra short runs.\",\n      \"rationale\": \"Analytics on defensive EPA shows explosive pass plays drive scoring far more than incremental rushing yards, and blitzes on average concede more EPA than four-man rushes with coverage help; trading small run losses for fewer explosives lowers opponent expected points.\",\n      \"prior\": {\n        \"belief_summaries\": {\n          \"most_plausible_value\": 0.3,\n          \"interval_95_low\": -0.6,\n          \"interval_95_high\": 1.2,\n          \"shape\": \"symmetric\",\n          \"tails\": \"moderate\"\n        },\n        \"distribution_family\": {\n          \"name\": \"normal\",\n          \"justification\": \"The effect depends symmetrically on personnel fit — a weak four-man rush could make passivity costly, while good coverage talent could amplify the gain — with no strong asymmetry or fat-tail mechanism.\"\n        },\n        \"parameters\": {\n          \"mu\": 0.3,\n          \"sigma\": 0.459,\n          \"conversion_note\": \"mu = most_plausible = 0.3; sigma = (1.2 - (-0.6)) / 3.92 = 1.8 / 3.92 = 0.459, using the 1.96 normal critical value.\"\n        },\n        \"consistency_check\": \"Mode 0.3 lies inside [-0.6, 1.2]; normal support is all real numbers, covering signed effects.\"\n      }\n    },\n    {\n      \"bucket\": \"intuition\",\n      \"type\": \"game_management\",\n      \"title\": \"Intentional Delay-of-Game Before Plus-Territory Punts\",\n      \"recommendation\": \"When punting from between midfield and the opponent 40, deliberately take a 5-yard delay-of-game penalty to give the punter more operating room and reduce touchback risk, aiming to pin inside the 10 rather than the 20.\",\n      \"rationale\": \"My judgment is that 5 yards of punter workspace is worth more than 5 yards of field position in this specific zone because touchbacks destroy pin value; public analytics is essentially silent or anecdotal on this micro-decision, so this rests on coaching feel about punter behavior, which is why it is intuition rather than analytics.\",\n      \"prior\": {\n        \"belief_summaries\": {\n          \"most_plausible_value\": 0.05,\n          \"interval_95_low\": -0.25,\n          \"interval_95_high\": 0.35,\n          \"shape\": \"symmetric\",\n          \"tails\": \"light\"\n        },\n        \"distribution_family\": {\n          \"name\": \"normal\",\n          \"justification\": \"This is a low-frequency, small-stakes decision; the plausible effect is near zero in either direction with no mechanism for a large surprise, so a light-tailed symmetric family fits.\"\n        },\n        \"parameters\": {\n          \"mu\": 0.05,\n          \"sigma\": 0.153,\n          \"conversion_note\": \"mu = most_plausible = 0.05; sigma = (0.35 - (-0.25)) / 3.92 = 0.6 / 3.92 = 0.153, using the 1.96 normal critical value.\"\n        },\n        \"consistency_check\": \"Mode 0.05 lies inside [-0.25, 0.35]; normal support is all real numbers, covering the honest possibility this backfires. This is admittedly the weakest cell and the prior reflects that.\"\n      }\n    },\n    {\n      \"bucket\": \"intuition\",\n      \"type\": \"offensive\",\n      \"title\": \"Scripted Tempo Bursts After Explosive Plays\",\n      \"recommendation\": \"Pre-script 3-play no-huddle bursts triggered immediately after any gain of 15+ yards, attacking before the defense can substitute, align, or communicate, then reverting to normal tempo.\",\n      \"rationale\": \"My coaching read is that defenses are most vulnerable in the 40 seconds after an explosive play (fatigue, personnel mismatch, disguise breakdown); public analytics on tempo is genuinely mixed — it confounds team quality and game state and has no clean causal estimate of conditional tempo — so this is judgment, not established analytics.\",\n      \"prior\": {\n        \"belief_summaries\": {\n          \"most_plausible_value\": 0.3,\n          \"interval_95_low\": -1.1,\n          \"interval_95_high\": 1.7,\n          \"shape\": \"symmetric\",\n          \"tails\": \"heavy\"\n        },\n        \"distribution_family\": {\n          \"name\": \"student_t\",\n          \"justification\": \"Tempo effects could plausibly be much larger than expected in either direction — trapping defenses in bad personnel, or shortening drives and exhausting my own defense — so I want heavy tails around a roughly symmetric center.\"\n        },\n        \"parameters\": {\n          \"nu\": 5,\n          \"mu\": 0.3,\n          \"sigma\": 0.545,\n          \"conversion_note\": \"nu = 5 chosen for clearly heavy tails; t_{0.975,5} = 2.571; mu = most_plausible = 0.3; sigma = (1.7 - (-1.1)) / (2 * 2.571) = 2.8 / 5.142 = 0.545 (scale parameter, not SD).\"\n        },\n        \"consistency_check\": \"Mode 0.3 lies inside [-1.1, 1.7]; Student-t support is all real numbers, covering signed effects.\"\n      }\n    },\n    {\n      \"bucket\": \"intuition\",\n      \"type\": \"defensive\",\n      \"title\": \"Dedicated Elite-Athlete QB Spy on Late Downs vs Mobile QBs\",\n      \"recommendation\": \"Against top scrambling quarterbacks, assign the defense's fastest off-ball player as a dedicated spy on 3rd/4th-and-medium-plus, rushing four with the spy mirroring the QB rather than dropping into a standard zone.\",\n      \"rationale\": \"Scramble conversions on late downs are drive-extending, momentum-swinging plays that I believe standard coverage systematically underweights; public analytics has no reliable causal estimate of spy usage (usage data is sparse and scheme-confounded), so this sits on film-based judgment rather than an analytics consensus.\",\n      \"prior\": {\n        \"belief_summaries\": {\n          \"most_plausible_value\": 0.15,\n          \"interval_95_low\": -0.7,\n          \"interval_95_high\": 1.0,\n          \"shape\": \"symmetric\",\n          \"tails\": \"moderate\"\n        },\n        \"distribution_family\": {\n          \"name\": \"normal\",\n          \"justification\": \"Removing a coverage defender could hurt roughly as easily as removing scramble yardage helps, and the situational frequency caps the magnitude, so a symmetric moderate-tailed family matches my belief.\"\n        },\n        \"parameters\": {\n          \"mu\": 0.15,\n          \"sigma\": 0.434,\n          \"conversion_note\": \"mu = most_plausible = 0.15; sigma = (1.0 - (-0.7)) / 3.92 = 1.7 / 3.92 = 0.434, using the 1.96 normal critical value.\"\n        },\n        \"consistency_check\": \"Mode 0.15 lies inside [-0.7, 1.0]; normal support is all real numbers, covering the possibility the vacated coverage costs more than the spy saves.\"\n      }\n    }\n  ]\n}",
+  "request_params": {
+    "max_tokens": 64000,
+    "model": "claude-fable-5",
+    "output_config": {
+      "effort": "high"
+    },
+    "thinking": {
+      "type": "adaptive"
+    }
+  },
+  "sample_idx": 0,
+  "seed": null,
+  "snapshot_id": "claude-fable-5",
+  "stop_reason": "end_turn",
+  "temperature": null,
+  "ts": "2026-07-31T03:46:16Z",
+  "usage": {
+    "input_tokens": 1,
+    "output_tokens": 6610
+  }
+}

@@ -20,15 +20,13 @@ doing the rating.
 ### 1.1 What the data looks like
 
 The input is `outputs/data/pairwise_results.csv`, the long-form output of the
-pairwise tournament. One row per **judge × pair × criterion** — and since judging
-is now a single criterion, one row per judge × pair, with `criterion` always
-reading `soundness` (the column is kept so the schema survives a future second
-criterion):
+pairwise tournament. One row per **judge × pair × criterion**, with `criterion`
+either `analytical_reasoning` or `intuitive_reasoning`:
 
 | judge | model_a | model_b | criterion | winner |
 |---|---|---|---|---|
-| claude-fable-5 | gemini-3.6-flash | claude-opus-5 | soundness | claude-opus-5 |
-| gpt-5.6-sol | gemini-3.6-flash | claude-opus-5 | soundness | gemini-3.6-flash |
+| claude-fable-5 | gemini-3.6-flash | claude-opus-5 | analytical_reasoning | claude-opus-5 |
+| gpt-5.6-sol | gemini-3.6-flash | claude-opus-5 | intuitive_reasoning | gemini-3.6-flash |
 | … | … | … | … | … |
 
 Each row is a single **forced binary comparison**: a judge looked at two
@@ -61,7 +59,7 @@ value proposition of this stage:
    the same lab as a candidate may favor it). The model estimates each of these
    and *removes* them from the strength estimates, rather than letting them
    contaminate the leaderboard.
-3. **Partial pooling.** With only four judges, estimating each judge's biases
+3. **Partial pooling.** With only three judges, estimating each judge's biases
    independently would be noisy and overconfident. A hierarchical structure
    shares information across judges, shrinking extreme per-judge estimates toward
    the panel average in proportion to how much data supports them.
@@ -225,9 +223,9 @@ $$
 - Each $\gamma_j$ is the panel mean plus a judge-specific deviation.
 
 This is partial pooling: if the data don't strongly distinguish a judge, its
-$\gamma_j$ shrinks toward $\mu_\gamma$. With only four judges this shrinkage is
+$\gamma_j$ shrinks toward $\mu_\gamma$. With only three judges this shrinkage is
 substantial and intentional — it prevents wild per-judge estimates from one or
-two unusual comparisons. (Caveat in §7: with four judges the variance parameters
+two unusual comparisons. (Caveat in §7: with three judges the variance parameters
 are only weakly identified and lean on their priors, so the per-judge numbers
 should be read as directional.)
 
@@ -293,7 +291,7 @@ creating a pinched "funnel" in the posterior that Hamiltonian Monte Carlo (the
 NUTS sampler PyMC uses) struggles to traverse — it produces divergences and
 biased estimates. The non-centered form decouples the $z$'s from the variance, so
 the geometry the sampler explores is a clean unit normal regardless of how small
-$\sigma_\gamma$ turns out to be. With only four judges (so the variances *are*
+$\sigma_\gamma$ turns out to be. With only three judges (so the variances *are*
 small and poorly informed), this reparameterization is essentially mandatory for
 clean sampling.
 
@@ -442,10 +440,10 @@ HDI_PROB = 0.94       # credible-interval mass for all reported HDIs
 
 A separate model is fit **per track**, one track per judged criterion, since each
 criterion is a distinct notion of quality and pooling them would blur
-criterion-specific strengths. Judging is currently a single criterion, so there is
-exactly one track (`soundness`) and no pooled `overall` fit to make — the
-soundness leaderboard *is* the overall leaderboard. (An earlier version fit three:
-`soundness`, `priors`, and a pooled `overall`; the priors criterion was retired.)
+criterion-specific strengths. Judging covers two criteria, so there are two tracks
+(`analytical_reasoning`, `intuitive_reasoning`) and no pooled `overall` fit — each
+leaderboard stands on its own. (Earlier versions fit `soundness` alone, and before
+that `soundness` + `priors` + a pooled `overall`; both designs were retired.)
 
 ---
 

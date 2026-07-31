@@ -68,10 +68,12 @@ def test_self_sign_array_matches_rows():
 # --- tracks ---------------------------------------------------------------------------
 
 
-def test_soundness_is_the_only_track():
-    # Judging is a single criterion, so there is no per-criterion facet and no
-    # pooled "overall" track to fit.
-    assert bt.TRACKS == ("soundness",)
+def test_tracks_mirror_the_judged_criteria():
+    # One BT track per judged criterion; no pooled "overall" track is fit.
+    from footval import pairwise
+
+    assert bt.TRACKS == pairwise.CRITERIA_PAIRWISE
+    assert bt.TRACKS == ("analytical_reasoning", "intuitive_reasoning")
 
 
 def test_track_filters_by_criterion():

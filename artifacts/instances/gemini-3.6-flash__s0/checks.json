@@ -1,0 +1,179 @@
+{
+  "detail": {
+    "grid": {
+      "duplicate_cells": [],
+      "duplicate_titles": [],
+      "issues": [],
+      "missing_cells": [],
+      "n_strategies": 6
+    },
+    "json": {
+      "missing_keys": []
+    },
+    "parse_mode": "direct",
+    "strategies": [
+      {
+        "cell": "analytics/game_management",
+        "errors": {
+          "center": 0.0,
+          "high": 4.8000000000048004e-05,
+          "low": 4.799999999988147e-05
+        },
+        "family": "normal",
+        "family_valid": true,
+        "idx": 0,
+        "interval_sane": true,
+        "params_ok": true,
+        "reason": null,
+        "recomputed": {
+          "center": 1.4,
+          "high": 2.499952,
+          "low": 0.30004799999999987
+        },
+        "reported": {
+          "high": 2.5,
+          "low": 0.3,
+          "most_plausible_value": 1.4
+        },
+        "title": "Aggressive 4th-Down Conversion Decision Rules",
+        "tol_abs": 0.22000000000000003
+      },
+      {
+        "cell": "analytics/offensive",
+        "errors": {
+          "center": 0.0,
+          "high": 7.552689224521458e-05,
+          "low": 7.552689224513132e-05
+        },
+        "family": "student_t",
+        "family_valid": true,
+        "idx": 1,
+        "interval_sane": true,
+        "params_ok": true,
+        "reason": null,
+        "recomputed": {
+          "center": 1.1,
+          "high": 2.1000755268922453,
+          "low": 0.09992447310775487
+        },
+        "reported": {
+          "high": 2.1,
+          "low": 0.1,
+          "most_plausible_value": 1.1
+        },
+        "title": "High-Volume Pre-Snap and Snap-Motion Usage",
+        "tol_abs": 0.2
+      },
+      {
+        "cell": "analytics/defensive",
+        "errors": {
+          "center": 0.0,
+          "high": 0.00018965474182142117,
+          "low": 0.00018965474182147668
+        },
+        "family": "student_t",
+        "family_valid": true,
+        "idx": 2,
+        "interval_sane": true,
+        "params_ok": true,
+        "reason": null,
+        "recomputed": {
+          "center": 0.75,
+          "high": 1.9498103452581785,
+          "low": -0.44981034525817853
+        },
+        "reported": {
+          "high": 1.95,
+          "low": -0.45,
+          "most_plausible_value": 0.75
+        },
+        "title": "Early-Down Two-High Safety Shells",
+        "tol_abs": 0.24
+      },
+      {
+        "cell": "intuition/game_management",
+        "errors": {
+          "center": 0.09686949276951695,
+          "high": 0.3034728331065639,
+          "low": 0.1805908594824731
+        },
+        "family": "skew_normal",
+        "family_valid": true,
+        "idx": 3,
+        "interval_sane": true,
+        "params_ok": false,
+        "reason": "recomputed high deviates from reported by 0.3035 (tolerance 0.27 = 0.1 x interval width)",
+        "recomputed": {
+          "center": 0.34686949276951695,
+          "high": 2.153472833106564,
+          "low": -0.6694091405175269
+        },
+        "reported": {
+          "high": 1.85,
+          "low": -0.85,
+          "most_plausible_value": 0.25
+        },
+        "title": "Early Second-Half Timeout Calls for Momentum Interruption",
+        "tol_abs": 0.27
+      },
+      {
+        "cell": "intuition/offensive",
+        "errors": {
+          "center": 0.15014313753667768,
+          "high": 0.13667874345358877,
+          "low": 0.22657437246388756
+        },
+        "family": "skew_normal",
+        "family_valid": true,
+        "idx": 4,
+        "interval_sane": true,
+        "params_ok": true,
+        "reason": null,
+        "recomputed": {
+          "center": 0.3498568624633223,
+          "high": 1.3633212565464112,
+          "low": -1.3265743724638877
+        },
+        "reported": {
+          "high": 1.5,
+          "low": -1.1,
+          "most_plausible_value": 0.5
+        },
+        "title": "Heavy-Personnel No-Huddle Deep Sequences",
+        "tol_abs": 0.26
+      },
+      {
+        "cell": "intuition/defensive",
+        "errors": {
+          "center": 0.0,
+          "high": 0.00020924276412692677,
+          "low": 0.00020924276412681575
+        },
+        "family": "student_t",
+        "family_valid": true,
+        "idx": 5,
+        "interval_sane": true,
+        "params_ok": true,
+        "reason": null,
+        "recomputed": {
+          "center": 0.35,
+          "high": 1.6502092427641268,
+          "low": -0.9502092427641268
+        },
+        "reported": {
+          "high": 1.65,
+          "low": -0.95,
+          "most_plausible_value": 0.35
+        },
+        "title": "Target-Bracket Secondary Options on Third Down",
+        "tol_abs": 0.25999999999999995
+      }
+    ]
+  },
+  "family_ok": true,
+  "grid_complete": true,
+  "instance_id": "gemini-3.6-flash__s0",
+  "intervals_ok": true,
+  "json_valid": true,
+  "params_reproduce_ok": false
+}

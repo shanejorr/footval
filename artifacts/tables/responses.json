@@ -1,0 +1,1449 @@
+[
+  {
+    "instance_id": "claude-fable-5__s0",
+    "model": "claude-fable-5",
+    "parse_mode": "direct",
+    "parsed_json": {
+      "quantity": {
+        "description": "Change in own-team expected single-game scoring margin from adopting the strategy",
+        "support": "unbounded real; positive favors own team",
+        "units": "points"
+      },
+      "strategies": [
+        {
+          "bucket": "analytics",
+          "prior": {
+            "belief_summaries": {
+              "interval_95_high": 2.0,
+              "interval_95_low": -0.2,
+              "most_plausible_value": 0.6,
+              "shape": "right_skewed",
+              "tails": "moderate"
+            },
+            "consistency_check": "Mode 0.6 lies inside [-0.2, 2.0]; skew-normal support is all real numbers, covering negative (backfire) effects. Quantile fit is approximate.",
+            "distribution_family": {
+              "justification": "The downside is bounded (worst case is roughly reverting to conventional decisions plus a few bad conversions), while the upside from consistently harvesting modeled EV is larger, so the interval is clearly asymmetric around the mode.",
+              "name": "skew_normal"
+            },
+            "parameters": {
+              "alpha": 2.0,
+              "conversion_note": "Fit numerically: with alpha=2 the standardized SN mode is ~0.65 and central 95% quantiles are roughly (-0.55, 2.25); omega=0.8 gives interval width ~2.2 and xi=0.6-0.65*0.8=0.08~0.1, so mode ~0.6 and 95% mass ~[-0.34, 1.9], approximately matching my summaries.",
+              "omega": 0.8,
+              "xi": 0.1
+            }
+          },
+          "rationale": "Public WP/EPA models (nfl4th, Baldwin/Burke-style analyses) consistently show teams punt and kick far too often; capturing even most of the modeled surplus adds meaningful expected points and win probability over a season, and the edge is largest in close games where marginal points matter most.",
+          "recommendation": "Go for it on fourth down whenever win-probability models show going for it is at least break-even, especially 4th-and-short between the opponent 45 and their 35 and near the goal line, instead of punting or kicking short field goals.",
+          "title": "Model-Driven Fourth-Down Aggression",
+          "type": "game_management"
+        },
+        {
+          "bucket": "analytics",
+          "prior": {
+            "belief_summaries": {
+              "interval_95_high": 1.2,
+              "interval_95_low": -0.4,
+              "most_plausible_value": 0.4,
+              "shape": "symmetric",
+              "tails": "moderate"
+            },
+            "consistency_check": "Mode 0.4 lies inside [-0.4, 1.2]; normal support is all real numbers, covering signed effects.",
+            "distribution_family": {
+              "justification": "Uncertainty is roughly symmetric — defenses may partially adapt (downside) or the per-play EPA gap may transfer nearly intact (upside) — with no strong reason to expect extreme surprises.",
+              "name": "normal"
+            },
+            "parameters": {
+              "conversion_note": "mu = most_plausible = 0.4; sigma = (1.2 - (-0.4)) / 3.92 = 1.6 / 3.92 = 0.408, using the 1.96 normal critical value.",
+              "mu": 0.4,
+              "sigma": 0.408
+            }
+          },
+          "rationale": "Published EPA research repeatedly shows early-down passes and play-action dropbacks outperform standard runs by a wide per-play margin, and that play-action efficiency does not require an established run game; shifting the play mix converts more drives into scores.",
+          "recommendation": "Raise pass rate on first and second down in neutral game states (roughly to a 60-65% early-down pass rate) and increase play-action usage toward 30%+ of dropbacks, cutting low-value first-down runs into stacked boxes.",
+          "title": "Early-Down Pass and Play-Action Rate Increase",
+          "type": "offensive"
+        },
+        {
+          "bucket": "analytics",
+          "prior": {
+            "belief_summaries": {
+              "interval_95_high": 1.2,
+              "interval_95_low": -0.6,
+              "most_plausible_value": 0.3,
+              "shape": "symmetric",
+              "tails": "moderate"
+            },
+            "consistency_check": "Mode 0.3 lies inside [-0.6, 1.2]; normal support is all real numbers, covering signed effects.",
+            "distribution_family": {
+              "justification": "The effect depends symmetrically on personnel fit — a weak four-man rush could make passivity costly, while good coverage talent could amplify the gain — with no strong asymmetry or fat-tail mechanism.",
+              "name": "normal"
+            },
+            "parameters": {
+              "conversion_note": "mu = most_plausible = 0.3; sigma = (1.2 - (-0.6)) / 3.92 = 1.8 / 3.92 = 0.459, using the 1.96 normal critical value.",
+              "mu": 0.3,
+              "sigma": 0.459
+            }
+          },
+          "rationale": "Analytics on defensive EPA shows explosive pass plays drive scoring far more than incremental rushing yards, and blitzes on average concede more EPA than four-man rushes with coverage help; trading small run losses for fewer explosives lowers opponent expected points.",
+          "recommendation": "Cut blitz rate to the league's low end and default to two-high, light-box structures in neutral and passing situations, rushing four and prioritizing prevention of explosive passes even at the cost of extra short runs.",
+          "title": "Blitz Less, Play More Two-High Coverage",
+          "type": "defensive"
+        },
+        {
+          "bucket": "intuition",
+          "prior": {
+            "belief_summaries": {
+              "interval_95_high": 0.35,
+              "interval_95_low": -0.25,
+              "most_plausible_value": 0.05,
+              "shape": "symmetric",
+              "tails": "light"
+            },
+            "consistency_check": "Mode 0.05 lies inside [-0.25, 0.35]; normal support is all real numbers, covering the honest possibility this backfires. This is admittedly the weakest cell and the prior reflects that.",
+            "distribution_family": {
+              "justification": "This is a low-frequency, small-stakes decision; the plausible effect is near zero in either direction with no mechanism for a large surprise, so a light-tailed symmetric family fits.",
+              "name": "normal"
+            },
+            "parameters": {
+              "conversion_note": "mu = most_plausible = 0.05; sigma = (0.35 - (-0.25)) / 3.92 = 0.6 / 3.92 = 0.153, using the 1.96 normal critical value.",
+              "mu": 0.05,
+              "sigma": 0.153
+            }
+          },
+          "rationale": "My judgment is that 5 yards of punter workspace is worth more than 5 yards of field position in this specific zone because touchbacks destroy pin value; public analytics is essentially silent or anecdotal on this micro-decision, so this rests on coaching feel about punter behavior, which is why it is intuition rather than analytics.",
+          "recommendation": "When punting from between midfield and the opponent 40, deliberately take a 5-yard delay-of-game penalty to give the punter more operating room and reduce touchback risk, aiming to pin inside the 10 rather than the 20.",
+          "title": "Intentional Delay-of-Game Before Plus-Territory Punts",
+          "type": "game_management"
+        },
+        {
+          "bucket": "intuition",
+          "prior": {
+            "belief_summaries": {
+              "interval_95_high": 1.7,
+              "interval_95_low": -1.1,
+              "most_plausible_value": 0.3,
+              "shape": "symmetric",
+              "tails": "heavy"
+            },
+            "consistency_check": "Mode 0.3 lies inside [-1.1, 1.7]; Student-t support is all real numbers, covering signed effects.",
+            "distribution_family": {
+              "justification": "Tempo effects could plausibly be much larger than expected in either direction — trapping defenses in bad personnel, or shortening drives and exhausting my own defense — so I want heavy tails around a roughly symmetric center.",
+              "name": "student_t"
+            },
+            "parameters": {
+              "conversion_note": "nu = 5 chosen for clearly heavy tails; t_{0.975,5} = 2.571; mu = most_plausible = 0.3; sigma = (1.7 - (-1.1)) / (2 * 2.571) = 2.8 / 5.142 = 0.545 (scale parameter, not SD).",
+              "mu": 0.3,
+              "nu": 5,
+              "sigma": 0.545
+            }
+          },
+          "rationale": "My coaching read is that defenses are most vulnerable in the 40 seconds after an explosive play (fatigue, personnel mismatch, disguise breakdown); public analytics on tempo is genuinely mixed — it confounds team quality and game state and has no clean causal estimate of conditional tempo — so this is judgment, not established analytics.",
+          "recommendation": "Pre-script 3-play no-huddle bursts triggered immediately after any gain of 15+ yards, attacking before the defense can substitute, align, or communicate, then reverting to normal tempo.",
+          "title": "Scripted Tempo Bursts After Explosive Plays",
+          "type": "offensive"
+        },
+        {
+          "bucket": "intuition",
+          "prior": {
+            "belief_summaries": {
+              "interval_95_high": 1.0,
+              "interval_95_low": -0.7,
+              "most_plausible_value": 0.15,
+              "shape": "symmetric",
+              "tails": "moderate"
+            },
+            "consistency_check": "Mode 0.15 lies inside [-0.7, 1.0]; normal support is all real numbers, covering the possibility the vacated coverage costs more than the spy saves.",
+            "distribution_family": {
+              "justification": "Removing a coverage defender could hurt roughly as easily as removing scramble yardage helps, and the situational frequency caps the magnitude, so a symmetric moderate-tailed family matches my belief.",
+              "name": "normal"
+            },
+            "parameters": {
+              "conversion_note": "mu = most_plausible = 0.15; sigma = (1.0 - (-0.7)) / 3.92 = 1.7 / 3.92 = 0.434, using the 1.96 normal critical value.",
+              "mu": 0.15,
+              "sigma": 0.434
+            }
+          },
+          "rationale": "Scramble conversions on late downs are drive-extending, momentum-swinging plays that I believe standard coverage systematically underweights; public analytics has no reliable causal estimate of spy usage (usage data is sparse and scheme-confounded), so this sits on film-based judgment rather than an analytics consensus.",
+          "recommendation": "Against top scrambling quarterbacks, assign the defense's fastest off-ball player as a dedicated spy on 3rd/4th-and-medium-plus, rushing four with the spy mirroring the QB rather than dropping into a standard zone.",
+          "title": "Dedicated Elite-Athlete QB Spy on Late Downs vs Mobile QBs",
+          "type": "defensive"
+        }
+      ]
+    },
+    "raw_text": "{\n  \"quantity\": {\n    \"description\": \"Change in own-team expected single-game scoring margin from adopting the strategy\",\n    \"units\": \"points\",\n    \"support\": \"unbounded real; positive favors own team\"\n  },\n  \"strategies\": [\n    {\n      \"bucket\": \"analytics\",\n      \"type\": \"game_management\",\n      \"title\": \"Model-Driven Fourth-Down Aggression\",\n      \"recommendation\": \"Go for it on fourth down whenever win-probability models show going for it is at least break-even, especially 4th-and-short between the opponent 45 and their 35 and near the goal line, instead of punting or kicking short field goals.\",\n      \"rationale\": \"Public WP/EPA models (nfl4th, Baldwin/Burke-style analyses) consistently show teams punt and kick far too often; capturing even most of the modeled surplus adds meaningful expected points and win probability over a season, and the edge is largest in close games where marginal points matter most.\",\n      \"prior\": {\n        \"belief_summaries\": {\n          \"most_plausible_value\": 0.6,\n          \"interval_95_low\": -0.2,\n          \"interval_95_high\": 2.0,\n          \"shape\": \"right_skewed\",\n          \"tails\": \"moderate\"\n        },\n        \"distribution_family\": {\n          \"name\": \"skew_normal\",\n          \"justification\": \"The downside is bounded (worst case is roughly reverting to conventional decisions plus a few bad conversions), while the upside from consistently harvesting modeled EV is larger, so the interval is clearly asymmetric around the mode.\"\n        },\n        \"parameters\": {\n          \"xi\": 0.1,\n          \"omega\": 0.8,\n          \"alpha\": 2.0,\n          \"conversion_note\": \"Fit numerically: with alpha=2 the standardized SN mode is ~0.65 and central 95% quantiles are roughly (-0.55, 2.25); omega=0.8 gives interval width ~2.2 and xi=0.6-0.65*0.8=0.08~0.1, so mode ~0.6 and 95% mass ~[-0.34, 1.9], approximately matching my summaries.\"\n        },\n        \"consistency_check\": \"Mode 0.6 lies inside [-0.2, 2.0]; skew-normal support is all real numbers, covering negative (backfire) effects. Quantile fit is approximate.\"\n      }\n    },\n    {\n      \"bucket\": \"analytics\",\n      \"type\": \"offensive\",\n      \"title\": \"Early-Down Pass and Play-Action Rate Increase\",\n      \"recommendation\": \"Raise pass rate on first and second down in neutral game states (roughly to a 60-65% early-down pass rate) and increase play-action usage toward 30%+ of dropbacks, cutting low-value first-down runs into stacked boxes.\",\n      \"rationale\": \"Published EPA research repeatedly shows early-down passes and play-action dropbacks outperform standard runs by a wide per-play margin, and that play-action efficiency does not require an established run game; shifting the play mix converts more drives into scores.\",\n      \"prior\": {\n        \"belief_summaries\": {\n          \"most_plausible_value\": 0.4,\n          \"interval_95_low\": -0.4,\n          \"interval_95_high\": 1.2,\n          \"shape\": \"symmetric\",\n          \"tails\": \"moderate\"\n        },\n        \"distribution_family\": {\n          \"name\": \"normal\",\n          \"justification\": \"Uncertainty is roughly symmetric — defenses may partially adapt (downside) or the per-play EPA gap may transfer nearly intact (upside) — with no strong reason to expect extreme surprises.\"\n        },\n        \"parameters\": {\n          \"mu\": 0.4,\n          \"sigma\": 0.408,\n          \"conversion_note\": \"mu = most_plausible = 0.4; sigma = (1.2 - (-0.4)) / 3.92 = 1.6 / 3.92 = 0.408, using the 1.96 normal critical value.\"\n        },\n        \"consistency_check\": \"Mode 0.4 lies inside [-0.4, 1.2]; normal support is all real numbers, covering signed effects.\"\n      }\n    },\n    {\n      \"bucket\": \"analytics\",\n      \"type\": \"defensive\",\n      \"title\": \"Blitz Less, Play More Two-High Coverage\",\n      \"recommendation\": \"Cut blitz rate to the league's low end and default to two-high, light-box structures in neutral and passing situations, rushing four and prioritizing prevention of explosive passes even at the cost of extra short runs.\",\n      \"rationale\": \"Analytics on defensive EPA shows explosive pass plays drive scoring far more than incremental rushing yards, and blitzes on average concede more EPA than four-man rushes with coverage help; trading small run losses for fewer explosives lowers opponent expected points.\",\n      \"prior\": {\n        \"belief_summaries\": {\n          \"most_plausible_value\": 0.3,\n          \"interval_95_low\": -0.6,\n          \"interval_95_high\": 1.2,\n          \"shape\": \"symmetric\",\n          \"tails\": \"moderate\"\n        },\n        \"distribution_family\": {\n          \"name\": \"normal\",\n          \"justification\": \"The effect depends symmetrically on personnel fit — a weak four-man rush could make passivity costly, while good coverage talent could amplify the gain — with no strong asymmetry or fat-tail mechanism.\"\n        },\n        \"parameters\": {\n          \"mu\": 0.3,\n          \"sigma\": 0.459,\n          \"conversion_note\": \"mu = most_plausible = 0.3; sigma = (1.2 - (-0.6)) / 3.92 = 1.8 / 3.92 = 0.459, using the 1.96 normal critical value.\"\n        },\n        \"consistency_check\": \"Mode 0.3 lies inside [-0.6, 1.2]; normal support is all real numbers, covering signed effects.\"\n      }\n    },\n    {\n      \"bucket\": \"intuition\",\n      \"type\": \"game_management\",\n      \"title\": \"Intentional Delay-of-Game Before Plus-Territory Punts\",\n      \"recommendation\": \"When punting from between midfield and the opponent 40, deliberately take a 5-yard delay-of-game penalty to give the punter more operating room and reduce touchback risk, aiming to pin inside the 10 rather than the 20.\",\n      \"rationale\": \"My judgment is that 5 yards of punter workspace is worth more than 5 yards of field position in this specific zone because touchbacks destroy pin value; public analytics is essentially silent or anecdotal on this micro-decision, so this rests on coaching feel about punter behavior, which is why it is intuition rather than analytics.\",\n      \"prior\": {\n        \"belief_summaries\": {\n          \"most_plausible_value\": 0.05,\n          \"interval_95_low\": -0.25,\n          \"interval_95_high\": 0.35,\n          \"shape\": \"symmetric\",\n          \"tails\": \"light\"\n        },\n        \"distribution_family\": {\n          \"name\": \"normal\",\n          \"justification\": \"This is a low-frequency, small-stakes decision; the plausible effect is near zero in either direction with no mechanism for a large surprise, so a light-tailed symmetric family fits.\"\n        },\n        \"parameters\": {\n          \"mu\": 0.05,\n          \"sigma\": 0.153,\n          \"conversion_note\": \"mu = most_plausible = 0.05; sigma = (0.35 - (-0.25)) / 3.92 = 0.6 / 3.92 = 0.153, using the 1.96 normal critical value.\"\n        },\n        \"consistency_check\": \"Mode 0.05 lies inside [-0.25, 0.35]; normal support is all real numbers, covering the honest possibility this backfires. This is admittedly the weakest cell and the prior reflects that.\"\n      }\n    },\n    {\n      \"bucket\": \"intuition\",\n      \"type\": \"offensive\",\n      \"title\": \"Scripted Tempo Bursts After Explosive Plays\",\n      \"recommendation\": \"Pre-script 3-play no-huddle bursts triggered immediately after any gain of 15+ yards, attacking before the defense can substitute, align, or communicate, then reverting to normal tempo.\",\n      \"rationale\": \"My coaching read is that defenses are most vulnerable in the 40 seconds after an explosive play (fatigue, personnel mismatch, disguise breakdown); public analytics on tempo is genuinely mixed — it confounds team quality and game state and has no clean causal estimate of conditional tempo — so this is judgment, not established analytics.\",\n      \"prior\": {\n        \"belief_summaries\": {\n          \"most_plausible_value\": 0.3,\n          \"interval_95_low\": -1.1,\n          \"interval_95_high\": 1.7,\n          \"shape\": \"symmetric\",\n          \"tails\": \"heavy\"\n        },\n        \"distribution_family\": {\n          \"name\": \"student_t\",\n          \"justification\": \"Tempo effects could plausibly be much larger than expected in either direction — trapping defenses in bad personnel, or shortening drives and exhausting my own defense — so I want heavy tails around a roughly symmetric center.\"\n        },\n        \"parameters\": {\n          \"nu\": 5,\n          \"mu\": 0.3,\n          \"sigma\": 0.545,\n          \"conversion_note\": \"nu = 5 chosen for clearly heavy tails; t_{0.975,5} = 2.571; mu = most_plausible = 0.3; sigma = (1.7 - (-1.1)) / (2 * 2.571) = 2.8 / 5.142 = 0.545 (scale parameter, not SD).\"\n        },\n        \"consistency_check\": \"Mode 0.3 lies inside [-1.1, 1.7]; Student-t support is all real numbers, covering signed effects.\"\n      }\n    },\n    {\n      \"bucket\": \"intuition\",\n      \"type\": \"defensive\",\n      \"title\": \"Dedicated Elite-Athlete QB Spy on Late Downs vs Mobile QBs\",\n      \"recommendation\": \"Against top scrambling quarterbacks, assign the defense's fastest off-ball player as a dedicated spy on 3rd/4th-and-medium-plus, rushing four with the spy mirroring the QB rather than dropping into a standard zone.\",\n      \"rationale\": \"Scramble conversions on late downs are drive-extending, momentum-swinging plays that I believe standard coverage systematically underweights; public analytics has no reliable causal estimate of spy usage (usage data is sparse and scheme-confounded), so this sits on film-based judgment rather than an analytics consensus.\",\n      \"prior\": {\n        \"belief_summaries\": {\n          \"most_plausible_value\": 0.15,\n          \"interval_95_low\": -0.7,\n          \"interval_95_high\": 1.0,\n          \"shape\": \"symmetric\",\n          \"tails\": \"moderate\"\n        },\n        \"distribution_family\": {\n          \"name\": \"normal\",\n          \"justification\": \"Removing a coverage defender could hurt roughly as easily as removing scramble yardage helps, and the situational frequency caps the magnitude, so a symmetric moderate-tailed family matches my belief.\"\n        },\n        \"parameters\": {\n          \"mu\": 0.15,\n          \"sigma\": 0.434,\n          \"conversion_note\": \"mu = most_plausible = 0.15; sigma = (1.0 - (-0.7)) / 3.92 = 1.7 / 3.92 = 0.434, using the 1.96 normal critical value.\"\n        },\n        \"consistency_check\": \"Mode 0.15 lies inside [-0.7, 1.0]; normal support is all real numbers, covering the possibility the vacated coverage costs more than the spy saves.\"\n      }\n    }\n  ]\n}",
+    "sample_idx": 0,
+    "seed": null,
+    "snapshot_id": "claude-fable-5",
+    "stop_reason": "end_turn",
+    "temperature": null,
+    "ts": "2026-07-31T03:46:16Z"
+  },
+  {
+    "instance_id": "claude-opus-5__s0",
+    "model": "claude-opus-5",
+    "parse_mode": "direct",
+    "parsed_json": {
+      "quantity": {
+        "description": "Change in own-team expected single-game scoring margin from adopting the strategy",
+        "support": "unbounded real; positive favors own team",
+        "units": "points"
+      },
+      "strategies": [
+        {
+          "bucket": "analytics",
+          "prior": {
+            "belief_summaries": {
+              "interval_95_high": 2.1,
+              "interval_95_low": -0.2,
+              "most_plausible_value": 0.85,
+              "shape": "right_skewed",
+              "tails": "moderate"
+            },
+            "consistency_check": "Mode 0.85 lies inside [-0.20, 2.10]; skew-normal support is all of R, covering negative (backfire) effects.",
+            "distribution_family": {
+              "justification": "The downside is bounded by the fact that model-recommended gambles are only mildly better than the alternative in most spots, while a strong short-yardage offense could make the payoff substantially larger, so the upside tail is longer.",
+              "name": "skew_normal"
+            },
+            "parameters": {
+              "alpha": 1.2,
+              "conversion_note": "Fit numerically. For standardized skew-normal with alpha=1.2: mode_z = 0.531, 2.5% quantile_z = -0.90, 97.5% quantile_z = 2.238 (alpha=1 has closed form F(z)=Phi(z)^2 giving z-quantiles -1.003/2.239; alpha=1.2 interpolated). Target interval width 2.10-(-0.20)=2.30, so omega = 2.30/3.138 = 0.733; xi = 0.85 - 0.733*0.531 = 0.461. Back-check: xi+omega*(-0.90) = -0.20, xi+omega*2.238 = 2.10.",
+              "mu": null,
+              "omega": 0.73,
+              "sigma": null,
+              "xi": 0.46
+            }
+          },
+          "rationale": "Published WP models show teams still punt or kick in thousands of situations per season where going for it is worth 1-4% win probability each; harvesting those spots is the cheapest available edge and compounds across a full season without requiring any new personnel.",
+          "recommendation": "Follow a win-probability-based 4th-down model on essentially every decision, including going for it on 4th-and-short between our own 35 and the opponent's 40, and kicking far fewer long field goals inside the opponent's 35 on 4th-and-medium. Pre-commit in the week's game plan so the decision is made before the play clock starts.",
+          "title": "Full 4th-down bot compliance, including own territory",
+          "type": "game_management"
+        },
+        {
+          "bucket": "analytics",
+          "prior": {
+            "belief_summaries": {
+              "interval_95_high": 2.7,
+              "interval_95_low": -0.35,
+              "most_plausible_value": 1.15,
+              "shape": "symmetric",
+              "tails": "heavy"
+            },
+            "consistency_check": "Mode/median 1.15 lies inside [-0.35, 2.70]; Student-t support is unbounded on both sides, allowing a negative effect.",
+            "distribution_family": {
+              "justification": "The central estimate is well supported, but the true effect depends heavily on my quarterback, pass protection, and how defenses adapt, so a surprisingly large positive or negative realization is plausible.",
+              "name": "student_t"
+            },
+            "parameters": {
+              "conversion_note": "sigma = (2.70 - (-0.35)) / (2 * t_{0.975,7}) = 3.05 / (2 * 2.36) = 3.05 / 4.72 = 0.646. Critical value used: t_{0.975,7} = 2.36.",
+              "mu": 1.15,
+              "nu": 7,
+              "sigma": 0.646
+            }
+          },
+          "rationale": "Public EPA data consistently shows early-down passes outgain early-down runs by a wide margin, and play-action carries a large yards-per-attempt and EPA premium that is empirically uncorrelated with actual run-game success; more efficient early downs mean more manageable third downs, more drives, and more points.",
+          "recommendation": "Raise 1st-and-10 dropback rate in the first three quarters toward 60-65% and attach play-action to roughly 35-40% of dropbacks regardless of down, distance, or whether the run game is 'working.' Keep tempo neutral so defenses stay in base personnel against pass concepts.",
+          "title": "Early-down pass-first with heavy play-action",
+          "type": "offensive"
+        },
+        {
+          "bucket": "analytics",
+          "prior": {
+            "belief_summaries": {
+              "interval_95_high": 1.75,
+              "interval_95_low": -0.85,
+              "most_plausible_value": 0.45,
+              "shape": "symmetric",
+              "tails": "moderate"
+            },
+            "consistency_check": "Mode 0.45 lies inside [-0.85, 1.75]; normal support is unbounded and signed.",
+            "distribution_family": {
+              "justification": "My belief is roughly symmetric around a modest positive effect, and the strategy's dependence on having four rushers who can win alone caps both the upside and downside at moderate magnitudes.",
+              "name": "normal"
+            },
+            "parameters": {
+              "conversion_note": "sigma = (1.75 - (-0.85)) / 3.92 = 2.60 / 3.92 = 0.663.",
+              "mu": 0.45,
+              "sigma": 0.663
+            }
+          },
+          "rationale": "EPA-per-play data show that opponent rushing efficiency is far less predictive of scoring than explosive passing, and that blitzes that fail produce enormous negative EPA; eliminating explosives and forcing long, mistake-prone drives lowers opponent points more than stuffing runs does.",
+          "recommendation": "Default to two-high split-safety structures with a six-man box on early downs, deliberately conceding 4-yard runs, and generate pressure with four-man simulated pressures and stunts instead of five- and six-man blitzes outside of clear passing downs. Blitz volume drops to roughly the bottom quartile of the league.",
+          "title": "Light boxes and split-safety early downs, four-man simulated pressure",
+          "type": "defensive"
+        },
+        {
+          "bucket": "intuition",
+          "prior": {
+            "belief_summaries": {
+              "interval_95_high": 1.1,
+              "interval_95_low": -0.65,
+              "most_plausible_value": 0.22,
+              "shape": "symmetric",
+              "tails": "heavy"
+            },
+            "consistency_check": "Mode/median 0.22 lies inside [-0.65, 1.10]; Student-t support is unbounded and signed. Honest note: this is my weakest recommendation and the interval covers zero comfortably.",
+            "distribution_family": {
+              "justification": "This is a genuinely weak, evidence-thin pick with a plausibly near-zero effect, but if it prevents a handful of catastrophic pre-snap situations per season the effect could be larger than I expect in either direction.",
+              "name": "student_t"
+            },
+            "parameters": {
+              "conversion_note": "sigma = (1.10 - (-0.65)) / (2 * t_{0.975,5}) = 1.75 / (2 * 2.571) = 1.75 / 5.142 = 0.340. Critical value used: t_{0.975,5} = 2.571.",
+              "mu": 0.22,
+              "nu": 5,
+              "sigma": 0.34
+            }
+          },
+          "rationale": "Public analytics prices timeouts almost entirely through end-of-half clock value and is essentially silent on their option value as error-correction tools; my judgment is that a wasted 3rd-down snap out of the wrong personnel costs more expected points than the marginal clock value of a hoarded first-half timeout, though I cannot point to a published model that says so.",
+          "recommendation": "Treat first-half timeouts as near-free and call them immediately to prevent a delay of game, fix a badly matched personnel grouping, or stop a defensive substitution disaster, rather than hoarding them for a two-minute drive that may never materialize. Aim to use at least one first-half timeout per game on non-clock grounds.",
+          "title": "Spend first-half timeouts as operational assets",
+          "type": "game_management"
+        },
+        {
+          "bucket": "intuition",
+          "prior": {
+            "belief_summaries": {
+              "interval_95_high": 1.6,
+              "interval_95_low": -0.7,
+              "most_plausible_value": 0.28,
+              "shape": "right_skewed",
+              "tails": "moderate"
+            },
+            "consistency_check": "Mode 0.28 lies inside [-0.70, 1.60]; skew-normal support is all of R, so a negative effect is representable.",
+            "distribution_family": {
+              "justification": "The floor is close to zero because worst case it is just normal play-calling with more preparation, while a well-fit halftime script against an exposed tendency can occasionally be worth a full extra scoring drive, giving a longer upside tail.",
+              "name": "skew_normal"
+            },
+            "parameters": {
+              "alpha": 1.6,
+              "conversion_note": "Fit numerically. For standardized skew-normal with alpha=1.6: mode_z = 0.544, 2.5% quantile_z = -0.72, 97.5% quantile_z = 2.235 (interpolated from the alpha=1 closed form F(z)=Phi(z)^2 and alpha=2.2 Owen's-T evaluation). Target width 1.60-(-0.70)=2.30, so omega = 2.30/2.955 = 0.778; xi = 0.28 - 0.778*0.544 = -0.143. Back-check: xi+omega*(-0.72) = -0.70, xi+omega*2.235 = 1.60.",
+              "mu": null,
+              "omega": 0.78,
+              "sigma": null,
+              "xi": -0.14
+            }
+          },
+          "rationale": "Public analytics documents the value of opening scripts only indirectly and says nothing about second-half or post-turnover scripting; my judgment is that these are the two highest-leverage, most emotionally volatile drives in a game and that removing improvisation from them converts momentum swings into actual points.",
+          "recommendation": "Build and rehearse a dedicated 8-12 play script for the first possession of the second half, written at halftime off observed defensive tendencies, plus a pre-built 5-play 'sudden change' script deployed immediately after every takeaway. The quarterback and coordinator rehearse both in Saturday walkthroughs.",
+          "title": "Second opening script for the second half and post-turnover drives",
+          "type": "offensive"
+        },
+        {
+          "bucket": "intuition",
+          "prior": {
+            "belief_summaries": {
+              "interval_95_high": 1.3,
+              "interval_95_low": -0.8,
+              "most_plausible_value": 0.24,
+              "shape": "symmetric",
+              "tails": "heavy"
+            },
+            "consistency_check": "Mode/median 0.24 lies inside [-0.80, 1.30]; Student-t support is unbounded and signed, and the heavy tails honestly reflect that this rests on judgment rather than published evidence.",
+            "distribution_family": {
+              "justification": "The downside is real if my backups are far worse than my starters, and the upside is real if late-game pressure is as decisive as I suspect, so I want heavy tails around a modest center.",
+              "name": "student_t"
+            },
+            "parameters": {
+              "conversion_note": "sigma = (1.30 - (-0.80)) / (2 * t_{0.975,4}) = 2.10 / (2 * 2.776) = 2.10 / 5.552 = 0.378. Critical value used: t_{0.975,4} = 2.776.",
+              "mu": 0.24,
+              "nu": 4,
+              "sigma": 0.378
+            }
+          },
+          "rationale": "Public analytics on pass-rush fatigue is essentially nonexistent because snap-level conditioning data is not public and rotation is confounded with talent gaps; my judgment from watching fourth-quarter protection breakdowns is that pressure rate late in games is worth more than the marginal snaps a tired starter takes in the second quarter.",
+          "recommendation": "Impose a strict in-game snap ceiling (roughly 42-46 defensive snaps) on each edge rusher and interior rusher through three quarters, rotating a genuine four-man second wave even when the starters are producing, so the closing unit is fresh for the fourth quarter. Rotations are scheduled by series, not by feel.",
+          "title": "Hard snap-count caps on pass rushers to bank fourth-quarter freshness",
+          "type": "defensive"
+        }
+      ]
+    },
+    "raw_text": "{\n  \"quantity\": {\n    \"description\": \"Change in own-team expected single-game scoring margin from adopting the strategy\",\n    \"units\": \"points\",\n    \"support\": \"unbounded real; positive favors own team\"\n  },\n  \"strategies\": [\n    {\n      \"bucket\": \"analytics\",\n      \"type\": \"game_management\",\n      \"title\": \"Full 4th-down bot compliance, including own territory\",\n      \"recommendation\": \"Follow a win-probability-based 4th-down model on essentially every decision, including going for it on 4th-and-short between our own 35 and the opponent's 40, and kicking far fewer long field goals inside the opponent's 35 on 4th-and-medium. Pre-commit in the week's game plan so the decision is made before the play clock starts.\",\n      \"rationale\": \"Published WP models show teams still punt or kick in thousands of situations per season where going for it is worth 1-4% win probability each; harvesting those spots is the cheapest available edge and compounds across a full season without requiring any new personnel.\",\n      \"prior\": {\n        \"belief_summaries\": {\n          \"most_plausible_value\": 0.85,\n          \"interval_95_low\": -0.2,\n          \"interval_95_high\": 2.1,\n          \"shape\": \"right_skewed\",\n          \"tails\": \"moderate\"\n        },\n        \"distribution_family\": {\n          \"name\": \"skew_normal\",\n          \"justification\": \"The downside is bounded by the fact that model-recommended gambles are only mildly better than the alternative in most spots, while a strong short-yardage offense could make the payoff substantially larger, so the upside tail is longer.\"\n        },\n        \"parameters\": {\n          \"xi\": 0.46,\n          \"omega\": 0.73,\n          \"alpha\": 1.2,\n          \"conversion_note\": \"Fit numerically. For standardized skew-normal with alpha=1.2: mode_z = 0.531, 2.5% quantile_z = -0.90, 97.5% quantile_z = 2.238 (alpha=1 has closed form F(z)=Phi(z)^2 giving z-quantiles -1.003/2.239; alpha=1.2 interpolated). Target interval width 2.10-(-0.20)=2.30, so omega = 2.30/3.138 = 0.733; xi = 0.85 - 0.733*0.531 = 0.461. Back-check: xi+omega*(-0.90) = -0.20, xi+omega*2.238 = 2.10.\",\n          \"mu\": null,\n          \"sigma\": null\n        },\n        \"consistency_check\": \"Mode 0.85 lies inside [-0.20, 2.10]; skew-normal support is all of R, covering negative (backfire) effects.\"\n      }\n    },\n    {\n      \"bucket\": \"analytics\",\n      \"type\": \"offensive\",\n      \"title\": \"Early-down pass-first with heavy play-action\",\n      \"recommendation\": \"Raise 1st-and-10 dropback rate in the first three quarters toward 60-65% and attach play-action to roughly 35-40% of dropbacks regardless of down, distance, or whether the run game is 'working.' Keep tempo neutral so defenses stay in base personnel against pass concepts.\",\n      \"rationale\": \"Public EPA data consistently shows early-down passes outgain early-down runs by a wide margin, and play-action carries a large yards-per-attempt and EPA premium that is empirically uncorrelated with actual run-game success; more efficient early downs mean more manageable third downs, more drives, and more points.\",\n      \"prior\": {\n        \"belief_summaries\": {\n          \"most_plausible_value\": 1.15,\n          \"interval_95_low\": -0.35,\n          \"interval_95_high\": 2.7,\n          \"shape\": \"symmetric\",\n          \"tails\": \"heavy\"\n        },\n        \"distribution_family\": {\n          \"name\": \"student_t\",\n          \"justification\": \"The central estimate is well supported, but the true effect depends heavily on my quarterback, pass protection, and how defenses adapt, so a surprisingly large positive or negative realization is plausible.\"\n        },\n        \"parameters\": {\n          \"nu\": 7,\n          \"mu\": 1.15,\n          \"sigma\": 0.646,\n          \"conversion_note\": \"sigma = (2.70 - (-0.35)) / (2 * t_{0.975,7}) = 3.05 / (2 * 2.36) = 3.05 / 4.72 = 0.646. Critical value used: t_{0.975,7} = 2.36.\"\n        },\n        \"consistency_check\": \"Mode/median 1.15 lies inside [-0.35, 2.70]; Student-t support is unbounded on both sides, allowing a negative effect.\"\n      }\n    },\n    {\n      \"bucket\": \"analytics\",\n      \"type\": \"defensive\",\n      \"title\": \"Light boxes and split-safety early downs, four-man simulated pressure\",\n      \"recommendation\": \"Default to two-high split-safety structures with a six-man box on early downs, deliberately conceding 4-yard runs, and generate pressure with four-man simulated pressures and stunts instead of five- and six-man blitzes outside of clear passing downs. Blitz volume drops to roughly the bottom quartile of the league.\",\n      \"rationale\": \"EPA-per-play data show that opponent rushing efficiency is far less predictive of scoring than explosive passing, and that blitzes that fail produce enormous negative EPA; eliminating explosives and forcing long, mistake-prone drives lowers opponent points more than stuffing runs does.\",\n      \"prior\": {\n        \"belief_summaries\": {\n          \"most_plausible_value\": 0.45,\n          \"interval_95_low\": -0.85,\n          \"interval_95_high\": 1.75,\n          \"shape\": \"symmetric\",\n          \"tails\": \"moderate\"\n        },\n        \"distribution_family\": {\n          \"name\": \"normal\",\n          \"justification\": \"My belief is roughly symmetric around a modest positive effect, and the strategy's dependence on having four rushers who can win alone caps both the upside and downside at moderate magnitudes.\"\n        },\n        \"parameters\": {\n          \"mu\": 0.45,\n          \"sigma\": 0.663,\n          \"conversion_note\": \"sigma = (1.75 - (-0.85)) / 3.92 = 2.60 / 3.92 = 0.663.\"\n        },\n        \"consistency_check\": \"Mode 0.45 lies inside [-0.85, 1.75]; normal support is unbounded and signed.\"\n      }\n    },\n    {\n      \"bucket\": \"intuition\",\n      \"type\": \"game_management\",\n      \"title\": \"Spend first-half timeouts as operational assets\",\n      \"recommendation\": \"Treat first-half timeouts as near-free and call them immediately to prevent a delay of game, fix a badly matched personnel grouping, or stop a defensive substitution disaster, rather than hoarding them for a two-minute drive that may never materialize. Aim to use at least one first-half timeout per game on non-clock grounds.\",\n      \"rationale\": \"Public analytics prices timeouts almost entirely through end-of-half clock value and is essentially silent on their option value as error-correction tools; my judgment is that a wasted 3rd-down snap out of the wrong personnel costs more expected points than the marginal clock value of a hoarded first-half timeout, though I cannot point to a published model that says so.\",\n      \"prior\": {\n        \"belief_summaries\": {\n          \"most_plausible_value\": 0.22,\n          \"interval_95_low\": -0.65,\n          \"interval_95_high\": 1.1,\n          \"shape\": \"symmetric\",\n          \"tails\": \"heavy\"\n        },\n        \"distribution_family\": {\n          \"name\": \"student_t\",\n          \"justification\": \"This is a genuinely weak, evidence-thin pick with a plausibly near-zero effect, but if it prevents a handful of catastrophic pre-snap situations per season the effect could be larger than I expect in either direction.\"\n        },\n        \"parameters\": {\n          \"nu\": 5,\n          \"mu\": 0.22,\n          \"sigma\": 0.34,\n          \"conversion_note\": \"sigma = (1.10 - (-0.65)) / (2 * t_{0.975,5}) = 1.75 / (2 * 2.571) = 1.75 / 5.142 = 0.340. Critical value used: t_{0.975,5} = 2.571.\"\n        },\n        \"consistency_check\": \"Mode/median 0.22 lies inside [-0.65, 1.10]; Student-t support is unbounded and signed. Honest note: this is my weakest recommendation and the interval covers zero comfortably.\"\n      }\n    },\n    {\n      \"bucket\": \"intuition\",\n      \"type\": \"offensive\",\n      \"title\": \"Second opening script for the second half and post-turnover drives\",\n      \"recommendation\": \"Build and rehearse a dedicated 8-12 play script for the first possession of the second half, written at halftime off observed defensive tendencies, plus a pre-built 5-play 'sudden change' script deployed immediately after every takeaway. The quarterback and coordinator rehearse both in Saturday walkthroughs.\",\n      \"rationale\": \"Public analytics documents the value of opening scripts only indirectly and says nothing about second-half or post-turnover scripting; my judgment is that these are the two highest-leverage, most emotionally volatile drives in a game and that removing improvisation from them converts momentum swings into actual points.\",\n      \"prior\": {\n        \"belief_summaries\": {\n          \"most_plausible_value\": 0.28,\n          \"interval_95_low\": -0.7,\n          \"interval_95_high\": 1.6,\n          \"shape\": \"right_skewed\",\n          \"tails\": \"moderate\"\n        },\n        \"distribution_family\": {\n          \"name\": \"skew_normal\",\n          \"justification\": \"The floor is close to zero because worst case it is just normal play-calling with more preparation, while a well-fit halftime script against an exposed tendency can occasionally be worth a full extra scoring drive, giving a longer upside tail.\"\n        },\n        \"parameters\": {\n          \"xi\": -0.14,\n          \"omega\": 0.78,\n          \"alpha\": 1.6,\n          \"conversion_note\": \"Fit numerically. For standardized skew-normal with alpha=1.6: mode_z = 0.544, 2.5% quantile_z = -0.72, 97.5% quantile_z = 2.235 (interpolated from the alpha=1 closed form F(z)=Phi(z)^2 and alpha=2.2 Owen's-T evaluation). Target width 1.60-(-0.70)=2.30, so omega = 2.30/2.955 = 0.778; xi = 0.28 - 0.778*0.544 = -0.143. Back-check: xi+omega*(-0.72) = -0.70, xi+omega*2.235 = 1.60.\",\n          \"mu\": null,\n          \"sigma\": null\n        },\n        \"consistency_check\": \"Mode 0.28 lies inside [-0.70, 1.60]; skew-normal support is all of R, so a negative effect is representable.\"\n      }\n    },\n    {\n      \"bucket\": \"intuition\",\n      \"type\": \"defensive\",\n      \"title\": \"Hard snap-count caps on pass rushers to bank fourth-quarter freshness\",\n      \"recommendation\": \"Impose a strict in-game snap ceiling (roughly 42-46 defensive snaps) on each edge rusher and interior rusher through three quarters, rotating a genuine four-man second wave even when the starters are producing, so the closing unit is fresh for the fourth quarter. Rotations are scheduled by series, not by feel.\",\n      \"rationale\": \"Public analytics on pass-rush fatigue is essentially nonexistent because snap-level conditioning data is not public and rotation is confounded with talent gaps; my judgment from watching fourth-quarter protection breakdowns is that pressure rate late in games is worth more than the marginal snaps a tired starter takes in the second quarter.\",\n      \"prior\": {\n        \"belief_summaries\": {\n          \"most_plausible_value\": 0.24,\n          \"interval_95_low\": -0.8,\n          \"interval_95_high\": 1.3,\n          \"shape\": \"symmetric\",\n          \"tails\": \"heavy\"\n        },\n        \"distribution_family\": {\n          \"name\": \"student_t\",\n          \"justification\": \"The downside is real if my backups are far worse than my starters, and the upside is real if late-game pressure is as decisive as I suspect, so I want heavy tails around a modest center.\"\n        },\n        \"parameters\": {\n          \"nu\": 4,\n          \"mu\": 0.24,\n          \"sigma\": 0.378,\n          \"conversion_note\": \"sigma = (1.30 - (-0.80)) / (2 * t_{0.975,4}) = 2.10 / (2 * 2.776) = 2.10 / 5.552 = 0.378. Critical value used: t_{0.975,4} = 2.776.\"\n        },\n        \"consistency_check\": \"Mode/median 0.24 lies inside [-0.80, 1.30]; Student-t support is unbounded and signed, and the heavy tails honestly reflect that this rests on judgment rather than published evidence.\"\n      }\n    }\n  ]\n}",
+    "sample_idx": 0,
+    "seed": null,
+    "snapshot_id": "claude-opus-5",
+    "stop_reason": "end_turn",
+    "temperature": null,
+    "ts": "2026-07-31T03:48:44Z"
+  },
+  {
+    "instance_id": "claude-sonnet-5__s0",
+    "model": "claude-sonnet-5",
+    "parse_mode": "fenced",
+    "parsed_json": {
+      "quantity": {
+        "description": "Change in own-team expected single-game scoring margin from adopting the strategy",
+        "support": "unbounded real; positive favors own team",
+        "units": "points"
+      },
+      "strategies": [
+        {
+          "bucket": "analytics",
+          "prior": {
+            "belief_summaries": {
+              "interval_95_high": 1.3,
+              "interval_95_low": -0.3,
+              "most_plausible_value": 0.5,
+              "shape": "symmetric",
+              "tails": "moderate"
+            },
+            "consistency_check": "0.5 lies within [-0.3, 1.3]; normal distribution has unbounded signed support, consistent with the quantity definition.",
+            "distribution_family": {
+              "justification": "Well-studied domain with fairly symmetric uncertainty around a positive but modest expected gain; no strong reason to expect a long one-sided tail.",
+              "name": "normal"
+            },
+            "parameters": {
+              "conversion_note": "sigma = (1.3 - (-0.3)) / 3.92 = 1.6 / 3.92 = 0.408",
+              "mu": 0.5,
+              "sigma": 0.408
+            }
+          },
+          "rationale": "Decades of research (Romer, Burke, nflfastR models) show coaches are systematically too conservative; the gap between optimal and actual behavior is largest in the plays coaches still avoid (own territory, 4th-and-medium). Closing this gap adds expected points and wins over a season.",
+          "recommendation": "Go for it on 4th-and-short (≤2 yards) from any field position where win-probability models favor it, not just at midfield or in obvious 'analytics-approved' zones (e.g., own 35-45). Extend this to 4th-and-3-4 in opponent territory when expected points favor conversion attempts over field goals/punts.",
+          "title": "Expand 4th-down go-for-it range",
+          "type": "game_management"
+        },
+        {
+          "bucket": "analytics",
+          "prior": {
+            "belief_summaries": {
+              "interval_95_high": 1.2,
+              "interval_95_low": -0.4,
+              "most_plausible_value": 0.4,
+              "shape": "symmetric",
+              "tails": "moderate"
+            },
+            "consistency_check": "0.4 lies within [-0.4, 1.2]; normal family covers all signed real values as required.",
+            "distribution_family": {
+              "justification": "Effect is directionally well-supported but roster-dependent (O-line, QB, WR talent), giving a roughly symmetric band of uncertainty around a modest positive mean.",
+              "name": "normal"
+            },
+            "parameters": {
+              "conversion_note": "sigma = (1.2 - (-0.4)) / 3.92 = 1.6 / 3.92 = 0.408",
+              "mu": 0.4,
+              "sigma": 0.408
+            }
+          },
+          "rationale": "Public EPA/success-rate models consistently show early-down passing outperforms early-down running for most rosters, yet league-wide run rates on 1st/2nd down remain higher than optimal; capturing more of this gap improves per-drive scoring efficiency.",
+          "recommendation": "Increase first- and second-down dropback rate (including play-action from run-heavy sets) toward the EPA-optimal mix identified in public models, rather than defaulting to early-down runs to 'set up' later downs.",
+          "title": "Raise early-down pass rate",
+          "type": "offensive"
+        },
+        {
+          "bucket": "analytics",
+          "prior": {
+            "belief_summaries": {
+              "interval_95_high": 1.1,
+              "interval_95_low": -0.5,
+              "most_plausible_value": 0.3,
+              "shape": "symmetric",
+              "tails": "moderate"
+            },
+            "consistency_check": "0.3 lies within [-0.5, 1.1]; normal family supports all signed real values.",
+            "distribution_family": {
+              "justification": "Effect depends on secondary talent and defensive line's ability to still generate pressure from two-high looks; uncertainty is fairly balanced around a small positive mean.",
+              "name": "normal"
+            },
+            "parameters": {
+              "conversion_note": "sigma = (1.1 - (-0.5)) / 3.92 = 1.6 / 3.92 = 0.408",
+              "mu": 0.3,
+              "sigma": 0.408
+            }
+          },
+          "rationale": "Public tracking-data research links single-high shells to higher explosive-pass-play rates, and explosive plays are disproportionately correlated with win probability swings; reducing them via two-high shells lowers opponent EPA/play even if it concedes slightly more underneath completions.",
+          "recommendation": "Shift base early-down defense toward two-high shells (Cover 2/4/6 variants with post-snap rotation) instead of single-high (Cover 1/3), reserving single-high for clear passing downs or specific personnel matchups.",
+          "title": "More two-high (split safety) shells on early downs",
+          "type": "defensive"
+        },
+        {
+          "bucket": "intuition",
+          "prior": {
+            "belief_summaries": {
+              "interval_95_high": 0.65,
+              "interval_95_low": -0.55,
+              "most_plausible_value": 0.05,
+              "shape": "symmetric",
+              "tails": "light"
+            },
+            "consistency_check": "0.05 lies within [-0.55, 0.65]; normal family covers signed values, appropriate given the near-zero, weak-effect honesty required here.",
+            "distribution_family": {
+              "justification": "This is a low-leverage, low-confidence effect; a tight, symmetric, light-tailed distribution near zero reflects genuine near-indifference rather than a strong directional belief.",
+              "name": "normal"
+            },
+            "parameters": {
+              "conversion_note": "sigma = (0.65 - (-0.55)) / 3.92 = 1.2 / 3.92 = 0.306",
+              "mu": 0.05,
+              "sigma": 0.306
+            }
+          },
+          "rationale": "Public research on icing the kicker is genuinely mixed/inconclusive (some studies show no effect, a few show a small negative effect for the icing team via rhythm/rest benefits to the kicker); this is not settled analytics, so the call rests on my own read that the timeout is more valuable held in reserve than spent trying to rattle a kicker who has already had a full week to prepare for pressure kicks.",
+          "recommendation": "Eliminate the pre-kick 'icing' timeout before opponent field-goal attempts; instead, save that timeout for offensive/defensive use later in the possession or half.",
+          "title": "Stop icing the opposing kicker",
+          "type": "game_management"
+        },
+        {
+          "bucket": "intuition",
+          "prior": {
+            "belief_summaries": {
+              "interval_95_high": 1.9,
+              "interval_95_low": -0.9,
+              "most_plausible_value": 0.3,
+              "shape": "right_skewed",
+              "tails": "moderate"
+            },
+            "consistency_check": "Mode ≈ -0.17 + 1.11*0.422 ≈ 0.30, inside [-0.9, 1.9]; skew-normal has unbounded signed support satisfying the quantity definition.",
+            "distribution_family": {
+              "justification": "Upside (a scouted gadget play breaking for an explosive gain) is larger in magnitude than the bounded downside (a stuffed/failed trick play), producing a genuinely asymmetric belief that a symmetric family cannot represent.",
+              "name": "skew_normal"
+            },
+            "parameters": {
+              "alpha": 4,
+              "conversion_note": "Fit numerically: for alpha=4, delta=alpha/sqrt(1+alpha^2)=0.970; standardized mode ≈0.422, mean ≈0.774, sd≈0.633 (via Azzalini skew-normal formulas). Solving mode_actual = xi + omega*0.422 = 0.3 and setting omega ≈ (95%-range)/4 = 2.8/4 = 0.7/0.633 = 1.106 (rounded 1.11) gives xi = 0.3 - 0.422*1.11 ≈ -0.17. Approximate values, fit to match qualitative mode and spread rather than exact percentile solving.",
+              "omega": 1.11,
+              "xi": -0.17
+            }
+          },
+          "rationale": "This is not something aggregate EPA models can evaluate well — sample sizes per unique play/opponent pairing are tiny and success hinges on qualitative scouting reads (a specific defender's eye discipline, a specific coordinator's tendency) that don't show up in league-wide play-type data. My own experience is that a well-timed, well-scouted gadget play produces disproportionate explosive-play value, but a poorly-timed one costs field position or turnovers.",
+          "recommendation": "Install one or two bespoke gadget plays (wildcat, unbalanced line, jet-sweep motion misdirection) each week targeted at a specific leverage or discipline weakness scouted on film for that opponent, rather than running generic change-of-pace plays from a standing library.",
+          "title": "Opponent-specific gadget/formation packages",
+          "type": "offensive"
+        },
+        {
+          "bucket": "intuition",
+          "prior": {
+            "belief_summaries": {
+              "interval_95_high": 1.25,
+              "interval_95_low": -0.75,
+              "most_plausible_value": 0.25,
+              "shape": "symmetric",
+              "tails": "heavy"
+            },
+            "consistency_check": "0.25 lies within [-0.75, 1.25]; Student-t distribution has unbounded signed support, consistent with the quantity's definition and the heavier-tail belief.",
+            "distribution_family": {
+              "justification": "This effect depends on subjective, hard-to-repeat in-game judgment; there's a non-trivial chance of a large effect in either direction (a well-timed blitz forcing a game-changing turnover, or a badly-timed one giving up an explosive play), warranting heavier tails than a normal distribution.",
+              "name": "student_t"
+            },
+            "parameters": {
+              "conversion_note": "Using t-critical value at nu=7, t_{0.975,7}=2.36. sigma = (1.25 - (-0.75)) / (2 * 2.36) = 2.0 / 4.72 = 0.424",
+              "mu": 0.25,
+              "nu": 7,
+              "sigma": 0.424
+            }
+          },
+          "rationale": "Public blitz-rate analytics is mixed/near-neutral in aggregate (blitzing doesn't clearly raise defensive EPA on average), which masks the fact that the *value* of pressure is highly QB-state-dependent — something no dataset captures well since it requires real-time qualitative judgment rather than pre-game tendencies. My own read across games is that pressure timed to visible QB discomfort outperforms pressure called by formula.",
+          "recommendation": "Dial up Cover-0/all-out pressure looks not on a fixed down-and-distance script, but triggered live by a coach's read of quarterback stress cues (rushed cadence, frequent pre-snap motion checks, visible discomfort against prior pressure) — especially against backup or rattled starting QBs.",
+          "title": "Real-time-read situational all-out pressure",
+          "type": "defensive"
+        }
+      ]
+    },
+    "raw_text": "```json\n{\n  \"quantity\": {\n    \"description\": \"Change in own-team expected single-game scoring margin from adopting the strategy\",\n    \"units\": \"points\",\n    \"support\": \"unbounded real; positive favors own team\"\n  },\n  \"strategies\": [\n    {\n      \"bucket\": \"analytics\",\n      \"type\": \"game_management\",\n      \"title\": \"Expand 4th-down go-for-it range\",\n      \"recommendation\": \"Go for it on 4th-and-short (≤2 yards) from any field position where win-probability models favor it, not just at midfield or in obvious 'analytics-approved' zones (e.g., own 35-45). Extend this to 4th-and-3-4 in opponent territory when expected points favor conversion attempts over field goals/punts.\",\n      \"rationale\": \"Decades of research (Romer, Burke, nflfastR models) show coaches are systematically too conservative; the gap between optimal and actual behavior is largest in the plays coaches still avoid (own territory, 4th-and-medium). Closing this gap adds expected points and wins over a season.\",\n      \"prior\": {\n        \"belief_summaries\": {\n          \"most_plausible_value\": 0.5,\n          \"interval_95_low\": -0.3,\n          \"interval_95_high\": 1.3,\n          \"shape\": \"symmetric\",\n          \"tails\": \"moderate\"\n        },\n        \"distribution_family\": {\n          \"name\": \"normal\",\n          \"justification\": \"Well-studied domain with fairly symmetric uncertainty around a positive but modest expected gain; no strong reason to expect a long one-sided tail.\"\n        },\n        \"parameters\": {\n          \"mu\": 0.5,\n          \"sigma\": 0.408,\n          \"conversion_note\": \"sigma = (1.3 - (-0.3)) / 3.92 = 1.6 / 3.92 = 0.408\"\n        },\n        \"consistency_check\": \"0.5 lies within [-0.3, 1.3]; normal distribution has unbounded signed support, consistent with the quantity definition.\"\n      }\n    },\n    {\n      \"bucket\": \"analytics\",\n      \"type\": \"offensive\",\n      \"title\": \"Raise early-down pass rate\",\n      \"recommendation\": \"Increase first- and second-down dropback rate (including play-action from run-heavy sets) toward the EPA-optimal mix identified in public models, rather than defaulting to early-down runs to 'set up' later downs.\",\n      \"rationale\": \"Public EPA/success-rate models consistently show early-down passing outperforms early-down running for most rosters, yet league-wide run rates on 1st/2nd down remain higher than optimal; capturing more of this gap improves per-drive scoring efficiency.\",\n      \"prior\": {\n        \"belief_summaries\": {\n          \"most_plausible_value\": 0.4,\n          \"interval_95_low\": -0.4,\n          \"interval_95_high\": 1.2,\n          \"shape\": \"symmetric\",\n          \"tails\": \"moderate\"\n        },\n        \"distribution_family\": {\n          \"name\": \"normal\",\n          \"justification\": \"Effect is directionally well-supported but roster-dependent (O-line, QB, WR talent), giving a roughly symmetric band of uncertainty around a modest positive mean.\"\n        },\n        \"parameters\": {\n          \"mu\": 0.4,\n          \"sigma\": 0.408,\n          \"conversion_note\": \"sigma = (1.2 - (-0.4)) / 3.92 = 1.6 / 3.92 = 0.408\"\n        },\n        \"consistency_check\": \"0.4 lies within [-0.4, 1.2]; normal family covers all signed real values as required.\"\n      }\n    },\n    {\n      \"bucket\": \"analytics\",\n      \"type\": \"defensive\",\n      \"title\": \"More two-high (split safety) shells on early downs\",\n      \"recommendation\": \"Shift base early-down defense toward two-high shells (Cover 2/4/6 variants with post-snap rotation) instead of single-high (Cover 1/3), reserving single-high for clear passing downs or specific personnel matchups.\",\n      \"rationale\": \"Public tracking-data research links single-high shells to higher explosive-pass-play rates, and explosive plays are disproportionately correlated with win probability swings; reducing them via two-high shells lowers opponent EPA/play even if it concedes slightly more underneath completions.\",\n      \"prior\": {\n        \"belief_summaries\": {\n          \"most_plausible_value\": 0.3,\n          \"interval_95_low\": -0.5,\n          \"interval_95_high\": 1.1,\n          \"shape\": \"symmetric\",\n          \"tails\": \"moderate\"\n        },\n        \"distribution_family\": {\n          \"name\": \"normal\",\n          \"justification\": \"Effect depends on secondary talent and defensive line's ability to still generate pressure from two-high looks; uncertainty is fairly balanced around a small positive mean.\"\n        },\n        \"parameters\": {\n          \"mu\": 0.3,\n          \"sigma\": 0.408,\n          \"conversion_note\": \"sigma = (1.1 - (-0.5)) / 3.92 = 1.6 / 3.92 = 0.408\"\n        },\n        \"consistency_check\": \"0.3 lies within [-0.5, 1.1]; normal family supports all signed real values.\"\n      }\n    },\n    {\n      \"bucket\": \"intuition\",\n      \"type\": \"game_management\",\n      \"title\": \"Stop icing the opposing kicker\",\n      \"recommendation\": \"Eliminate the pre-kick 'icing' timeout before opponent field-goal attempts; instead, save that timeout for offensive/defensive use later in the possession or half.\",\n      \"rationale\": \"Public research on icing the kicker is genuinely mixed/inconclusive (some studies show no effect, a few show a small negative effect for the icing team via rhythm/rest benefits to the kicker); this is not settled analytics, so the call rests on my own read that the timeout is more valuable held in reserve than spent trying to rattle a kicker who has already had a full week to prepare for pressure kicks.\",\n      \"prior\": {\n        \"belief_summaries\": {\n          \"most_plausible_value\": 0.05,\n          \"interval_95_low\": -0.55,\n          \"interval_95_high\": 0.65,\n          \"shape\": \"symmetric\",\n          \"tails\": \"light\"\n        },\n        \"distribution_family\": {\n          \"name\": \"normal\",\n          \"justification\": \"This is a low-leverage, low-confidence effect; a tight, symmetric, light-tailed distribution near zero reflects genuine near-indifference rather than a strong directional belief.\"\n        },\n        \"parameters\": {\n          \"mu\": 0.05,\n          \"sigma\": 0.306,\n          \"conversion_note\": \"sigma = (0.65 - (-0.55)) / 3.92 = 1.2 / 3.92 = 0.306\"\n        },\n        \"consistency_check\": \"0.05 lies within [-0.55, 0.65]; normal family covers signed values, appropriate given the near-zero, weak-effect honesty required here.\"\n      }\n    },\n    {\n      \"bucket\": \"intuition\",\n      \"type\": \"offensive\",\n      \"title\": \"Opponent-specific gadget/formation packages\",\n      \"recommendation\": \"Install one or two bespoke gadget plays (wildcat, unbalanced line, jet-sweep motion misdirection) each week targeted at a specific leverage or discipline weakness scouted on film for that opponent, rather than running generic change-of-pace plays from a standing library.\",\n      \"rationale\": \"This is not something aggregate EPA models can evaluate well — sample sizes per unique play/opponent pairing are tiny and success hinges on qualitative scouting reads (a specific defender's eye discipline, a specific coordinator's tendency) that don't show up in league-wide play-type data. My own experience is that a well-timed, well-scouted gadget play produces disproportionate explosive-play value, but a poorly-timed one costs field position or turnovers.\",\n      \"prior\": {\n        \"belief_summaries\": {\n          \"most_plausible_value\": 0.3,\n          \"interval_95_low\": -0.9,\n          \"interval_95_high\": 1.9,\n          \"shape\": \"right_skewed\",\n          \"tails\": \"moderate\"\n        },\n        \"distribution_family\": {\n          \"name\": \"skew_normal\",\n          \"justification\": \"Upside (a scouted gadget play breaking for an explosive gain) is larger in magnitude than the bounded downside (a stuffed/failed trick play), producing a genuinely asymmetric belief that a symmetric family cannot represent.\"\n        },\n        \"parameters\": {\n          \"xi\": -0.17,\n          \"omega\": 1.11,\n          \"alpha\": 4,\n          \"conversion_note\": \"Fit numerically: for alpha=4, delta=alpha/sqrt(1+alpha^2)=0.970; standardized mode ≈0.422, mean ≈0.774, sd≈0.633 (via Azzalini skew-normal formulas). Solving mode_actual = xi + omega*0.422 = 0.3 and setting omega ≈ (95%-range)/4 = 2.8/4 = 0.7/0.633 = 1.106 (rounded 1.11) gives xi = 0.3 - 0.422*1.11 ≈ -0.17. Approximate values, fit to match qualitative mode and spread rather than exact percentile solving.\"\n        },\n        \"consistency_check\": \"Mode ≈ -0.17 + 1.11*0.422 ≈ 0.30, inside [-0.9, 1.9]; skew-normal has unbounded signed support satisfying the quantity definition.\"\n      }\n    },\n    {\n      \"bucket\": \"intuition\",\n      \"type\": \"defensive\",\n      \"title\": \"Real-time-read situational all-out pressure\",\n      \"recommendation\": \"Dial up Cover-0/all-out pressure looks not on a fixed down-and-distance script, but triggered live by a coach's read of quarterback stress cues (rushed cadence, frequent pre-snap motion checks, visible discomfort against prior pressure) — especially against backup or rattled starting QBs.\",\n      \"rationale\": \"Public blitz-rate analytics is mixed/near-neutral in aggregate (blitzing doesn't clearly raise defensive EPA on average), which masks the fact that the *value* of pressure is highly QB-state-dependent — something no dataset captures well since it requires real-time qualitative judgment rather than pre-game tendencies. My own read across games is that pressure timed to visible QB discomfort outperforms pressure called by formula.\",\n      \"prior\": {\n        \"belief_summaries\": {\n          \"most_plausible_value\": 0.25,\n          \"interval_95_low\": -0.75,\n          \"interval_95_high\": 1.25,\n          \"shape\": \"symmetric\",\n          \"tails\": \"heavy\"\n        },\n        \"distribution_family\": {\n          \"name\": \"student_t\",\n          \"justification\": \"This effect depends on subjective, hard-to-repeat in-game judgment; there's a non-trivial chance of a large effect in either direction (a well-timed blitz forcing a game-changing turnover, or a badly-timed one giving up an explosive play), warranting heavier tails than a normal distribution.\"\n        },\n        \"parameters\": {\n          \"nu\": 7,\n          \"mu\": 0.25,\n          \"sigma\": 0.424,\n          \"conversion_note\": \"Using t-critical value at nu=7, t_{0.975,7}=2.36. sigma = (1.25 - (-0.75)) / (2 * 2.36) = 2.0 / 4.72 = 0.424\"\n        },\n        \"consistency_check\": \"0.25 lies within [-0.75, 1.25]; Student-t distribution has unbounded signed support, consistent with the quantity's definition and the heavier-tail belief.\"\n      }\n    }\n  ]\n}\n```",
+    "sample_idx": 0,
+    "seed": null,
+    "snapshot_id": "claude-sonnet-5",
+    "stop_reason": "end_turn",
+    "temperature": null,
+    "ts": "2026-07-31T03:50:50Z"
+  },
+  {
+    "instance_id": "gemini-3.1-pro-preview__s0",
+    "model": "gemini-3.1-pro-preview",
+    "parse_mode": "direct",
+    "parsed_json": {
+      "quantity": {
+        "description": "Change in own-team expected single-game scoring margin from adopting the strategy",
+        "support": "unbounded real; positive favors own team",
+        "units": "points"
+      },
+      "strategies": [
+        {
+          "bucket": "analytics",
+          "prior": {
+            "belief_summaries": {
+              "interval_95_high": 0.35,
+              "interval_95_low": -0.05,
+              "most_plausible_value": 0.15,
+              "shape": "symmetric",
+              "tails": "light"
+            },
+            "consistency_check": "most_plausible_value (0.15) is exactly centered in the [-0.05, 0.35] interval, and normal distribution support covers signed real values.",
+            "distribution_family": {
+              "justification": "The situational frequency is low, resulting in a small average per-game effect that is well-behaved, symmetric, and tightly clustered around a slight positive impact.",
+              "name": "normal"
+            },
+            "parameters": {
+              "conversion_note": "mu = most_plausible = 0.15; sigma = (0.35 - -0.05) / 3.92 = 0.40 / 3.92 = 0.102",
+              "mu": 0.15,
+              "sigma": 0.102
+            }
+          },
+          "rationale": "Expected points and win probability models universally agree this increases regulation win probability by setting up a win with a subsequent extra point, while leaving a chance to tie with another 2-point conversion if the first fails. It prevents playing for overtime where win probability reverts to a coin flip.",
+          "recommendation": "When trailing by 14 points in the 4th quarter, go for 2 after scoring the first touchdown.",
+          "title": "Down 14 Go-For-2 in 4th Quarter",
+          "type": "game_management"
+        },
+        {
+          "bucket": "analytics",
+          "prior": {
+            "belief_summaries": {
+              "interval_95_high": 2.4,
+              "interval_95_low": 0.0,
+              "most_plausible_value": 1.2,
+              "shape": "symmetric",
+              "tails": "heavy"
+            },
+            "consistency_check": "most_plausible_value (1.2) is exactly centered in the [0.0, 2.4] interval. Support covers unbounded signed reals.",
+            "distribution_family": {
+              "justification": "While the average effect is heavily positive, defenses occasionally fail to adapt entirely (fat right tail of blown coverages) or occasionally successfully zero-blitz the motion to disrupt timing (fat left tail).",
+              "name": "student_t"
+            },
+            "parameters": {
+              "conversion_note": "Chose nu = 4 for heavy tails. Critical value t_{0.975,4} = 2.776. mu = most_plausible = 1.2; sigma (scale) = (2.4 - 0.0) / (2 * 2.776) = 2.4 / 5.552 = 0.432",
+              "mu": 1.2,
+              "nu": 4,
+              "sigma": 0.432
+            }
+          },
+          "rationale": "Public analytics continuously confirm this gives receivers a running start against man coverage and forces zone-match defenders to hesitate, significantly boosting EPA/play without increasing turnover risk.",
+          "recommendation": "Utilize high-speed, horizontal at-snap 'cheat' motion on over 40% of early down passing plays.",
+          "title": "High-Frequency Fast At-Snap Motion",
+          "type": "offensive"
+        },
+        {
+          "bucket": "analytics",
+          "prior": {
+            "belief_summaries": {
+              "interval_95_high": 1.3,
+              "interval_95_low": 0.1,
+              "most_plausible_value": 0.7,
+              "shape": "symmetric",
+              "tails": "moderate"
+            },
+            "consistency_check": "most_plausible_value (0.7) is in the precise middle of the [0.1, 1.3] bounds, with normal support covering signed reals.",
+            "distribution_family": {
+              "justification": "A consistent, steady scheme adjustment applied over a large sample of early downs yields a stable, predictable, and moderately distributed scoring suppression.",
+              "name": "normal"
+            },
+            "parameters": {
+              "conversion_note": "mu = most_plausible = 0.7; sigma = (1.3 - 0.1) / 3.92 = 1.2 / 3.92 = 0.306",
+              "mu": 0.7,
+              "sigma": 0.306
+            }
+          },
+          "rationale": "Public EPA models overwhelmingly show offenses pass highly efficiently against early-down blitzes, punishing aggressive calls. Limiting explosive passing by forcing underneath throws significantly reduces opponent expected points.",
+          "recommendation": "Drop blitz rates below 15% on 1st and 2nd downs, heavily leaning on two-high coverage shells.",
+          "title": "Zero-Blitz Elimination on Early Downs",
+          "type": "defensive"
+        },
+        {
+          "bucket": "intuition",
+          "prior": {
+            "belief_summaries": {
+              "interval_95_high": 1.8,
+              "interval_95_low": -0.5,
+              "most_plausible_value": 0.2,
+              "shape": "right_skewed",
+              "tails": "moderate"
+            },
+            "consistency_check": "most_plausible_value (0.2) sits securely inside the asymmetric [-0.5, 1.8] interval. Skew normal covers the entire unbounded real line.",
+            "distribution_family": {
+              "justification": "Right-skewed because the downside is firmly capped (a standard failed 4th down or burned timeout), while the upside is occasionally catching an unprepared defense for a massive, game-altering touchdown.",
+              "name": "skew_normal"
+            },
+            "parameters": {
+              "alpha": 2.5,
+              "conversion_note": "Fitted numerically: an alpha of 2.5 pulls the mode to the right of location xi. Setting xi = -0.15 and scale omega = 0.7 places the mode approximately at 0.2 and captures ~95% of the central mass roughly between -0.5 and 1.8.",
+              "omega": 0.7,
+              "xi": -0.15
+            }
+          },
+          "rationale": "Public analytics evaluate 4th down probabilities in a vacuum but are completely silent on the unmeasurable value of eliminating coaching hesitation and sideline communication lag. My coaching judgment dictates that bypassing the communication chain catches defenses in base sub-packages and eliminates wasted timeouts.",
+          "recommendation": "Embed 4th-down decisions and specific play calls directly into the first 15 scripted plays so the offense can rush the line on 4th down without sideline input.",
+          "title": "Pre-Scripted Go/No-Go 4th Down Embedded Decisions",
+          "type": "game_management"
+        },
+        {
+          "bucket": "intuition",
+          "prior": {
+            "belief_summaries": {
+              "interval_95_high": 3.5,
+              "interval_95_low": -1.5,
+              "most_plausible_value": 1.0,
+              "shape": "symmetric",
+              "tails": "heavy"
+            },
+            "consistency_check": "most_plausible_value (1.0) is the exact midpoint of [-1.5, 3.5], and the t-distribution provides the required unbounded support.",
+            "distribution_family": {
+              "justification": "Symmetric with heavy tails due to massive uncertainty. Biting on the fullback could yield wide-open passing lanes (fat right tail), but if defenses simply refuse to respect the FB as a viable threat, we effectively play 10-on-11 (fat left tail).",
+              "name": "student_t"
+            },
+            "parameters": {
+              "conversion_note": "Chose nu = 7 for moderately heavy tails. Critical value t_{0.975,7} = 2.365. mu = most_plausible = 1.0; sigma (scale) = (3.5 - -1.5) / (2 * 2.365) = 5.0 / 4.73 = 1.057",
+              "mu": 1.0,
+              "nu": 7,
+              "sigma": 1.057
+            }
+          },
+          "rationale": "While analytics universally agree that passing on early downs is highly efficient, models are silent on true fullbacks because the modern sample size evaporated a decade ago. My intuition is that 21 personnel structurally forces heavy base linebackers onto the field, generating a massive speed mismatch for the passing game.",
+          "recommendation": "Deploy a true fullback (21 personnel) on over 50% of first downs, but throw the ball 65% of the time from this heavier alignment.",
+          "title": "21 Personnel Pass-First Base Offense",
+          "type": "offensive"
+        },
+        {
+          "bucket": "intuition",
+          "prior": {
+            "belief_summaries": {
+              "interval_95_high": 1.0,
+              "interval_95_low": -2.5,
+              "most_plausible_value": 0.0,
+              "shape": "left_skewed",
+              "tails": "moderate"
+            },
+            "consistency_check": "most_plausible_value (0.0) is validly inside the asymmetric bounds [-2.5, 1.0]. Support encompasses signed impacts for a strategy likely hovering near zero with negative skew.",
+            "distribution_family": {
+              "justification": "Left-skewed to reflect honest weakness: while fresh legs occasionally kill a drive, the severe penalty for a botched mid-drive substitution (12-men on the field yielding a free play) creates a dangerous downside tail.",
+              "name": "skew_normal"
+            },
+            "parameters": {
+              "alpha": -3.0,
+              "conversion_note": "Fitted numerically: negative alpha (-3.0) forces the mode left of xi. Setting xi = 0.4 and omega = 1.1 positions the mode near 0.0, capturing the 95% interval effectively in [-2.5, 1.0].",
+              "omega": 1.1,
+              "xi": 0.4
+            }
+          },
+          "rationale": "Public analytics focus on isolated pass-rush win rates but rarely model the invisible cumulative fatigue of long drives. My intuition is that a completely fresh rotation beats an exhausted elite offensive line, despite this being a weak candidate due to grave logistical risks.",
+          "recommendation": "Substitute the entire defensive line simultaneously every 3 to 4 plays during a long sustained opponent drive, disregarding down and distance.",
+          "title": "Mid-Drive D-Line Hockey Shifts",
+          "type": "defensive"
+        }
+      ]
+    },
+    "raw_text": "{\n  \"quantity\": {\n    \"description\": \"Change in own-team expected single-game scoring margin from adopting the strategy\",\n    \"units\": \"points\",\n    \"support\": \"unbounded real; positive favors own team\"\n  },\n  \"strategies\": [\n    {\n      \"bucket\": \"analytics\",\n      \"type\": \"game_management\",\n      \"title\": \"Down 14 Go-For-2 in 4th Quarter\",\n      \"recommendation\": \"When trailing by 14 points in the 4th quarter, go for 2 after scoring the first touchdown.\",\n      \"rationale\": \"Expected points and win probability models universally agree this increases regulation win probability by setting up a win with a subsequent extra point, while leaving a chance to tie with another 2-point conversion if the first fails. It prevents playing for overtime where win probability reverts to a coin flip.\",\n      \"prior\": {\n        \"belief_summaries\": {\n          \"most_plausible_value\": 0.15,\n          \"interval_95_low\": -0.05,\n          \"interval_95_high\": 0.35,\n          \"shape\": \"symmetric\",\n          \"tails\": \"light\"\n        },\n        \"distribution_family\": {\n          \"name\": \"normal\",\n          \"justification\": \"The situational frequency is low, resulting in a small average per-game effect that is well-behaved, symmetric, and tightly clustered around a slight positive impact.\"\n        },\n        \"parameters\": {\n          \"mu\": 0.15,\n          \"sigma\": 0.102,\n          \"conversion_note\": \"mu = most_plausible = 0.15; sigma = (0.35 - -0.05) / 3.92 = 0.40 / 3.92 = 0.102\"\n        },\n        \"consistency_check\": \"most_plausible_value (0.15) is exactly centered in the [-0.05, 0.35] interval, and normal distribution support covers signed real values.\"\n      }\n    },\n    {\n      \"bucket\": \"analytics\",\n      \"type\": \"offensive\",\n      \"title\": \"High-Frequency Fast At-Snap Motion\",\n      \"recommendation\": \"Utilize high-speed, horizontal at-snap 'cheat' motion on over 40% of early down passing plays.\",\n      \"rationale\": \"Public analytics continuously confirm this gives receivers a running start against man coverage and forces zone-match defenders to hesitate, significantly boosting EPA/play without increasing turnover risk.\",\n      \"prior\": {\n        \"belief_summaries\": {\n          \"most_plausible_value\": 1.2,\n          \"interval_95_low\": 0.0,\n          \"interval_95_high\": 2.4,\n          \"shape\": \"symmetric\",\n          \"tails\": \"heavy\"\n        },\n        \"distribution_family\": {\n          \"name\": \"student_t\",\n          \"justification\": \"While the average effect is heavily positive, defenses occasionally fail to adapt entirely (fat right tail of blown coverages) or occasionally successfully zero-blitz the motion to disrupt timing (fat left tail).\"\n        },\n        \"parameters\": {\n          \"nu\": 4,\n          \"mu\": 1.2,\n          \"sigma\": 0.432,\n          \"conversion_note\": \"Chose nu = 4 for heavy tails. Critical value t_{0.975,4} = 2.776. mu = most_plausible = 1.2; sigma (scale) = (2.4 - 0.0) / (2 * 2.776) = 2.4 / 5.552 = 0.432\"\n        },\n        \"consistency_check\": \"most_plausible_value (1.2) is exactly centered in the [0.0, 2.4] interval. Support covers unbounded signed reals.\"\n      }\n    },\n    {\n      \"bucket\": \"analytics\",\n      \"type\": \"defensive\",\n      \"title\": \"Zero-Blitz Elimination on Early Downs\",\n      \"recommendation\": \"Drop blitz rates below 15% on 1st and 2nd downs, heavily leaning on two-high coverage shells.\",\n      \"rationale\": \"Public EPA models overwhelmingly show offenses pass highly efficiently against early-down blitzes, punishing aggressive calls. Limiting explosive passing by forcing underneath throws significantly reduces opponent expected points.\",\n      \"prior\": {\n        \"belief_summaries\": {\n          \"most_plausible_value\": 0.7,\n          \"interval_95_low\": 0.1,\n          \"interval_95_high\": 1.3,\n          \"shape\": \"symmetric\",\n          \"tails\": \"moderate\"\n        },\n        \"distribution_family\": {\n          \"name\": \"normal\",\n          \"justification\": \"A consistent, steady scheme adjustment applied over a large sample of early downs yields a stable, predictable, and moderately distributed scoring suppression.\"\n        },\n        \"parameters\": {\n          \"mu\": 0.7,\n          \"sigma\": 0.306,\n          \"conversion_note\": \"mu = most_plausible = 0.7; sigma = (1.3 - 0.1) / 3.92 = 1.2 / 3.92 = 0.306\"\n        },\n        \"consistency_check\": \"most_plausible_value (0.7) is in the precise middle of the [0.1, 1.3] bounds, with normal support covering signed reals.\"\n      }\n    },\n    {\n      \"bucket\": \"intuition\",\n      \"type\": \"game_management\",\n      \"title\": \"Pre-Scripted Go/No-Go 4th Down Embedded Decisions\",\n      \"recommendation\": \"Embed 4th-down decisions and specific play calls directly into the first 15 scripted plays so the offense can rush the line on 4th down without sideline input.\",\n      \"rationale\": \"Public analytics evaluate 4th down probabilities in a vacuum but are completely silent on the unmeasurable value of eliminating coaching hesitation and sideline communication lag. My coaching judgment dictates that bypassing the communication chain catches defenses in base sub-packages and eliminates wasted timeouts.\",\n      \"prior\": {\n        \"belief_summaries\": {\n          \"most_plausible_value\": 0.2,\n          \"interval_95_low\": -0.5,\n          \"interval_95_high\": 1.8,\n          \"shape\": \"right_skewed\",\n          \"tails\": \"moderate\"\n        },\n        \"distribution_family\": {\n          \"name\": \"skew_normal\",\n          \"justification\": \"Right-skewed because the downside is firmly capped (a standard failed 4th down or burned timeout), while the upside is occasionally catching an unprepared defense for a massive, game-altering touchdown.\"\n        },\n        \"parameters\": {\n          \"xi\": -0.15,\n          \"omega\": 0.7,\n          \"alpha\": 2.5,\n          \"conversion_note\": \"Fitted numerically: an alpha of 2.5 pulls the mode to the right of location xi. Setting xi = -0.15 and scale omega = 0.7 places the mode approximately at 0.2 and captures ~95% of the central mass roughly between -0.5 and 1.8.\"\n        },\n        \"consistency_check\": \"most_plausible_value (0.2) sits securely inside the asymmetric [-0.5, 1.8] interval. Skew normal covers the entire unbounded real line.\"\n      }\n    },\n    {\n      \"bucket\": \"intuition\",\n      \"type\": \"offensive\",\n      \"title\": \"21 Personnel Pass-First Base Offense\",\n      \"recommendation\": \"Deploy a true fullback (21 personnel) on over 50% of first downs, but throw the ball 65% of the time from this heavier alignment.\",\n      \"rationale\": \"While analytics universally agree that passing on early downs is highly efficient, models are silent on true fullbacks because the modern sample size evaporated a decade ago. My intuition is that 21 personnel structurally forces heavy base linebackers onto the field, generating a massive speed mismatch for the passing game.\",\n      \"prior\": {\n        \"belief_summaries\": {\n          \"most_plausible_value\": 1.0,\n          \"interval_95_low\": -1.5,\n          \"interval_95_high\": 3.5,\n          \"shape\": \"symmetric\",\n          \"tails\": \"heavy\"\n        },\n        \"distribution_family\": {\n          \"name\": \"student_t\",\n          \"justification\": \"Symmetric with heavy tails due to massive uncertainty. Biting on the fullback could yield wide-open passing lanes (fat right tail), but if defenses simply refuse to respect the FB as a viable threat, we effectively play 10-on-11 (fat left tail).\"\n        },\n        \"parameters\": {\n          \"nu\": 7,\n          \"mu\": 1.0,\n          \"sigma\": 1.057,\n          \"conversion_note\": \"Chose nu = 7 for moderately heavy tails. Critical value t_{0.975,7} = 2.365. mu = most_plausible = 1.0; sigma (scale) = (3.5 - -1.5) / (2 * 2.365) = 5.0 / 4.73 = 1.057\"\n        },\n        \"consistency_check\": \"most_plausible_value (1.0) is the exact midpoint of [-1.5, 3.5], and the t-distribution provides the required unbounded support.\"\n      }\n    },\n    {\n      \"bucket\": \"intuition\",\n      \"type\": \"defensive\",\n      \"title\": \"Mid-Drive D-Line Hockey Shifts\",\n      \"recommendation\": \"Substitute the entire defensive line simultaneously every 3 to 4 plays during a long sustained opponent drive, disregarding down and distance.\",\n      \"rationale\": \"Public analytics focus on isolated pass-rush win rates but rarely model the invisible cumulative fatigue of long drives. My intuition is that a completely fresh rotation beats an exhausted elite offensive line, despite this being a weak candidate due to grave logistical risks.\",\n      \"prior\": {\n        \"belief_summaries\": {\n          \"most_plausible_value\": 0.0,\n          \"interval_95_low\": -2.5,\n          \"interval_95_high\": 1.0,\n          \"shape\": \"left_skewed\",\n          \"tails\": \"moderate\"\n        },\n        \"distribution_family\": {\n          \"name\": \"skew_normal\",\n          \"justification\": \"Left-skewed to reflect honest weakness: while fresh legs occasionally kill a drive, the severe penalty for a botched mid-drive substitution (12-men on the field yielding a free play) creates a dangerous downside tail.\"\n        },\n        \"parameters\": {\n          \"xi\": 0.4,\n          \"omega\": 1.1,\n          \"alpha\": -3.0,\n          \"conversion_note\": \"Fitted numerically: negative alpha (-3.0) forces the mode left of xi. Setting xi = 0.4 and omega = 1.1 positions the mode near 0.0, capturing the 95% interval effectively in [-2.5, 1.0].\"\n        },\n        \"consistency_check\": \"most_plausible_value (0.0) is validly inside the asymmetric bounds [-2.5, 1.0]. Support encompasses signed impacts for a strategy likely hovering near zero with negative skew.\"\n      }\n    }\n  ]\n}",
+    "sample_idx": 0,
+    "seed": 42,
+    "snapshot_id": "gemini-3.1-pro-preview",
+    "stop_reason": "STOP",
+    "temperature": 1.0,
+    "ts": "2026-07-31T03:54:10Z"
+  },
+  {
+    "instance_id": "gemini-3.6-flash__s0",
+    "model": "gemini-3.6-flash",
+    "parse_mode": "direct",
+    "parsed_json": {
+      "quantity": {
+        "description": "Change in own-team expected single-game scoring margin from adopting the strategy",
+        "support": "unbounded real; positive favors own team",
+        "units": "points"
+      },
+      "strategies": [
+        {
+          "bucket": "analytics",
+          "prior": {
+            "belief_summaries": {
+              "interval_95_high": 2.5,
+              "interval_95_low": 0.3,
+              "most_plausible_value": 1.4,
+              "shape": "symmetric",
+              "tails": "light"
+            },
+            "consistency_check": "Confirmed: most_plausible_value (1.40) lies inside [0.30, 2.50], and support is unbounded real.",
+            "distribution_family": {
+              "justification": "The effect is well-documented in published research with symmetric estimation errors centered around a positive mean and light tails.",
+              "name": "normal"
+            },
+            "parameters": {
+              "conversion_note": "Derived for normal distribution: mu = 1.40; sigma = (2.50 - 0.30) / (2 * 1.96) = 2.20 / 3.92 = 0.5612.",
+              "mu": 1.4,
+              "sigma": 0.5612
+            }
+          },
+          "rationale": "Public win-probability and Expected Points Added (EPA) models consistently show NFL coaches punt and kick field goals far too conservatively, relinquishing measurable expected points per game.",
+          "recommendation": "Adopt aggressive 4th-down go-for-it rules, consistently attempting conversions on 4th-and-3 or shorter past your own 40-yard line and 4th-and-1 anywhere on the field. Eliminate low-value punts and long field goal attempts in these neutral-to-favorable midfield zones.",
+          "title": "Aggressive 4th-Down Conversion Decision Rules",
+          "type": "game_management"
+        },
+        {
+          "bucket": "analytics",
+          "prior": {
+            "belief_summaries": {
+              "interval_95_high": 2.1,
+              "interval_95_low": 0.1,
+              "most_plausible_value": 1.1,
+              "shape": "symmetric",
+              "tails": "heavy"
+            },
+            "consistency_check": "Confirmed: most_plausible_value (1.10) lies inside [0.10, 2.10], and support is unbounded real.",
+            "distribution_family": {
+              "justification": "Symmetric prior centered around a positive gain, with heavy tails (nu=4) accounting for variation across defensive scheme adjustments.",
+              "name": "student_t"
+            },
+            "parameters": {
+              "conversion_note": "Derived for student_t with nu = 4: mu = 1.10; scale sigma = (2.10 - 0.10) / (2 * 2.776) = 2.00 / 5.552 = 0.3602, using t_{0.975,4} = 2.776.",
+              "mu": 1.1,
+              "nu": 4,
+              "sigma": 0.3602
+            }
+          },
+          "rationale": "Extensive public analytics confirms motion at the snap boosts offensive EPA per play and success rate by revealing coverage indicators and weakening defensive gap integrity.",
+          "recommendation": "Incorporate pre-snap or at-the-snap motion on over 75% of offensive dropbacks and runs, prioritizing motion at the snap. Use late motion intentionally to force real-time coverage communication and compromise secondary leverage.",
+          "title": "High-Volume Pre-Snap and Snap-Motion Usage",
+          "type": "offensive"
+        },
+        {
+          "bucket": "analytics",
+          "prior": {
+            "belief_summaries": {
+              "interval_95_high": 1.95,
+              "interval_95_low": -0.45,
+              "most_plausible_value": 0.75,
+              "shape": "symmetric",
+              "tails": "heavy"
+            },
+            "consistency_check": "Confirmed: most_plausible_value (0.75) lies inside [-0.45, 1.95], and support is unbounded real.",
+            "distribution_family": {
+              "justification": "Heavy-tailed symmetric distribution (nu=7) accounts for fat-tail risk against heavy rushing teams that exploit light boxes for large gains.",
+              "name": "student_t"
+            },
+            "parameters": {
+              "conversion_note": "Derived for student_t with nu = 7: mu = 0.75; scale sigma = (1.95 - (-0.45)) / (2 * 2.365) = 2.40 / 4.730 = 0.5074, using t_{0.975,7} = 2.365.",
+              "mu": 0.75,
+              "nu": 7,
+              "sigma": 0.5074
+            }
+          },
+          "rationale": "Passing efficiency dominates rushing efficiency on early downs in public analytics; suppressing explosive passes yields greater net EPA defense even if opponent early-down rush yards per carry increase slightly.",
+          "recommendation": "Maintain split-safety (two-high) shells pre-snap on 1st and 2nd down at top-tier rates, accepting light boxes against early-down runs to stop deep passes. Avoid rolling extra defenders into the box prior to the snap on early downs.",
+          "title": "Early-Down Two-High Safety Shells",
+          "type": "defensive"
+        },
+        {
+          "bucket": "intuition",
+          "prior": {
+            "belief_summaries": {
+              "interval_95_high": 1.85,
+              "interval_95_low": -0.85,
+              "most_plausible_value": 0.25,
+              "shape": "right_skewed",
+              "tails": "moderate"
+            },
+            "consistency_check": "Confirmed: most_plausible_value (0.25) lies inside [-0.85, 1.85], and support covers all signed real values.",
+            "distribution_family": {
+              "justification": "Asymmetric right-skewed prior modeling modest baseline benefit with long upside potential if breaking opponent momentum forces a turnover.",
+              "name": "skew_normal"
+            },
+            "parameters": {
+              "alpha": 2.2,
+              "conversion_note": "Fit numerically for skew_normal(xi, omega, alpha) with location xi = -0.20, scale omega = 1.05, shape alpha = 2.20 to match mode = 0.25 and 95% interval [-0.85, 1.85].",
+              "omega": 1.05,
+              "xi": -0.2
+            }
+          },
+          "rationale": "Public analytics is silent on offensive momentum and psychological disruption via timeouts. Coaching judgment indicates stopping fast-paced opponent drives prevents compounding multi-play defensive collapses.",
+          "recommendation": "Call a defensive timeout early in the 3rd quarter whenever the opponent completes consecutive 15+ yard plays, explicitly breaking offensive play-calling tempo. Use the stoppage to reset defensive personnel and calm panic.",
+          "title": "Early Second-Half Timeout Calls for Momentum Interruption",
+          "type": "game_management"
+        },
+        {
+          "bucket": "intuition",
+          "prior": {
+            "belief_summaries": {
+              "interval_95_high": 1.5,
+              "interval_95_low": -1.1,
+              "most_plausible_value": 0.5,
+              "shape": "left_skewed",
+              "tails": "moderate"
+            },
+            "consistency_check": "Confirmed: most_plausible_value (0.50) lies inside [-1.10, 1.50], and support is unbounded real.",
+            "distribution_family": {
+              "justification": "Asymmetric left-skewed prior representing downside risk if offensive play-calling stalls or leads to sacks in compressed spaces, balanced by positive modal EV.",
+              "name": "skew_normal"
+            },
+            "parameters": {
+              "alpha": -2.0,
+              "conversion_note": "Fit numerically for skew_normal(xi, omega, alpha) with location xi = 0.87, scale omega = 0.98, shape alpha = -2.00 to match mode = 0.50 and 95% interval [-1.10, 1.50].",
+              "omega": 0.98,
+              "xi": 0.87
+            }
+          },
+          "rationale": "Public models evaluate play-action and personnel groupings independently, but are silent on combining heavy personnel with no-huddle tempo to force mismatches against gassed base defenses.",
+          "recommendation": "Deploy 13-personnel (1 RB, 3 TE) in sudden 3-to-4 play no-huddle bursts, executing deep play-action vertical routes against heavy defensive personnel forced to stay on the field. Prevent defensive line substitutions and force linebackers into isolated deep coverages.",
+          "title": "Heavy-Personnel No-Huddle Deep Sequences",
+          "type": "offensive"
+        },
+        {
+          "bucket": "intuition",
+          "prior": {
+            "belief_summaries": {
+              "interval_95_high": 1.65,
+              "interval_95_low": -0.95,
+              "most_plausible_value": 0.35,
+              "shape": "symmetric",
+              "tails": "heavy"
+            },
+            "consistency_check": "Confirmed: most_plausible_value (0.35) lies inside [-0.95, 1.65], and support spans all signed real numbers.",
+            "distribution_family": {
+              "justification": "Heavy-tailed symmetric prior (nu=4) due to high variance; leaving an elite WR1 isolated carries downside potential if the receiver wins quickly.",
+              "name": "student_t"
+            },
+            "parameters": {
+              "conversion_note": "Derived for student_t with nu = 4: mu = 0.35; scale sigma = (1.65 - (-0.95)) / (2 * 2.776) = 2.60 / 5.552 = 0.4683, using t_{0.975,4} = 2.776.",
+              "mu": 0.35,
+              "nu": 4,
+              "sigma": 0.4683
+            }
+          },
+          "rationale": "Public analytics focuses almost exclusively on double-teaming WR1s; coaching intuition suggests taking away safety-valve secondary options creates QB hesitation that quantitative models do not capture.",
+          "recommendation": "Bracket and double-team the opponent's WR2 or TE1 on 3rd-and-medium, while leaving the WR1 in single coverage with safety leverage to disrupt timing. Force the QB to move off their quick second read into unfamiliar late progressions.",
+          "title": "Target-Bracket Secondary Options on Third Down",
+          "type": "defensive"
+        }
+      ]
+    },
+    "raw_text": "{\n  \"quantity\": {\n    \"description\": \"Change in own-team expected single-game scoring margin from adopting the strategy\",\n    \"units\": \"points\",\n    \"support\": \"unbounded real; positive favors own team\"\n  },\n  \"strategies\": [\n    {\n      \"bucket\": \"analytics\",\n      \"type\": \"game_management\",\n      \"title\": \"Aggressive 4th-Down Conversion Decision Rules\",\n      \"recommendation\": \"Adopt aggressive 4th-down go-for-it rules, consistently attempting conversions on 4th-and-3 or shorter past your own 40-yard line and 4th-and-1 anywhere on the field. Eliminate low-value punts and long field goal attempts in these neutral-to-favorable midfield zones.\",\n      \"rationale\": \"Public win-probability and Expected Points Added (EPA) models consistently show NFL coaches punt and kick field goals far too conservatively, relinquishing measurable expected points per game.\",\n      \"prior\": {\n        \"belief_summaries\": {\n          \"most_plausible_value\": 1.4,\n          \"interval_95_low\": 0.3,\n          \"interval_95_high\": 2.5,\n          \"shape\": \"symmetric\",\n          \"tails\": \"light\"\n        },\n        \"distribution_family\": {\n          \"name\": \"normal\",\n          \"justification\": \"The effect is well-documented in published research with symmetric estimation errors centered around a positive mean and light tails.\"\n        },\n        \"parameters\": {\n          \"mu\": 1.4,\n          \"sigma\": 0.5612,\n          \"conversion_note\": \"Derived for normal distribution: mu = 1.40; sigma = (2.50 - 0.30) / (2 * 1.96) = 2.20 / 3.92 = 0.5612.\"\n        },\n        \"consistency_check\": \"Confirmed: most_plausible_value (1.40) lies inside [0.30, 2.50], and support is unbounded real.\"\n      }\n    },\n    {\n      \"bucket\": \"analytics\",\n      \"type\": \"offensive\",\n      \"title\": \"High-Volume Pre-Snap and Snap-Motion Usage\",\n      \"recommendation\": \"Incorporate pre-snap or at-the-snap motion on over 75% of offensive dropbacks and runs, prioritizing motion at the snap. Use late motion intentionally to force real-time coverage communication and compromise secondary leverage.\",\n      \"rationale\": \"Extensive public analytics confirms motion at the snap boosts offensive EPA per play and success rate by revealing coverage indicators and weakening defensive gap integrity.\",\n      \"prior\": {\n        \"belief_summaries\": {\n          \"most_plausible_value\": 1.1,\n          \"interval_95_low\": 0.1,\n          \"interval_95_high\": 2.1,\n          \"shape\": \"symmetric\",\n          \"tails\": \"heavy\"\n        },\n        \"distribution_family\": {\n          \"name\": \"student_t\",\n          \"justification\": \"Symmetric prior centered around a positive gain, with heavy tails (nu=4) accounting for variation across defensive scheme adjustments.\"\n        },\n        \"parameters\": {\n          \"nu\": 4,\n          \"mu\": 1.1,\n          \"sigma\": 0.3602,\n          \"conversion_note\": \"Derived for student_t with nu = 4: mu = 1.10; scale sigma = (2.10 - 0.10) / (2 * 2.776) = 2.00 / 5.552 = 0.3602, using t_{0.975,4} = 2.776.\"\n        },\n        \"consistency_check\": \"Confirmed: most_plausible_value (1.10) lies inside [0.10, 2.10], and support is unbounded real.\"\n      }\n    },\n    {\n      \"bucket\": \"analytics\",\n      \"type\": \"defensive\",\n      \"title\": \"Early-Down Two-High Safety Shells\",\n      \"recommendation\": \"Maintain split-safety (two-high) shells pre-snap on 1st and 2nd down at top-tier rates, accepting light boxes against early-down runs to stop deep passes. Avoid rolling extra defenders into the box prior to the snap on early downs.\",\n      \"rationale\": \"Passing efficiency dominates rushing efficiency on early downs in public analytics; suppressing explosive passes yields greater net EPA defense even if opponent early-down rush yards per carry increase slightly.\",\n      \"prior\": {\n        \"belief_summaries\": {\n          \"most_plausible_value\": 0.75,\n          \"interval_95_low\": -0.45,\n          \"interval_95_high\": 1.95,\n          \"shape\": \"symmetric\",\n          \"tails\": \"heavy\"\n        },\n        \"distribution_family\": {\n          \"name\": \"student_t\",\n          \"justification\": \"Heavy-tailed symmetric distribution (nu=7) accounts for fat-tail risk against heavy rushing teams that exploit light boxes for large gains.\"\n        },\n        \"parameters\": {\n          \"nu\": 7,\n          \"mu\": 0.75,\n          \"sigma\": 0.5074,\n          \"conversion_note\": \"Derived for student_t with nu = 7: mu = 0.75; scale sigma = (1.95 - (-0.45)) / (2 * 2.365) = 2.40 / 4.730 = 0.5074, using t_{0.975,7} = 2.365.\"\n        },\n        \"consistency_check\": \"Confirmed: most_plausible_value (0.75) lies inside [-0.45, 1.95], and support is unbounded real.\"\n      }\n    },\n    {\n      \"bucket\": \"intuition\",\n      \"type\": \"game_management\",\n      \"title\": \"Early Second-Half Timeout Calls for Momentum Interruption\",\n      \"recommendation\": \"Call a defensive timeout early in the 3rd quarter whenever the opponent completes consecutive 15+ yard plays, explicitly breaking offensive play-calling tempo. Use the stoppage to reset defensive personnel and calm panic.\",\n      \"rationale\": \"Public analytics is silent on offensive momentum and psychological disruption via timeouts. Coaching judgment indicates stopping fast-paced opponent drives prevents compounding multi-play defensive collapses.\",\n      \"prior\": {\n        \"belief_summaries\": {\n          \"most_plausible_value\": 0.25,\n          \"interval_95_low\": -0.85,\n          \"interval_95_high\": 1.85,\n          \"shape\": \"right_skewed\",\n          \"tails\": \"moderate\"\n        },\n        \"distribution_family\": {\n          \"name\": \"skew_normal\",\n          \"justification\": \"Asymmetric right-skewed prior modeling modest baseline benefit with long upside potential if breaking opponent momentum forces a turnover.\"\n        },\n        \"parameters\": {\n          \"xi\": -0.2,\n          \"omega\": 1.05,\n          \"alpha\": 2.2,\n          \"conversion_note\": \"Fit numerically for skew_normal(xi, omega, alpha) with location xi = -0.20, scale omega = 1.05, shape alpha = 2.20 to match mode = 0.25 and 95% interval [-0.85, 1.85].\"\n        },\n        \"consistency_check\": \"Confirmed: most_plausible_value (0.25) lies inside [-0.85, 1.85], and support covers all signed real values.\"\n      }\n    },\n    {\n      \"bucket\": \"intuition\",\n      \"type\": \"offensive\",\n      \"title\": \"Heavy-Personnel No-Huddle Deep Sequences\",\n      \"recommendation\": \"Deploy 13-personnel (1 RB, 3 TE) in sudden 3-to-4 play no-huddle bursts, executing deep play-action vertical routes against heavy defensive personnel forced to stay on the field. Prevent defensive line substitutions and force linebackers into isolated deep coverages.\",\n      \"rationale\": \"Public models evaluate play-action and personnel groupings independently, but are silent on combining heavy personnel with no-huddle tempo to force mismatches against gassed base defenses.\",\n      \"prior\": {\n        \"belief_summaries\": {\n          \"most_plausible_value\": 0.5,\n          \"interval_95_low\": -1.1,\n          \"interval_95_high\": 1.5,\n          \"shape\": \"left_skewed\",\n          \"tails\": \"moderate\"\n        },\n        \"distribution_family\": {\n          \"name\": \"skew_normal\",\n          \"justification\": \"Asymmetric left-skewed prior representing downside risk if offensive play-calling stalls or leads to sacks in compressed spaces, balanced by positive modal EV.\"\n        },\n        \"parameters\": {\n          \"xi\": 0.87,\n          \"omega\": 0.98,\n          \"alpha\": -2.0,\n          \"conversion_note\": \"Fit numerically for skew_normal(xi, omega, alpha) with location xi = 0.87, scale omega = 0.98, shape alpha = -2.00 to match mode = 0.50 and 95% interval [-1.10, 1.50].\"\n        },\n        \"consistency_check\": \"Confirmed: most_plausible_value (0.50) lies inside [-1.10, 1.50], and support is unbounded real.\"\n      }\n    },\n    {\n      \"bucket\": \"intuition\",\n      \"type\": \"defensive\",\n      \"title\": \"Target-Bracket Secondary Options on Third Down\",\n      \"recommendation\": \"Bracket and double-team the opponent's WR2 or TE1 on 3rd-and-medium, while leaving the WR1 in single coverage with safety leverage to disrupt timing. Force the QB to move off their quick second read into unfamiliar late progressions.\",\n      \"rationale\": \"Public analytics focuses almost exclusively on double-teaming WR1s; coaching intuition suggests taking away safety-valve secondary options creates QB hesitation that quantitative models do not capture.\",\n      \"prior\": {\n        \"belief_summaries\": {\n          \"most_plausible_value\": 0.35,\n          \"interval_95_low\": -0.95,\n          \"interval_95_high\": 1.65,\n          \"shape\": \"symmetric\",\n          \"tails\": \"heavy\"\n        },\n        \"distribution_family\": {\n          \"name\": \"student_t\",\n          \"justification\": \"Heavy-tailed symmetric prior (nu=4) due to high variance; leaving an elite WR1 isolated carries downside potential if the receiver wins quickly.\"\n        },\n        \"parameters\": {\n          \"nu\": 4,\n          \"mu\": 0.35,\n          \"sigma\": 0.4683,\n          \"conversion_note\": \"Derived for student_t with nu = 4: mu = 0.35; scale sigma = (1.65 - (-0.95)) / (2 * 2.776) = 2.60 / 5.552 = 0.4683, using t_{0.975,4} = 2.776.\"\n        },\n        \"consistency_check\": \"Confirmed: most_plausible_value (0.35) lies inside [-0.95, 1.65], and support spans all signed real numbers.\"\n      }\n    }\n  ]\n}",
+    "sample_idx": 0,
+    "seed": 42,
+    "snapshot_id": "gemini-3.6-flash",
+    "stop_reason": "STOP",
+    "temperature": 1.0,
+    "ts": "2026-07-31T03:55:04Z"
+  },
+  {
+    "instance_id": "glm-5.2__s0",
+    "model": "glm-5.2",
+    "parse_mode": "fenced",
+    "parsed_json": {
+      "quantity": {
+        "description": "Change in own-team expected single-game scoring margin from adopting the strategy",
+        "support": "unbounded real; positive favors own team",
+        "units": "points"
+      },
+      "strategies": [
+        {
+          "bucket": "analytics",
+          "prior": {
+            "belief_summaries": {
+              "interval_95_high": 1.6,
+              "interval_95_low": 0.2,
+              "most_plausible_value": 0.8,
+              "shape": "symmetric",
+              "tails": "light"
+            },
+            "consistency_check": "Most plausible value 0.8 lies within [0.2, 1.6]; normal support is the full real line, covering signed effects. No approximation needed.",
+            "distribution_family": {
+              "justification": "The effect is well-studied with a central estimate and bounded plausible range; no reason to expect a heavy tail or strong asymmetry.",
+              "name": "normal"
+            },
+            "parameters": {
+              "conversion_note": "sigma = (1.6 - 0.2) / 3.92 = 1.4 / 3.92 = 0.357; mu = most_plausible_value = 0.8.",
+              "mu": 0.8,
+              "sigma": 0.357
+            }
+          },
+          "rationale": "Public EPA and win-probability models consistently show that punting from midfield trades meaningful expected points for marginal field-position gain; the breakeven is well below typical NFL conversion rates, yet league behavior lags the math.",
+          "recommendation": "On 4th-and-3 or shorter between your own 40 and the opponent's 35, go for it by default rather than punting or attempting long field goals, regardless of game script.",
+          "title": "Aggressive 4th-down conversion in midfield 'go' zones",
+          "type": "game_management"
+        },
+        {
+          "bucket": "analytics",
+          "prior": {
+            "belief_summaries": {
+              "interval_95_high": 1.5,
+              "interval_95_low": 0.1,
+              "most_plausible_value": 0.7,
+              "shape": "symmetric",
+              "tails": "moderate"
+            },
+            "consistency_check": "Most plausible value 0.7 lies within [0.1, 1.5]; normal support is signed. No approximation needed.",
+            "distribution_family": {
+              "justification": "A central, roughly symmetric belief with moderate uncertainty about opponent adjustment; no strong skew justification.",
+              "name": "normal"
+            },
+            "parameters": {
+              "conversion_note": "sigma = (1.5 - 0.1) / 3.92 = 1.4 / 3.92 = 0.357; mu = most_plausible_value = 0.7.",
+              "mu": 0.7,
+              "sigma": 0.357
+            }
+          },
+          "rationale": "EPA-per-play models show passing outperforms rushing on early downs in most situations, yet play-callers still run too often to 'establish the run'; the gap between modeled efficiency and observed behavior is the available edge.",
+          "recommendation": "Shift early-down play selection toward pass (including RPOs and play-action) in neutral game scripts, reducing 1st/2nd-down run rate by roughly 10-15 percentage points relative to league average.",
+          "title": "Pass-rate increase on 1st and 2nd down",
+          "type": "offensive"
+        },
+        {
+          "bucket": "analytics",
+          "prior": {
+            "belief_summaries": {
+              "interval_95_high": 1.3,
+              "interval_95_low": -0.1,
+              "most_plausible_value": 0.5,
+              "shape": "right_skewed",
+              "tails": "moderate"
+            },
+            "consistency_check": "Most plausible value 0.5 lies within [-0.1, 1.3]; skew_normal support is the full real line, covering signed effects. Slight interval-matching approximation noted.",
+            "distribution_family": {
+              "justification": "Asymmetric interval with a longer upside tail (if opponent QB is explosion-dependent, benefit is large); downside is bounded because a fallback to single-high is cheap.",
+              "name": "skew_normal"
+            },
+            "parameters": {
+              "alpha": 3.0,
+              "conversion_note": "Fitted numerically: alpha=3.0 chosen for moderate right skew; with delta=alpha/sqrt(1+alpha^2)=0.949, mean = xi + 0.757*omega = 0.15 + 0.454 = 0.604, SD = omega*sqrt(1-2*delta^2/pi) = 0.6*0.653 = 0.392, giving 95% mass approx [0.604 - 0.77, 0.604 + 0.77] = [-0.17, 1.37], close to target [-0.1, 1.3]; mode approx 0.5 as desired.",
+              "omega": 0.6,
+              "xi": 0.15
+            }
+          },
+          "rationale": "Defensive EPA research emphasizes that explosion plays drive scoring; two-high shells reduce explosive pass EPA enough to offset modest run-defense costs, yet many teams still over-index on single-high/man coverage.",
+          "recommendation": "Default to two-deep safety structures on early downs, accepting lighter boxes in exchange for suppressing explosive pass plays, rotating to single-high only in clear pass situations.",
+          "title": "Two-high safety default with light-box run fits",
+          "type": "defensive"
+        },
+        {
+          "bucket": "intuition",
+          "prior": {
+            "belief_summaries": {
+              "interval_95_high": 0.7,
+              "interval_95_low": -0.3,
+              "most_plausible_value": 0.2,
+              "shape": "right_skewed",
+              "tails": "moderate"
+            },
+            "consistency_check": "Most plausible value 0.2 lies within [-0.3, 0.7]; skew_normal support is signed. Weak candidate acknowledged: most plausible effect is small; interval nearly includes zero.",
+            "distribution_family": {
+              "justification": "Asymmetric belief: upside (scoring before half) is meaningful but bounded; downside (wasted timeout) is small and bounded, producing a longer right tail.",
+              "name": "skew_normal"
+            },
+            "parameters": {
+              "alpha": 2.5,
+              "conversion_note": "Fitted numerically: alpha=2.5 for mild right skew; delta=2.5/sqrt(1+6.25)=0.928, mean = xi + 0.741*omega = -0.08 + 0.334 = 0.254, SD = omega*sqrt(1-2*delta^2/pi) = 0.45*0.672 = 0.302, giving 95% mass approx [0.254 - 0.59, 0.254 + 0.59] = [-0.34, 0.84], close to target [-0.3, 0.7]; mode approx 0.2.",
+              "omega": 0.45,
+              "xi": -0.08
+            }
+          },
+          "rationale": "Public analytics focus on end-game timeout value and largely ignore halftime preservation; my read is that the expected value of a pre-half possession is underpriced because coaches irrationally hoard timeouts they rarely use productively.",
+          "recommendation": "Burn a defensive timeout in the final 90 seconds of the first half when the opponent is in clock-killing mode, even absent a stop, to retain a realistic chance at a scoring drive before halftime.",
+          "title": "Pre-half defensive timeout to preserve two-minute response window",
+          "type": "game_management"
+        },
+        {
+          "bucket": "intuition",
+          "prior": {
+            "belief_summaries": {
+              "interval_95_high": 1.5,
+              "interval_95_low": -0.4,
+              "most_plausible_value": 0.5,
+              "shape": "right_skewed",
+              "tails": "moderate"
+            },
+            "consistency_check": "Most plausible value 0.5 lies within [-0.4, 1.5]; skew_normal support is signed. Approximation: heavy-tail belief is only partially captured; omega widened to partially compensate.",
+            "distribution_family": {
+              "justification": "Strong right skew: upside is a quick-score burst; downside (three-and-out, fatigue, turnover risk) is real but bounded. Note: true tails may be heavier than skew_normal captures; omega slightly inflated to approximate.",
+              "name": "skew_normal"
+            },
+            "parameters": {
+              "alpha": 4.0,
+              "conversion_note": "Fitted numerically: alpha=4.0 for pronounced right skew; delta=4/sqrt(17)=0.970, mean = xi + 0.774*omega = 0.02 + 0.581 = 0.601, SD = omega*sqrt(1-2*delta^2/pi) = 0.75*0.633 = 0.475, giving 95% mass approx [0.601 - 0.93, 0.601 + 0.93] = [-0.33, 1.53], close to target [-0.4, 1.5]; mode approx 0.5.",
+              "omega": 0.75,
+              "xi": 0.02
+            }
+          },
+          "rationale": "General tempo analytics are mixed and silent on takeaway-specific sequencing; my intuition is that the post-takeaway moment combines emotional momentum, field-position advantage, and a substituting defense in ways public models have not isolated.",
+          "recommendation": "On the first offensive series following a takeaway, go no-huddle with a pre-scripted 4-6 play sequence to exploit defensive personnel mismatches and fatigue before substitutions settle.",
+          "title": "Scripted no-huddle immediately after defensive takeaways",
+          "type": "offensive"
+        },
+        {
+          "bucket": "intuition",
+          "prior": {
+            "belief_summaries": {
+              "interval_95_high": 1.2,
+              "interval_95_low": -0.5,
+              "most_plausible_value": 0.3,
+              "shape": "right_skewed",
+              "tails": "moderate"
+            },
+            "consistency_check": "Most plausible value 0.3 lies within [-0.5, 1.2]; skew_normal support is signed. Slight interval-matching approximation noted.",
+            "distribution_family": {
+              "justification": "Right-skewed: a well-timed bluff produces a takeaway or sack (large upside); a misread by our own defense yields a coverage bust, but the bail-to-zone design limits catastrophic exposure.",
+              "name": "skew_normal"
+            },
+            "parameters": {
+              "alpha": 3.0,
+              "conversion_note": "Fitted numerically: alpha=3.0 for moderate right skew; delta=0.949, mean = xi + 0.757*omega = -0.09 + 0.492 = 0.402, SD = omega*0.653 = 0.424, giving 95% mass approx [0.402 - 0.83, 0.402 + 0.83] = [-0.43, 1.23], close to target [-0.5, 1.2]; mode approx 0.3.",
+              "omega": 0.65,
+              "xi": -0.09
+            }
+          },
+          "rationale": "No public analytics isolate bluff-to-zone sequencing; my coaching read is that quarterbacks trained to beat Cover-0 with hot reads are increasingly vulnerable to disguised zone that punishes those pre-programmed throws.",
+          "recommendation": "Show zero-blitz alignment pre-snap with corners pressed and a single deep safety, then bail into zone coverage post-snap to bait the quarterback into hot-route throws against disguised zones.",
+          "title": "Pre-snap Cover-0 bluff bailing to zone",
+          "type": "defensive"
+        }
+      ]
+    },
+    "raw_text": "```json\n{\n  \"quantity\": {\n    \"description\": \"Change in own-team expected single-game scoring margin from adopting the strategy\",\n    \"units\": \"points\",\n    \"support\": \"unbounded real; positive favors own team\"\n  },\n  \"strategies\": [\n    {\n      \"bucket\": \"analytics\",\n      \"type\": \"game_management\",\n      \"title\": \"Aggressive 4th-down conversion in midfield 'go' zones\",\n      \"recommendation\": \"On 4th-and-3 or shorter between your own 40 and the opponent's 35, go for it by default rather than punting or attempting long field goals, regardless of game script.\",\n      \"rationale\": \"Public EPA and win-probability models consistently show that punting from midfield trades meaningful expected points for marginal field-position gain; the breakeven is well below typical NFL conversion rates, yet league behavior lags the math.\",\n      \"prior\": {\n        \"belief_summaries\": {\n          \"most_plausible_value\": 0.8,\n          \"interval_95_low\": 0.2,\n          \"interval_95_high\": 1.6,\n          \"shape\": \"symmetric\",\n          \"tails\": \"light\"\n        },\n        \"distribution_family\": {\n          \"name\": \"normal\",\n          \"justification\": \"The effect is well-studied with a central estimate and bounded plausible range; no reason to expect a heavy tail or strong asymmetry.\"\n        },\n        \"parameters\": {\n          \"mu\": 0.8,\n          \"sigma\": 0.357,\n          \"conversion_note\": \"sigma = (1.6 - 0.2) / 3.92 = 1.4 / 3.92 = 0.357; mu = most_plausible_value = 0.8.\"\n        },\n        \"consistency_check\": \"Most plausible value 0.8 lies within [0.2, 1.6]; normal support is the full real line, covering signed effects. No approximation needed.\"\n      }\n    },\n    {\n      \"bucket\": \"analytics\",\n      \"type\": \"offensive\",\n      \"title\": \"Pass-rate increase on 1st and 2nd down\",\n      \"recommendation\": \"Shift early-down play selection toward pass (including RPOs and play-action) in neutral game scripts, reducing 1st/2nd-down run rate by roughly 10-15 percentage points relative to league average.\",\n      \"rationale\": \"EPA-per-play models show passing outperforms rushing on early downs in most situations, yet play-callers still run too often to 'establish the run'; the gap between modeled efficiency and observed behavior is the available edge.\",\n      \"prior\": {\n        \"belief_summaries\": {\n          \"most_plausible_value\": 0.7,\n          \"interval_95_low\": 0.1,\n          \"interval_95_high\": 1.5,\n          \"shape\": \"symmetric\",\n          \"tails\": \"moderate\"\n        },\n        \"distribution_family\": {\n          \"name\": \"normal\",\n          \"justification\": \"A central, roughly symmetric belief with moderate uncertainty about opponent adjustment; no strong skew justification.\"\n        },\n        \"parameters\": {\n          \"mu\": 0.7,\n          \"sigma\": 0.357,\n          \"conversion_note\": \"sigma = (1.5 - 0.1) / 3.92 = 1.4 / 3.92 = 0.357; mu = most_plausible_value = 0.7.\"\n        },\n        \"consistency_check\": \"Most plausible value 0.7 lies within [0.1, 1.5]; normal support is signed. No approximation needed.\"\n      }\n    },\n    {\n      \"bucket\": \"analytics\",\n      \"type\": \"defensive\",\n      \"title\": \"Two-high safety default with light-box run fits\",\n      \"recommendation\": \"Default to two-deep safety structures on early downs, accepting lighter boxes in exchange for suppressing explosive pass plays, rotating to single-high only in clear pass situations.\",\n      \"rationale\": \"Defensive EPA research emphasizes that explosion plays drive scoring; two-high shells reduce explosive pass EPA enough to offset modest run-defense costs, yet many teams still over-index on single-high/man coverage.\",\n      \"prior\": {\n        \"belief_summaries\": {\n          \"most_plausible_value\": 0.5,\n          \"interval_95_low\": -0.1,\n          \"interval_95_high\": 1.3,\n          \"shape\": \"right_skewed\",\n          \"tails\": \"moderate\"\n        },\n        \"distribution_family\": {\n          \"name\": \"skew_normal\",\n          \"justification\": \"Asymmetric interval with a longer upside tail (if opponent QB is explosion-dependent, benefit is large); downside is bounded because a fallback to single-high is cheap.\"\n        },\n        \"parameters\": {\n          \"xi\": 0.15,\n          \"omega\": 0.6,\n          \"alpha\": 3.0,\n          \"conversion_note\": \"Fitted numerically: alpha=3.0 chosen for moderate right skew; with delta=alpha/sqrt(1+alpha^2)=0.949, mean = xi + 0.757*omega = 0.15 + 0.454 = 0.604, SD = omega*sqrt(1-2*delta^2/pi) = 0.6*0.653 = 0.392, giving 95% mass approx [0.604 - 0.77, 0.604 + 0.77] = [-0.17, 1.37], close to target [-0.1, 1.3]; mode approx 0.5 as desired.\"\n        },\n        \"consistency_check\": \"Most plausible value 0.5 lies within [-0.1, 1.3]; skew_normal support is the full real line, covering signed effects. Slight interval-matching approximation noted.\"\n      }\n    },\n    {\n      \"bucket\": \"intuition\",\n      \"type\": \"game_management\",\n      \"title\": \"Pre-half defensive timeout to preserve two-minute response window\",\n      \"recommendation\": \"Burn a defensive timeout in the final 90 seconds of the first half when the opponent is in clock-killing mode, even absent a stop, to retain a realistic chance at a scoring drive before halftime.\",\n      \"rationale\": \"Public analytics focus on end-game timeout value and largely ignore halftime preservation; my read is that the expected value of a pre-half possession is underpriced because coaches irrationally hoard timeouts they rarely use productively.\",\n      \"prior\": {\n        \"belief_summaries\": {\n          \"most_plausible_value\": 0.2,\n          \"interval_95_low\": -0.3,\n          \"interval_95_high\": 0.7,\n          \"shape\": \"right_skewed\",\n          \"tails\": \"moderate\"\n        },\n        \"distribution_family\": {\n          \"name\": \"skew_normal\",\n          \"justification\": \"Asymmetric belief: upside (scoring before half) is meaningful but bounded; downside (wasted timeout) is small and bounded, producing a longer right tail.\"\n        },\n        \"parameters\": {\n          \"xi\": -0.08,\n          \"omega\": 0.45,\n          \"alpha\": 2.5,\n          \"conversion_note\": \"Fitted numerically: alpha=2.5 for mild right skew; delta=2.5/sqrt(1+6.25)=0.928, mean = xi + 0.741*omega = -0.08 + 0.334 = 0.254, SD = omega*sqrt(1-2*delta^2/pi) = 0.45*0.672 = 0.302, giving 95% mass approx [0.254 - 0.59, 0.254 + 0.59] = [-0.34, 0.84], close to target [-0.3, 0.7]; mode approx 0.2.\"\n        },\n        \"consistency_check\": \"Most plausible value 0.2 lies within [-0.3, 0.7]; skew_normal support is signed. Weak candidate acknowledged: most plausible effect is small; interval nearly includes zero.\"\n      }\n    },\n    {\n      \"bucket\": \"intuition\",\n      \"type\": \"offensive\",\n      \"title\": \"Scripted no-huddle immediately after defensive takeaways\",\n      \"recommendation\": \"On the first offensive series following a takeaway, go no-huddle with a pre-scripted 4-6 play sequence to exploit defensive personnel mismatches and fatigue before substitutions settle.\",\n      \"rationale\": \"General tempo analytics are mixed and silent on takeaway-specific sequencing; my intuition is that the post-takeaway moment combines emotional momentum, field-position advantage, and a substituting defense in ways public models have not isolated.\",\n      \"prior\": {\n        \"belief_summaries\": {\n          \"most_plausible_value\": 0.5,\n          \"interval_95_low\": -0.4,\n          \"interval_95_high\": 1.5,\n          \"shape\": \"right_skewed\",\n          \"tails\": \"moderate\"\n        },\n        \"distribution_family\": {\n          \"name\": \"skew_normal\",\n          \"justification\": \"Strong right skew: upside is a quick-score burst; downside (three-and-out, fatigue, turnover risk) is real but bounded. Note: true tails may be heavier than skew_normal captures; omega slightly inflated to approximate.\"\n        },\n        \"parameters\": {\n          \"xi\": 0.02,\n          \"omega\": 0.75,\n          \"alpha\": 4.0,\n          \"conversion_note\": \"Fitted numerically: alpha=4.0 for pronounced right skew; delta=4/sqrt(17)=0.970, mean = xi + 0.774*omega = 0.02 + 0.581 = 0.601, SD = omega*sqrt(1-2*delta^2/pi) = 0.75*0.633 = 0.475, giving 95% mass approx [0.601 - 0.93, 0.601 + 0.93] = [-0.33, 1.53], close to target [-0.4, 1.5]; mode approx 0.5.\"\n        },\n        \"consistency_check\": \"Most plausible value 0.5 lies within [-0.4, 1.5]; skew_normal support is signed. Approximation: heavy-tail belief is only partially captured; omega widened to partially compensate.\"\n      }\n    },\n    {\n      \"bucket\": \"intuition\",\n      \"type\": \"defensive\",\n      \"title\": \"Pre-snap Cover-0 bluff bailing to zone\",\n      \"recommendation\": \"Show zero-blitz alignment pre-snap with corners pressed and a single deep safety, then bail into zone coverage post-snap to bait the quarterback into hot-route throws against disguised zones.\",\n      \"rationale\": \"No public analytics isolate bluff-to-zone sequencing; my coaching read is that quarterbacks trained to beat Cover-0 with hot reads are increasingly vulnerable to disguised zone that punishes those pre-programmed throws.\",\n      \"prior\": {\n        \"belief_summaries\": {\n          \"most_plausible_value\": 0.3,\n          \"interval_95_low\": -0.5,\n          \"interval_95_high\": 1.2,\n          \"shape\": \"right_skewed\",\n          \"tails\": \"moderate\"\n        },\n        \"distribution_family\": {\n          \"name\": \"skew_normal\",\n          \"justification\": \"Right-skewed: a well-timed bluff produces a takeaway or sack (large upside); a misread by our own defense yields a coverage bust, but the bail-to-zone design limits catastrophic exposure.\"\n        },\n        \"parameters\": {\n          \"xi\": -0.09,\n          \"omega\": 0.65,\n          \"alpha\": 3.0,\n          \"conversion_note\": \"Fitted numerically: alpha=3.0 for moderate right skew; delta=0.949, mean = xi + 0.757*omega = -0.09 + 0.492 = 0.402, SD = omega*0.653 = 0.424, giving 95% mass approx [0.402 - 0.83, 0.402 + 0.83] = [-0.43, 1.23], close to target [-0.5, 1.2]; mode approx 0.3.\"\n        },\n        \"consistency_check\": \"Most plausible value 0.3 lies within [-0.5, 1.2]; skew_normal support is signed. Slight interval-matching approximation noted.\"\n      }\n    }\n  ]\n}\n```",
+    "sample_idx": 0,
+    "seed": null,
+    "snapshot_id": "glm-5.2",
+    "stop_reason": "stop",
+    "temperature": 1.0,
+    "ts": "2026-07-31T03:56:43Z"
+  },
+  {
+    "instance_id": "gpt-5.6-sol__s0",
+    "model": "gpt-5.6-sol",
+    "parse_mode": "direct",
+    "parsed_json": {
+      "quantity": {
+        "description": "Change in own-team expected single-game scoring margin from adopting the strategy",
+        "support": "unbounded real; positive favors own team",
+        "units": "points"
+      },
+      "strategies": [
+        {
+          "bucket": "analytics",
+          "prior": {
+            "belief_summaries": {
+              "interval_95_high": 1.33,
+              "interval_95_low": -0.39,
+              "most_plausible_value": 0.47,
+              "shape": "symmetric",
+              "tails": "light"
+            },
+            "consistency_check": "The most plausible value 0.47 is inside [-0.39, 1.33], which is symmetric about 0.47. A normal distribution has support over all real values, including harmful negative effects.",
+            "distribution_family": {
+              "justification": "The evidence supports a modest positive center, while implementation errors and model misspecification leave meaningful downside. I see no strong reason for asymmetric or heavy tails; this remains a subjective prior rather than a precise empirical estimate.",
+              "name": "normal"
+            },
+            "parameters": {
+              "conversion_note": "Using the normal conversion: mu = 0.47 and sigma = (1.33 - (-0.39)) / (2 x 1.96) = 1.72 / 3.92 = 0.4388, reported as 0.439.",
+              "mu": 0.47,
+              "sigma": 0.439
+            }
+          },
+          "rationale": "Public expected-points and win-probability analyses consistently find that NFL teams surrender value by punting or kicking too often. Capturing more high-value possessions should increase scoring margin and convert some close losses into wins.",
+          "recommendation": "Use a calibrated win-probability model as the default authority on fourth downs, including decisions in your own territory, and override it only for material information the model lacks. Treat close recommendations as genuine go situations rather than reverting automatically to punts or short field goals.",
+          "title": "Model-Guided Fourth-Down Aggression",
+          "type": "game_management"
+        },
+        {
+          "bucket": "analytics",
+          "prior": {
+            "belief_summaries": {
+              "interval_95_high": 1.87,
+              "interval_95_low": -0.61,
+              "most_plausible_value": 0.63,
+              "shape": "symmetric",
+              "tails": "light"
+            },
+            "consistency_check": "The most plausible value 0.63 is inside [-0.61, 1.87], which is symmetric about 0.63. The normal family's unbounded real support permits both positive and negative effects.",
+            "distribution_family": {
+              "justification": "The positive analytics case is substantial, but quarterback quality, protection, weather, and defensive adaptation could erase or reverse the benefit. This subjective prior treats those uncertainties as roughly symmetric without assigning large tail risk.",
+              "name": "normal"
+            },
+            "parameters": {
+              "conversion_note": "Using the normal conversion: mu = 0.63 and sigma = (1.87 - (-0.61)) / (2 x 1.96) = 2.48 / 3.92 = 0.6327, reported as 0.633.",
+              "mu": 0.63,
+              "sigma": 0.633
+            }
+          },
+          "rationale": "Public EPA and pass-rate-over-expected research generally finds that passing produces more expected value than rushing, while play action does not require an established running game to work. More efficient early downs create additional first downs, scoring opportunities, and favorable late-down situations.",
+          "recommendation": "Pass more often on first and second down in neutral game states, with play action and formation variation preventing the tendency from becoming transparent. Reduce the habitual early-down runs that primarily create predictable third downs.",
+          "title": "Neutral-Down Passing Shift",
+          "type": "offensive"
+        },
+        {
+          "bucket": "analytics",
+          "prior": {
+            "belief_summaries": {
+              "interval_95_high": 1.46,
+              "interval_95_low": -0.98,
+              "most_plausible_value": 0.24,
+              "shape": "symmetric",
+              "tails": "light"
+            },
+            "consistency_check": "The most plausible value 0.24 is inside [-0.98, 1.46], which is symmetric about 0.24. Normal support is the entire real line, so the strategy can have a negative effect.",
+            "distribution_family": {
+              "justification": "Public analytics supports the pass-first premise, but evidence for a universal personnel or shell prescription is less decisive. I therefore place the subjective prior near zero with substantial, approximately symmetric uncertainty.",
+              "name": "normal"
+            },
+            "parameters": {
+              "conversion_note": "Using the normal conversion: mu = 0.24 and sigma = (1.46 - (-0.98)) / (2 x 1.96) = 2.44 / 3.92 = 0.6224, reported as 0.622.",
+              "mu": 0.24,
+              "sigma": 0.622
+            }
+          },
+          "rationale": "Public EPA research shows that passing and explosive plays are generally more damaging than ordinary rushing gains, while additional box defenders can induce opponents to choose the more valuable pass. The likely gain is modest because defensive outcomes and personnel effects are difficult to identify causally.",
+          "recommendation": "Default more often to nickel or dime personnel, two-high presentations, and light boxes against spread personnel, accepting some efficient runs to suppress valuable passes and explosives. Spin safeties and vary run fits after the snap rather than telegraphing a stacked box.",
+          "title": "Pass-First Light-Box Defense",
+          "type": "defensive"
+        },
+        {
+          "bucket": "intuition",
+          "prior": {
+            "belief_summaries": {
+              "interval_95_high": 0.81,
+              "interval_95_low": -0.75,
+              "most_plausible_value": 0.03,
+              "shape": "symmetric",
+              "tails": "light"
+            },
+            "consistency_check": "The most plausible value 0.03 is inside [-0.75, 0.81], which is symmetric about 0.03. The normal distribution covers all signed real effects.",
+            "distribution_family": {
+              "justification": "I expect little average effect: occasionally the timeout prevents a major failure, but occasionally it is needed later. The symmetric, near-zero subjective prior reflects the weakness of the evidence.",
+              "name": "normal"
+            },
+            "parameters": {
+              "conversion_note": "Using the normal conversion: mu = 0.03 and sigma = (0.81 - (-0.75)) / (2 x 1.96) = 1.56 / 3.92 = 0.3980, reported as 0.398.",
+              "mu": 0.03,
+              "sigma": 0.398
+            }
+          },
+          "rationale": "Preventing one conversion or explosive play can outweigh the uncertain future value of a saved timeout. This is intuition rather than established analytics because public timeout research does not reliably value real-time mismatch recognition, and the net effect may be nearly zero.",
+          "recommendation": "Spend a first-half timeout when a high-leverage third or fourth down exposes a clear personnel, alignment, or communication failure rather than preserving every timeout reflexively. Apply a high threshold so routine discomfort does not trigger it.",
+          "title": "First-Half Mismatch Timeout",
+          "type": "game_management"
+        },
+        {
+          "bucket": "intuition",
+          "prior": {
+            "belief_summaries": {
+              "interval_95_high": 1.63,
+              "interval_95_low": -1.29,
+              "most_plausible_value": 0.17,
+              "shape": "symmetric",
+              "tails": "heavy"
+            },
+            "consistency_check": "The most plausible value and Student-t mode 0.17 is inside [-1.29, 1.63], which is symmetric about 0.17. The stated interval is approximate because the critical value was rounded, and Student-t support covers the entire real line.",
+            "distribution_family": {
+              "justification": "Tempo interaction with quarterback processing, conditioning, officiating, and defensive substitution creates a meaningful chance of unexpectedly large gains or losses. A four-degree-of-freedom Student-t represents that heavy-tailed subjective uncertainty.",
+              "name": "student_t"
+            },
+            "parameters": {
+              "conversion_note": "Using t_(0.975,4) approximately 2.78: mu = 0.17 and sigma = (1.63 - (-1.29)) / (2 x 2.78) = 2.92 / 5.56 = 0.5252, reported as 0.525. Sigma is the Student-t scale parameter, not its standard deviation.",
+              "mu": 0.17,
+              "nu": 4,
+              "sigma": 0.525
+            }
+          },
+          "rationale": "The tactic may trap unfavorable defensive personnel, simplify coverage communication, and prevent substitutions without paying the fatigue cost of continuous hurry-up. This qualifies as intuition because public tempo studies are mixed and heavily confounded by game state, quarterback quality, and selection effects.",
+          "recommendation": "Change tempo abruptly within drives, especially going no-huddle after selected first downs while retaining the same personnel, instead of maintaining a predictable fast or slow identity. Pre-plan several triggers but let the quarterback cancel the tactic when communication or fatigue favors the defense.",
+          "title": "Abrupt Within-Drive Tempo Changes",
+          "type": "offensive"
+        },
+        {
+          "bucket": "intuition",
+          "prior": {
+            "belief_summaries": {
+              "interval_95_high": 1.84,
+              "interval_95_low": -1.66,
+              "most_plausible_value": 0.09,
+              "shape": "symmetric",
+              "tails": "heavy"
+            },
+            "consistency_check": "The most plausible value and Student-t mode 0.09 is inside [-1.66, 1.84], which is symmetric about 0.09. The central interval is approximate because 2.78 is a rounded critical value, and the family has unbounded signed support.",
+            "distribution_family": {
+              "justification": "A well-designed bracket can erase decisive plays, but a quarterback who diagnoses it can exploit the coverage concession elsewhere. Those matchup-dependent outcomes justify a near-zero, heavy-tailed subjective prior.",
+              "name": "student_t"
+            },
+            "parameters": {
+              "conversion_note": "Using t_(0.975,4) approximately 2.78: mu = 0.09 and sigma = (1.84 - (-1.66)) / (2 x 2.78) = 3.50 / 5.56 = 0.6295, reported as 0.629. Sigma is the Student-t scale parameter rather than the standard deviation.",
+              "mu": 0.09,
+              "nu": 4,
+              "sigma": 0.629
+            }
+          },
+          "rationale": "Removing the quarterback's trusted answer may increase hesitation, sacks, and failed conversions in the highest-leverage situations. This is intuition because public analytics lacks reliable assignment-level samples for selective double teams, and existing results are mixed and strongly affected by opponent quality and game plan.",
+          "recommendation": "On selected third downs and compressed-field snaps, bracket the opponent's primary receiving threat with complementary inside-out or high-low leverage, forcing the quarterback toward secondary options. Vary the helper and disguise the bracket so the offense cannot automatically isolate the weakened area.",
+          "title": "Money-Down Primary-Weapon Brackets",
+          "type": "defensive"
+        }
+      ]
+    },
+    "raw_text": "{\n  \"quantity\": {\n    \"description\": \"Change in own-team expected single-game scoring margin from adopting the strategy\",\n    \"units\": \"points\",\n    \"support\": \"unbounded real; positive favors own team\"\n  },\n  \"strategies\": [\n    {\n      \"bucket\": \"analytics\",\n      \"type\": \"game_management\",\n      \"title\": \"Model-Guided Fourth-Down Aggression\",\n      \"recommendation\": \"Use a calibrated win-probability model as the default authority on fourth downs, including decisions in your own territory, and override it only for material information the model lacks. Treat close recommendations as genuine go situations rather than reverting automatically to punts or short field goals.\",\n      \"rationale\": \"Public expected-points and win-probability analyses consistently find that NFL teams surrender value by punting or kicking too often. Capturing more high-value possessions should increase scoring margin and convert some close losses into wins.\",\n      \"prior\": {\n        \"belief_summaries\": {\n          \"most_plausible_value\": 0.47,\n          \"interval_95_low\": -0.39,\n          \"interval_95_high\": 1.33,\n          \"shape\": \"symmetric\",\n          \"tails\": \"light\"\n        },\n        \"distribution_family\": {\n          \"name\": \"normal\",\n          \"justification\": \"The evidence supports a modest positive center, while implementation errors and model misspecification leave meaningful downside. I see no strong reason for asymmetric or heavy tails; this remains a subjective prior rather than a precise empirical estimate.\"\n        },\n        \"parameters\": {\n          \"mu\": 0.47,\n          \"sigma\": 0.439,\n          \"conversion_note\": \"Using the normal conversion: mu = 0.47 and sigma = (1.33 - (-0.39)) / (2 x 1.96) = 1.72 / 3.92 = 0.4388, reported as 0.439.\"\n        },\n        \"consistency_check\": \"The most plausible value 0.47 is inside [-0.39, 1.33], which is symmetric about 0.47. A normal distribution has support over all real values, including harmful negative effects.\"\n      }\n    },\n    {\n      \"bucket\": \"analytics\",\n      \"type\": \"offensive\",\n      \"title\": \"Neutral-Down Passing Shift\",\n      \"recommendation\": \"Pass more often on first and second down in neutral game states, with play action and formation variation preventing the tendency from becoming transparent. Reduce the habitual early-down runs that primarily create predictable third downs.\",\n      \"rationale\": \"Public EPA and pass-rate-over-expected research generally finds that passing produces more expected value than rushing, while play action does not require an established running game to work. More efficient early downs create additional first downs, scoring opportunities, and favorable late-down situations.\",\n      \"prior\": {\n        \"belief_summaries\": {\n          \"most_plausible_value\": 0.63,\n          \"interval_95_low\": -0.61,\n          \"interval_95_high\": 1.87,\n          \"shape\": \"symmetric\",\n          \"tails\": \"light\"\n        },\n        \"distribution_family\": {\n          \"name\": \"normal\",\n          \"justification\": \"The positive analytics case is substantial, but quarterback quality, protection, weather, and defensive adaptation could erase or reverse the benefit. This subjective prior treats those uncertainties as roughly symmetric without assigning large tail risk.\"\n        },\n        \"parameters\": {\n          \"mu\": 0.63,\n          \"sigma\": 0.633,\n          \"conversion_note\": \"Using the normal conversion: mu = 0.63 and sigma = (1.87 - (-0.61)) / (2 x 1.96) = 2.48 / 3.92 = 0.6327, reported as 0.633.\"\n        },\n        \"consistency_check\": \"The most plausible value 0.63 is inside [-0.61, 1.87], which is symmetric about 0.63. The normal family's unbounded real support permits both positive and negative effects.\"\n      }\n    },\n    {\n      \"bucket\": \"analytics\",\n      \"type\": \"defensive\",\n      \"title\": \"Pass-First Light-Box Defense\",\n      \"recommendation\": \"Default more often to nickel or dime personnel, two-high presentations, and light boxes against spread personnel, accepting some efficient runs to suppress valuable passes and explosives. Spin safeties and vary run fits after the snap rather than telegraphing a stacked box.\",\n      \"rationale\": \"Public EPA research shows that passing and explosive plays are generally more damaging than ordinary rushing gains, while additional box defenders can induce opponents to choose the more valuable pass. The likely gain is modest because defensive outcomes and personnel effects are difficult to identify causally.\",\n      \"prior\": {\n        \"belief_summaries\": {\n          \"most_plausible_value\": 0.24,\n          \"interval_95_low\": -0.98,\n          \"interval_95_high\": 1.46,\n          \"shape\": \"symmetric\",\n          \"tails\": \"light\"\n        },\n        \"distribution_family\": {\n          \"name\": \"normal\",\n          \"justification\": \"Public analytics supports the pass-first premise, but evidence for a universal personnel or shell prescription is less decisive. I therefore place the subjective prior near zero with substantial, approximately symmetric uncertainty.\"\n        },\n        \"parameters\": {\n          \"mu\": 0.24,\n          \"sigma\": 0.622,\n          \"conversion_note\": \"Using the normal conversion: mu = 0.24 and sigma = (1.46 - (-0.98)) / (2 x 1.96) = 2.44 / 3.92 = 0.6224, reported as 0.622.\"\n        },\n        \"consistency_check\": \"The most plausible value 0.24 is inside [-0.98, 1.46], which is symmetric about 0.24. Normal support is the entire real line, so the strategy can have a negative effect.\"\n      }\n    },\n    {\n      \"bucket\": \"intuition\",\n      \"type\": \"game_management\",\n      \"title\": \"First-Half Mismatch Timeout\",\n      \"recommendation\": \"Spend a first-half timeout when a high-leverage third or fourth down exposes a clear personnel, alignment, or communication failure rather than preserving every timeout reflexively. Apply a high threshold so routine discomfort does not trigger it.\",\n      \"rationale\": \"Preventing one conversion or explosive play can outweigh the uncertain future value of a saved timeout. This is intuition rather than established analytics because public timeout research does not reliably value real-time mismatch recognition, and the net effect may be nearly zero.\",\n      \"prior\": {\n        \"belief_summaries\": {\n          \"most_plausible_value\": 0.03,\n          \"interval_95_low\": -0.75,\n          \"interval_95_high\": 0.81,\n          \"shape\": \"symmetric\",\n          \"tails\": \"light\"\n        },\n        \"distribution_family\": {\n          \"name\": \"normal\",\n          \"justification\": \"I expect little average effect: occasionally the timeout prevents a major failure, but occasionally it is needed later. The symmetric, near-zero subjective prior reflects the weakness of the evidence.\"\n        },\n        \"parameters\": {\n          \"mu\": 0.03,\n          \"sigma\": 0.398,\n          \"conversion_note\": \"Using the normal conversion: mu = 0.03 and sigma = (0.81 - (-0.75)) / (2 x 1.96) = 1.56 / 3.92 = 0.3980, reported as 0.398.\"\n        },\n        \"consistency_check\": \"The most plausible value 0.03 is inside [-0.75, 0.81], which is symmetric about 0.03. The normal distribution covers all signed real effects.\"\n      }\n    },\n    {\n      \"bucket\": \"intuition\",\n      \"type\": \"offensive\",\n      \"title\": \"Abrupt Within-Drive Tempo Changes\",\n      \"recommendation\": \"Change tempo abruptly within drives, especially going no-huddle after selected first downs while retaining the same personnel, instead of maintaining a predictable fast or slow identity. Pre-plan several triggers but let the quarterback cancel the tactic when communication or fatigue favors the defense.\",\n      \"rationale\": \"The tactic may trap unfavorable defensive personnel, simplify coverage communication, and prevent substitutions without paying the fatigue cost of continuous hurry-up. This qualifies as intuition because public tempo studies are mixed and heavily confounded by game state, quarterback quality, and selection effects.\",\n      \"prior\": {\n        \"belief_summaries\": {\n          \"most_plausible_value\": 0.17,\n          \"interval_95_low\": -1.29,\n          \"interval_95_high\": 1.63,\n          \"shape\": \"symmetric\",\n          \"tails\": \"heavy\"\n        },\n        \"distribution_family\": {\n          \"name\": \"student_t\",\n          \"justification\": \"Tempo interaction with quarterback processing, conditioning, officiating, and defensive substitution creates a meaningful chance of unexpectedly large gains or losses. A four-degree-of-freedom Student-t represents that heavy-tailed subjective uncertainty.\"\n        },\n        \"parameters\": {\n          \"nu\": 4,\n          \"mu\": 0.17,\n          \"sigma\": 0.525,\n          \"conversion_note\": \"Using t_(0.975,4) approximately 2.78: mu = 0.17 and sigma = (1.63 - (-1.29)) / (2 x 2.78) = 2.92 / 5.56 = 0.5252, reported as 0.525. Sigma is the Student-t scale parameter, not its standard deviation.\"\n        },\n        \"consistency_check\": \"The most plausible value and Student-t mode 0.17 is inside [-1.29, 1.63], which is symmetric about 0.17. The stated interval is approximate because the critical value was rounded, and Student-t support covers the entire real line.\"\n      }\n    },\n    {\n      \"bucket\": \"intuition\",\n      \"type\": \"defensive\",\n      \"title\": \"Money-Down Primary-Weapon Brackets\",\n      \"recommendation\": \"On selected third downs and compressed-field snaps, bracket the opponent's primary receiving threat with complementary inside-out or high-low leverage, forcing the quarterback toward secondary options. Vary the helper and disguise the bracket so the offense cannot automatically isolate the weakened area.\",\n      \"rationale\": \"Removing the quarterback's trusted answer may increase hesitation, sacks, and failed conversions in the highest-leverage situations. This is intuition because public analytics lacks reliable assignment-level samples for selective double teams, and existing results are mixed and strongly affected by opponent quality and game plan.\",\n      \"prior\": {\n        \"belief_summaries\": {\n          \"most_plausible_value\": 0.09,\n          \"interval_95_low\": -1.66,\n          \"interval_95_high\": 1.84,\n          \"shape\": \"symmetric\",\n          \"tails\": \"heavy\"\n        },\n        \"distribution_family\": {\n          \"name\": \"student_t\",\n          \"justification\": \"A well-designed bracket can erase decisive plays, but a quarterback who diagnoses it can exploit the coverage concession elsewhere. Those matchup-dependent outcomes justify a near-zero, heavy-tailed subjective prior.\"\n        },\n        \"parameters\": {\n          \"nu\": 4,\n          \"mu\": 0.09,\n          \"sigma\": 0.629,\n          \"conversion_note\": \"Using t_(0.975,4) approximately 2.78: mu = 0.09 and sigma = (1.84 - (-1.66)) / (2 x 2.78) = 3.50 / 5.56 = 0.6295, reported as 0.629. Sigma is the Student-t scale parameter rather than the standard deviation.\"\n        },\n        \"consistency_check\": \"The most plausible value and Student-t mode 0.09 is inside [-1.66, 1.84], which is symmetric about 0.09. The central interval is approximate because 2.78 is a rounded critical value, and the family has unbounded signed support.\"\n      }\n    }\n  ]\n}",
+    "sample_idx": 0,
+    "seed": null,
+    "snapshot_id": "gpt-5.6-sol",
+    "stop_reason": "completed",
+    "temperature": null,
+    "ts": "2026-07-31T03:52:12Z"
+  },
+  {
+    "instance_id": "gpt-5.6-terra__s0",
+    "model": "gpt-5.6-terra",
+    "parse_mode": "direct",
+    "parsed_json": {
+      "quantity": {
+        "description": "Change in own-team expected single-game scoring margin from adopting the strategy",
+        "support": "unbounded real; positive favors own team",
+        "units": "points"
+      },
+      "strategies": [
+        {
+          "bucket": "analytics",
+          "prior": {
+            "belief_summaries": {
+              "interval_95_high": 0.82,
+              "interval_95_low": -0.08,
+              "most_plausible_value": 0.37,
+              "shape": "symmetric",
+              "tails": "moderate"
+            },
+            "consistency_check": "The most plausible value, 0.37, is inside [-0.08, 0.82]. A normal distribution has support over all real numbers, including negative and positive scoring-margin effects.",
+            "distribution_family": {
+              "justification": "The evidence base is broad enough to center the prior above zero, but game-specific conversion ability and opponent response create meaningful uncertainty in both directions. A normal distribution represents a roughly symmetric, moderately bounded belief.",
+              "name": "normal"
+            },
+            "parameters": {
+              "conversion_note": "normal(mu, sigma): mu = 0.37. sigma = (0.82 - (-0.08)) / (2 x 1.96) = 0.90 / 3.92 = 0.2296.",
+              "mu": 0.37,
+              "sigma": 0.2296
+            }
+          },
+          "rationale": "Public win-probability and expected-points research generally finds that NFL teams punt or attempt field goals too often in favorable fourth-down situations. Converting an extra possession while already in useful field position raises expected points and therefore scoring margin.",
+          "recommendation": "Go for fourth down materially more often when win-probability and expected-points models favor it, especially between roughly the opponent's 45-yard line and the high-red-zone range. Build a short-yardage menu so the decision is executable rather than merely theoretical.",
+          "title": "Aggressive fourth-down conversion policy",
+          "type": "game_management"
+        },
+        {
+          "bucket": "analytics",
+          "prior": {
+            "belief_summaries": {
+              "interval_95_high": 0.75,
+              "interval_95_low": -0.27,
+              "most_plausible_value": 0.24,
+              "shape": "symmetric",
+              "tails": "heavy"
+            },
+            "consistency_check": "The most plausible value, 0.24, is inside [-0.27, 0.75]. A Student-t distribution has support over all real numbers, including negative and positive effects. The interval is approximate because the cited t critical value is rounded.",
+            "distribution_family": {
+              "justification": "The public evidence favors play-action on average, but its effect can vary sharply with quarterback mechanics, protection, personnel credibility, and opponent tendencies. A Student-t prior allows a non-trivial chance that the true effect is much better or worse than expected.",
+              "name": "student_t"
+            },
+            "parameters": {
+              "conversion_note": "student_t(nu, mu, sigma): nu = 7 and t_0.975,7 approximately equals 2.36. mu = 0.24. sigma = (0.75 - (-0.27)) / (2 x 2.36) = 1.02 / 4.72 = 0.2161. Sigma is the t scale parameter, not its standard deviation.",
+              "mu": 0.24,
+              "nu": 7,
+              "sigma": 0.2161
+            }
+          },
+          "rationale": "Public EPA research has repeatedly found that play-action can improve passing efficiency even when prior rushing success is limited. Better early-down efficiency creates fewer long-yardage situations, sustains drives, and raises expected scoring.",
+          "recommendation": "Use more early-down play-action from credible run formations, including when the offense has not first established a successful rushing game. Retain enough real runs from those formations to preserve defensive conflict, but do not wait for a rushing narrative before calling play-action.",
+          "title": "Early-down play-action without run prerequisites",
+          "type": "offensive"
+        },
+        {
+          "bucket": "analytics",
+          "prior": {
+            "belief_summaries": {
+              "interval_95_high": 0.71,
+              "interval_95_low": -0.39,
+              "most_plausible_value": 0.16,
+              "shape": "symmetric",
+              "tails": "moderate"
+            },
+            "consistency_check": "The most plausible value, 0.16, is inside [-0.39, 0.71]. A normal distribution has support over all real numbers, including negative and positive scoring-margin effects.",
+            "distribution_family": {
+              "justification": "Public analytics supports the general direction, but the causal effect depends heavily on the pass rush, coverage personnel, and opposing quarterback. The uncertainty is substantial but not assumed to have especially heavy tails.",
+              "name": "normal"
+            },
+            "parameters": {
+              "conversion_note": "normal(mu, sigma): mu = 0.16. sigma = (0.71 - (-0.39)) / (2 x 1.96) = 1.10 / 3.92 = 0.2806.",
+              "mu": 0.16,
+              "sigma": 0.2806
+            }
+          },
+          "rationale": "Public pressure, blitz-rate, and coverage-EPA work generally indicates that pressure quality matters more than simply sending extra rushers, while blitzing can expose explosive-play vulnerability. Simulated pressure can create protection uncertainty without surrendering as much coverage integrity, reducing opponent expected points.",
+          "recommendation": "On standard passing downs, reduce predictable true blitzes and rely more often on four-man simulated pressures paired with sound match or split-safety coverage. Keep high-blitz calls for opponents with clearly identified protection or quarterback-processing weaknesses.",
+          "title": "Four-rush simulated-pressure default",
+          "type": "defensive"
+        },
+        {
+          "bucket": "intuition",
+          "prior": {
+            "belief_summaries": {
+              "interval_95_high": 0.73,
+              "interval_95_low": -0.63,
+              "most_plausible_value": 0.05,
+              "shape": "symmetric",
+              "tails": "heavy"
+            },
+            "consistency_check": "The most plausible value, 0.05, is inside [-0.63, 0.73]. A Student-t distribution has support over all real numbers, including negative and positive effects. The interval is approximate because the cited t critical value is rounded.",
+            "distribution_family": {
+              "justification": "The average benefit is likely close to zero because the trigger should be rare, but an incorrect timeout can cost an end-of-half possession while a correct one can prevent a major breakdown. The heavy-tailed Student-t reflects that operational context is largely unmeasured publicly.",
+              "name": "student_t"
+            },
+            "parameters": {
+              "conversion_note": "student_t(nu, mu, sigma): nu = 4 and t_0.975,4 approximately equals 2.78. mu = 0.05. sigma = (0.73 - (-0.63)) / (2 x 2.78) = 1.36 / 5.56 = 0.2446. Sigma is the t scale parameter, not its standard deviation.",
+              "mu": 0.05,
+              "nu": 4,
+              "sigma": 0.2446
+            }
+          },
+          "rationale": "A prevented busted play can avert a large swing in field position or points, which can outweigh the value of preserving a timeout. This is intuition rather than established analytics because public play-by-play data cannot reliably identify the pre-snap communication failures that coaches can see in real time.",
+          "recommendation": "Use a timeout before the snap when coaches can clearly identify an imminent operational failure, such as an uncovered eligible receiver, an unblocked free rusher, or a catastrophic personnel mismatch. Do not save timeouts mechanically when the immediate expected cost of the play appears much larger than the future clock value of the timeout.",
+          "title": "Anti-chaos timeout override",
+          "type": "game_management"
+        },
+        {
+          "bucket": "intuition",
+          "prior": {
+            "belief_summaries": {
+              "interval_95_high": 0.64,
+              "interval_95_low": -0.46,
+              "most_plausible_value": 0.09,
+              "shape": "symmetric",
+              "tails": "moderate"
+            },
+            "consistency_check": "The most plausible value, 0.09, is inside [-0.46, 0.64]. A normal distribution has support over all real numbers, including negative and positive scoring-margin effects.",
+            "distribution_family": {
+              "justification": "I believe sequencing can create small recurring advantages, but the public causal evidence is weak and defenses may not react as expected. The prior is therefore centered only modestly above zero with substantial symmetric uncertainty.",
+              "name": "normal"
+            },
+            "parameters": {
+              "conversion_note": "normal(mu, sigma): mu = 0.09. sigma = (0.64 - (-0.46)) / (2 x 1.96) = 1.10 / 3.92 = 0.2806.",
+              "mu": 0.09,
+              "sigma": 0.2806
+            }
+          },
+          "rationale": "The objective is to turn a defense's understandable adjustment into a favorable matchup before it can reset, creating occasional efficient gains and explosives. This is intuition rather than established analytics because public data rarely identifies deliberately paired play sequencing, defensive recognition, or the intended constraint relationship between calls.",
+          "recommendation": "After a core offensive concept succeeds and the defense shows a recognizable adjustment, call its complementary constraint within the next two to four snaps while personnel and defensive memory are still similar. For example, answer an aggressive downhill reaction to an outside-zone look with a boot, leak, or glance constraint built from the same picture.",
+          "title": "Immediate complementary-concept sequencing",
+          "type": "offensive"
+        },
+        {
+          "bucket": "intuition",
+          "prior": {
+            "belief_summaries": {
+              "interval_95_high": 0.84,
+              "interval_95_low": -0.62,
+              "most_plausible_value": 0.11,
+              "shape": "symmetric",
+              "tails": "heavy"
+            },
+            "consistency_check": "The most plausible value, 0.11, is inside [-0.62, 0.84]. A Student-t distribution has support over all real numbers, including negative and positive effects. The interval is approximate because the cited t critical value is rounded.",
+            "distribution_family": {
+              "justification": "The intervention may have little effect for a veteran defense already communicating well, but it could prevent a few extremely costly breakdowns for a less stable unit. A heavy-tailed prior reflects this large dependence on unobserved communication quality.",
+              "name": "student_t"
+            },
+            "parameters": {
+              "conversion_note": "student_t(nu, mu, sigma): nu = 4 and t_0.975,4 approximately equals 2.78. mu = 0.11. sigma = (0.84 - (-0.62)) / (2 x 2.78) = 1.46 / 5.56 = 0.2626. Sigma is the t scale parameter, not its standard deviation.",
+              "mu": 0.11,
+              "nu": 4,
+              "sigma": 0.2626
+            }
+          },
+          "rationale": "A simpler communication structure should reduce the rare but damaging coverage busts that often become explosive passes or touchdowns. This is intuition rather than established analytics because public datasets do not observe who made the check, whether it was heard, or whether a coverage failure was caused by communication rather than execution.",
+          "recommendation": "On noisy road-game money downs, simplify the coverage-check menu and assign one designated secondary communicator to make the final field-side adjustment. Use a small set of one-word contingency calls rather than asking multiple defenders to negotiate checks amid crowd noise and tempo.",
+          "title": "One-voice road-noise coverage protocol",
+          "type": "defensive"
+        }
+      ]
+    },
+    "raw_text": "{\n  \"quantity\": {\n    \"description\": \"Change in own-team expected single-game scoring margin from adopting the strategy\",\n    \"units\": \"points\",\n    \"support\": \"unbounded real; positive favors own team\"\n  },\n  \"strategies\": [\n    {\n      \"bucket\": \"analytics\",\n      \"type\": \"game_management\",\n      \"title\": \"Aggressive fourth-down conversion policy\",\n      \"recommendation\": \"Go for fourth down materially more often when win-probability and expected-points models favor it, especially between roughly the opponent's 45-yard line and the high-red-zone range. Build a short-yardage menu so the decision is executable rather than merely theoretical.\",\n      \"rationale\": \"Public win-probability and expected-points research generally finds that NFL teams punt or attempt field goals too often in favorable fourth-down situations. Converting an extra possession while already in useful field position raises expected points and therefore scoring margin.\",\n      \"prior\": {\n        \"belief_summaries\": {\n          \"most_plausible_value\": 0.37,\n          \"interval_95_low\": -0.08,\n          \"interval_95_high\": 0.82,\n          \"shape\": \"symmetric\",\n          \"tails\": \"moderate\"\n        },\n        \"distribution_family\": {\n          \"name\": \"normal\",\n          \"justification\": \"The evidence base is broad enough to center the prior above zero, but game-specific conversion ability and opponent response create meaningful uncertainty in both directions. A normal distribution represents a roughly symmetric, moderately bounded belief.\"\n        },\n        \"parameters\": {\n          \"mu\": 0.37,\n          \"sigma\": 0.2296,\n          \"conversion_note\": \"normal(mu, sigma): mu = 0.37. sigma = (0.82 - (-0.08)) / (2 x 1.96) = 0.90 / 3.92 = 0.2296.\"\n        },\n        \"consistency_check\": \"The most plausible value, 0.37, is inside [-0.08, 0.82]. A normal distribution has support over all real numbers, including negative and positive scoring-margin effects.\"\n      }\n    },\n    {\n      \"bucket\": \"analytics\",\n      \"type\": \"offensive\",\n      \"title\": \"Early-down play-action without run prerequisites\",\n      \"recommendation\": \"Use more early-down play-action from credible run formations, including when the offense has not first established a successful rushing game. Retain enough real runs from those formations to preserve defensive conflict, but do not wait for a rushing narrative before calling play-action.\",\n      \"rationale\": \"Public EPA research has repeatedly found that play-action can improve passing efficiency even when prior rushing success is limited. Better early-down efficiency creates fewer long-yardage situations, sustains drives, and raises expected scoring.\",\n      \"prior\": {\n        \"belief_summaries\": {\n          \"most_plausible_value\": 0.24,\n          \"interval_95_low\": -0.27,\n          \"interval_95_high\": 0.75,\n          \"shape\": \"symmetric\",\n          \"tails\": \"heavy\"\n        },\n        \"distribution_family\": {\n          \"name\": \"student_t\",\n          \"justification\": \"The public evidence favors play-action on average, but its effect can vary sharply with quarterback mechanics, protection, personnel credibility, and opponent tendencies. A Student-t prior allows a non-trivial chance that the true effect is much better or worse than expected.\"\n        },\n        \"parameters\": {\n          \"nu\": 7,\n          \"mu\": 0.24,\n          \"sigma\": 0.2161,\n          \"conversion_note\": \"student_t(nu, mu, sigma): nu = 7 and t_0.975,7 approximately equals 2.36. mu = 0.24. sigma = (0.75 - (-0.27)) / (2 x 2.36) = 1.02 / 4.72 = 0.2161. Sigma is the t scale parameter, not its standard deviation.\"\n        },\n        \"consistency_check\": \"The most plausible value, 0.24, is inside [-0.27, 0.75]. A Student-t distribution has support over all real numbers, including negative and positive effects. The interval is approximate because the cited t critical value is rounded.\"\n      }\n    },\n    {\n      \"bucket\": \"analytics\",\n      \"type\": \"defensive\",\n      \"title\": \"Four-rush simulated-pressure default\",\n      \"recommendation\": \"On standard passing downs, reduce predictable true blitzes and rely more often on four-man simulated pressures paired with sound match or split-safety coverage. Keep high-blitz calls for opponents with clearly identified protection or quarterback-processing weaknesses.\",\n      \"rationale\": \"Public pressure, blitz-rate, and coverage-EPA work generally indicates that pressure quality matters more than simply sending extra rushers, while blitzing can expose explosive-play vulnerability. Simulated pressure can create protection uncertainty without surrendering as much coverage integrity, reducing opponent expected points.\",\n      \"prior\": {\n        \"belief_summaries\": {\n          \"most_plausible_value\": 0.16,\n          \"interval_95_low\": -0.39,\n          \"interval_95_high\": 0.71,\n          \"shape\": \"symmetric\",\n          \"tails\": \"moderate\"\n        },\n        \"distribution_family\": {\n          \"name\": \"normal\",\n          \"justification\": \"Public analytics supports the general direction, but the causal effect depends heavily on the pass rush, coverage personnel, and opposing quarterback. The uncertainty is substantial but not assumed to have especially heavy tails.\"\n        },\n        \"parameters\": {\n          \"mu\": 0.16,\n          \"sigma\": 0.2806,\n          \"conversion_note\": \"normal(mu, sigma): mu = 0.16. sigma = (0.71 - (-0.39)) / (2 x 1.96) = 1.10 / 3.92 = 0.2806.\"\n        },\n        \"consistency_check\": \"The most plausible value, 0.16, is inside [-0.39, 0.71]. A normal distribution has support over all real numbers, including negative and positive scoring-margin effects.\"\n      }\n    },\n    {\n      \"bucket\": \"intuition\",\n      \"type\": \"game_management\",\n      \"title\": \"Anti-chaos timeout override\",\n      \"recommendation\": \"Use a timeout before the snap when coaches can clearly identify an imminent operational failure, such as an uncovered eligible receiver, an unblocked free rusher, or a catastrophic personnel mismatch. Do not save timeouts mechanically when the immediate expected cost of the play appears much larger than the future clock value of the timeout.\",\n      \"rationale\": \"A prevented busted play can avert a large swing in field position or points, which can outweigh the value of preserving a timeout. This is intuition rather than established analytics because public play-by-play data cannot reliably identify the pre-snap communication failures that coaches can see in real time.\",\n      \"prior\": {\n        \"belief_summaries\": {\n          \"most_plausible_value\": 0.05,\n          \"interval_95_low\": -0.63,\n          \"interval_95_high\": 0.73,\n          \"shape\": \"symmetric\",\n          \"tails\": \"heavy\"\n        },\n        \"distribution_family\": {\n          \"name\": \"student_t\",\n          \"justification\": \"The average benefit is likely close to zero because the trigger should be rare, but an incorrect timeout can cost an end-of-half possession while a correct one can prevent a major breakdown. The heavy-tailed Student-t reflects that operational context is largely unmeasured publicly.\"\n        },\n        \"parameters\": {\n          \"nu\": 4,\n          \"mu\": 0.05,\n          \"sigma\": 0.2446,\n          \"conversion_note\": \"student_t(nu, mu, sigma): nu = 4 and t_0.975,4 approximately equals 2.78. mu = 0.05. sigma = (0.73 - (-0.63)) / (2 x 2.78) = 1.36 / 5.56 = 0.2446. Sigma is the t scale parameter, not its standard deviation.\"\n        },\n        \"consistency_check\": \"The most plausible value, 0.05, is inside [-0.63, 0.73]. A Student-t distribution has support over all real numbers, including negative and positive effects. The interval is approximate because the cited t critical value is rounded.\"\n      }\n    },\n    {\n      \"bucket\": \"intuition\",\n      \"type\": \"offensive\",\n      \"title\": \"Immediate complementary-concept sequencing\",\n      \"recommendation\": \"After a core offensive concept succeeds and the defense shows a recognizable adjustment, call its complementary constraint within the next two to four snaps while personnel and defensive memory are still similar. For example, answer an aggressive downhill reaction to an outside-zone look with a boot, leak, or glance constraint built from the same picture.\",\n      \"rationale\": \"The objective is to turn a defense's understandable adjustment into a favorable matchup before it can reset, creating occasional efficient gains and explosives. This is intuition rather than established analytics because public data rarely identifies deliberately paired play sequencing, defensive recognition, or the intended constraint relationship between calls.\",\n      \"prior\": {\n        \"belief_summaries\": {\n          \"most_plausible_value\": 0.09,\n          \"interval_95_low\": -0.46,\n          \"interval_95_high\": 0.64,\n          \"shape\": \"symmetric\",\n          \"tails\": \"moderate\"\n        },\n        \"distribution_family\": {\n          \"name\": \"normal\",\n          \"justification\": \"I believe sequencing can create small recurring advantages, but the public causal evidence is weak and defenses may not react as expected. The prior is therefore centered only modestly above zero with substantial symmetric uncertainty.\"\n        },\n        \"parameters\": {\n          \"mu\": 0.09,\n          \"sigma\": 0.2806,\n          \"conversion_note\": \"normal(mu, sigma): mu = 0.09. sigma = (0.64 - (-0.46)) / (2 x 1.96) = 1.10 / 3.92 = 0.2806.\"\n        },\n        \"consistency_check\": \"The most plausible value, 0.09, is inside [-0.46, 0.64]. A normal distribution has support over all real numbers, including negative and positive scoring-margin effects.\"\n      }\n    },\n    {\n      \"bucket\": \"intuition\",\n      \"type\": \"defensive\",\n      \"title\": \"One-voice road-noise coverage protocol\",\n      \"recommendation\": \"On noisy road-game money downs, simplify the coverage-check menu and assign one designated secondary communicator to make the final field-side adjustment. Use a small set of one-word contingency calls rather than asking multiple defenders to negotiate checks amid crowd noise and tempo.\",\n      \"rationale\": \"A simpler communication structure should reduce the rare but damaging coverage busts that often become explosive passes or touchdowns. This is intuition rather than established analytics because public datasets do not observe who made the check, whether it was heard, or whether a coverage failure was caused by communication rather than execution.\",\n      \"prior\": {\n        \"belief_summaries\": {\n          \"most_plausible_value\": 0.11,\n          \"interval_95_low\": -0.62,\n          \"interval_95_high\": 0.84,\n          \"shape\": \"symmetric\",\n          \"tails\": \"heavy\"\n        },\n        \"distribution_family\": {\n          \"name\": \"student_t\",\n          \"justification\": \"The intervention may have little effect for a veteran defense already communicating well, but it could prevent a few extremely costly breakdowns for a less stable unit. A heavy-tailed prior reflects this large dependence on unobserved communication quality.\"\n        },\n        \"parameters\": {\n          \"nu\": 4,\n          \"mu\": 0.11,\n          \"sigma\": 0.2626,\n          \"conversion_note\": \"student_t(nu, mu, sigma): nu = 4 and t_0.975,4 approximately equals 2.78. mu = 0.11. sigma = (0.84 - (-0.62)) / (2 x 2.78) = 1.46 / 5.56 = 0.2626. Sigma is the t scale parameter, not its standard deviation.\"\n        },\n        \"consistency_check\": \"The most plausible value, 0.11, is inside [-0.62, 0.84]. A Student-t distribution has support over all real numbers, including negative and positive effects. The interval is approximate because the cited t critical value is rounded.\"\n      }\n    }\n  ]\n}",
+    "sample_idx": 0,
+    "seed": null,
+    "snapshot_id": "gpt-5.6-terra",
+    "stop_reason": "completed",
+    "temperature": null,
+    "ts": "2026-07-31T03:53:08Z"
+  }
+]
