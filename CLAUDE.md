@@ -1,14 +1,16 @@
-# Footbench — CLAUDE.md
+# Footval — CLAUDE.md
 
-Guidance for Claude Code working in the `footbench` folder. Keep this file current as the project evolves.
+Guidance for Claude Code working in the `footval` folder. Keep this file current as the project evolves.
+
+This project used to be called `footbench` but was renamed to `footval`.
 
 ## What this is
 
-Footbench is a subjective, multi-model LLM evaluation. Twelve candidate models answer a fixed prompt (NFL strategy recommendations + Bayesian priors + a plotting script). Their responses are executed, auto-checked, and judged by a four-model panel through a **pairwise head-to-head tournament** (every pair compared on soundness and priors, forced A/B choice). The published outputs are a win-percentage tally (`outputs/data/pairwise_results.csv`) and the notebook charts built from it plus the priors. There is **no 1–5 scoring** — that round was removed.
+Footval is a subjective, multi-model LLM evaluation. Twelve candidate models answer a fixed prompt (NFL strategy recommendations + Bayesian priors + a plotting script). Their responses are executed, auto-checked, and judged by a four-model panel through a **pairwise head-to-head tournament** (every pair compared on soundness and priors, forced A/B choice). The published outputs are a win-percentage tally (`outputs/data/pairwise_results.csv`) and the notebook charts built from it plus the priors. There is **no 1–5 scoring** — that round was removed.
 
 ## Source-of-truth documents
 
-- `footbench.prompt.md` — the exact prompt sent to every candidate. **Do not edit casually**; changing it invalidates prior runs.
+- `footval.prompt.md` — the exact prompt sent to every candidate. **Do not edit casually**; changing it invalidates prior runs.
 - `initial_prompt.md` — full methodology (stages, pairwise judging, data schema). This is authoritative, with one deliberate deviation: stage 6 (spec §9, a web page) was replaced by the owner's decision with static outputs — `outputs/data/pairwise_results.csv` (long form: one row per judge×pair×criterion with the winner) plus the notebook charts (win percentage overall/by criterion/by judge, the prior comparison, and panel-consensus diagnostics). If code and spec disagree elsewhere, fix the code or update the spec deliberately — don't let them drift.
 
 When asked to implement something, read the spec first; this file is only a fast orientation.
@@ -19,10 +21,10 @@ Four core stages, each reading/writing structured artifacts so they run independ
 
 | Stage | Module | Does |
 |---|---|---|
-| 1 Generate | `footbench/generate.py` | Call each candidate `n_samples` times → response instances |
-| 2 Execute | `footbench/sandbox.py` | Run each `plot_script` in a container, render plots |
-| 3 Check | `footbench/checks.py` | Deterministic JSON/structure/parameter checks |
-| 4 Tables | `footbench/tables.py` | Consolidate per-instance artifacts into the objective `responses` / `exec_results` / `checks` tables |
+| 1 Generate | `footval/generate.py` | Call each candidate `n_samples` times → response instances |
+| 2 Execute | `footval/sandbox.py` | Run each `plot_script` in a container, render plots |
+| 3 Check | `footval/checks.py` | Deterministic JSON/structure/parameter checks |
+| 4 Tables | `footval/tables.py` | Consolidate per-instance artifacts into the objective `responses` / `exec_results` / `checks` tables |
 
 The unit of analysis everywhere is the **response instance** = (model, sample_idx).
 
@@ -40,7 +42,7 @@ Stages are resumable: each reads the previous stage's artifacts, so re-run a sin
 
 ## Pairwise comparison stage (the judging round)
 
-`footbench/pairwise.py` is the only judging stage: it compares every unordered pair of response
+`footval/pairwise.py` is the only judging stage: it compares every unordered pair of response
 instances (66 pairs for 12 candidates) on two criteria — soundness and priors — as a forced A/B
 choice, text-only, with no numeric scale (the judge prompt uses stronger-vs-weaker prose anchors).
 Judges and the `both_orders` flag live under `pairwise:` in config.yaml. Which model is shown as
@@ -71,7 +73,7 @@ idempotent and safe to re-run.
 
 ## Bradley-Terry aggregation (optional ranking layer)
 
-`footbench/bradley_terry.py` (`make bradley-terry`) reads `outputs/data/pairwise_results.csv`
+`footval/bradley_terry.py` (`make bradley-terry`) reads `outputs/data/pairwise_results.csv`
 and fits a hierarchical Bayesian Bradley-Terry model in PyMC, once per track
 (`soundness`, `priors`, `overall`). It turns the forced-choice verdicts into a latent-strength
 ranking **with 94% HDIs**, modeling the judges as raters: per-judge discrimination (`kappa`),
@@ -96,7 +98,7 @@ decomposition, not a different ordering. Requires `pymc` + `arviz` + `h5netcdf`/
 
 ## Notebooks (`outputs/`)
 
-Both read the persisted BT traces (`import footbench`, `az.from_netcdf(bt.trace_path(...))`), so
+Both read the persisted BT traces (`import footval`, `az.from_netcdf(bt.trace_path(...))`), so
 run `make bradley-terry` first. Re-render headlessly with
 `uv run jupyter nbconvert --to notebook --execute --inplace outputs/<nb>.ipynb`.
 
@@ -105,7 +107,7 @@ run `make bradley-terry` first. Re-render headlessly with
   (no axis rule); the by-judge line chart and the judge/candidate matrix use **posterior-predictive
   per-judge win probabilities** with HDIs. Subjective-priors, interrater-reliability, and
   order-consistency charts are unchanged (computed from `responses.json` / raw verdicts). Charts
-  export to `src/content/writings/2026-06-12-footbench/charts/*.svg`.
+  export to `src/content/writings/2026-06-12-footval/charts/*.svg`.
 - `model_diagnostics.ipynb` — ArviZ convergence/sampling diagnostics per track (summary tables,
   trace/rank/energy/forest/ESS plots, BFMI). Assessment-only; reports no results.
 

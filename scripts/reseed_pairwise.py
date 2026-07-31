@@ -20,7 +20,7 @@ Correctness: the A/B coin flip (`_assign_a`) depends only on
 are keyed by (judge, instance_a, instance_b) and rewritten under the new custom_id;
 `write_csv` maps A/B -> model via the manifest entry, so the winner is preserved.
 
-Usage (run from the footbench/ root, AFTER backing up artifacts/pairwise):
+Usage (run from the footval/ root, AFTER backing up artifacts/pairwise):
     cp -r artifacts/pairwise artifacts/pairwise.bak-12model
     uv run python scripts/reseed_pairwise.py --new-model claude-sonnet-5
 """
@@ -31,8 +31,8 @@ import argparse
 import shutil
 import sys
 
-from footbench import artifacts, pairwise
-from footbench.config import load_config
+from footval import artifacts, pairwise
+from footval.config import load_config
 
 
 def main() -> None:

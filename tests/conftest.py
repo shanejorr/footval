@@ -8,9 +8,9 @@ from typing import Any
 
 from scipy import stats as st
 
-from footbench.checks import BUCKETS, TYPES
-from footbench.config import Config, ModelCfg, SandboxCfg
-from footbench.distributions import skewnorm_mode
+from footval.checks import BUCKETS, TYPES
+from footval.config import Config, ModelCfg, SandboxCfg
+from footval.distributions import skewnorm_mode
 
 CELLS = [(b, t) for b in BUCKETS for t in TYPES]
 

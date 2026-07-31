@@ -3,8 +3,8 @@ import json
 import pytest
 from conftest import make_cfg, valid_response
 
-from footbench import pairwise, providers
-from footbench.artifacts import Store
+from footval import pairwise, providers
+from footval.artifacts import Store
 
 FAMILIES = {"m1": "openai", "m2": "openai", "m3": "google", "j1": "anthropic"}
 IIDS_12 = [f"m{i:02d}__s0" for i in range(12)]
@@ -89,7 +89,7 @@ def test_repro_summary_collapses_common_cause():
 
 
 def test_check_summary_includes_repro_rollup_and_per_strategy():
-    from footbench.checks import check_instance
+    from footval.checks import check_instance
 
     report = check_instance(valid_response(), "direct", 0.1)
     summary = json.loads(pairwise.check_summary(report))

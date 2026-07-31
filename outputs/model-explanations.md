@@ -1,7 +1,7 @@
-# Footbench Bradley-Terry Model — A Complete Explanation
+# Footval Bradley-Terry Model — A Complete Explanation
 
 This document explains, end to end, the statistical model implemented in
-[`footbench/bradley_terry.py`](../footbench/bradley_terry.py). It assumes an
+[`footval/bradley_terry.py`](../footval/bradley_terry.py). It assumes an
 intermediate familiarity with Bayesian modeling (priors, likelihoods,
 posteriors, MCMC, partial pooling) but it explains every modeling decision,
 every parameter, and every line of the PyMC code so that a reader can fully
@@ -111,9 +111,9 @@ i.e. fable-5 would beat haiku ~97% of the time before any judge effects.
 
 ---
 
-## 3. The footbench model: Bradley-Terry with rater effects
+## 3. The footval model: Bradley-Terry with rater effects
 
-The footbench model extends classical Bradley-Terry by recognizing that the
+The footval model extends classical Bradley-Terry by recognizing that the
 outcome of each comparison depends not only on *which two models* are being
 compared but also on *who is judging* and *how the pair was presented*. The full
 linear predictor for a single observation is:
@@ -538,7 +538,7 @@ These are real limitations, stated plainly:
 
 ## 8. One-paragraph summary
 
-Footbench aggregates a round-robin of forced A/B judge verdicts with a
+Footval aggregates a round-robin of forced A/B judge verdicts with a
 **hierarchical Bayesian Bradley-Terry model**. Each candidate gets a latent
 log-strength $\beta$ (sum-to-zero and scale-1 for identifiability); the
 probability that the slot-A response wins is

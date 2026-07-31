@@ -5,48 +5,48 @@
 DOCKER_GUARD = @docker info >/dev/null 2>&1 || { echo "ERROR: Docker daemon is not running. Start Docker Desktop, then retry."; exit 1; }
 
 run:
-	uv run python -m footbench run
+	uv run python -m footval run
 
 probe:
-	uv run python -m footbench probe
+	uv run python -m footval probe
 
 generate:
-	uv run python -m footbench generate
+	uv run python -m footval generate
 
 sandbox-build:
 	$(DOCKER_GUARD)
-	docker build -t footbench-sandbox sandbox/
+	docker build -t footval-sandbox sandbox/
 
 sandbox:
 	$(DOCKER_GUARD)
-	uv run python -m footbench sandbox
+	uv run python -m footval sandbox
 
 check:
-	uv run python -m footbench check
+	uv run python -m footval check
 
 tables:
-	uv run python -m footbench tables
+	uv run python -m footval tables
 
 pairwise-estimate:
-	uv run python -m footbench pairwise estimate
+	uv run python -m footval pairwise estimate
 
 pairwise-submit:
-	uv run python -m footbench pairwise submit
+	uv run python -m footval pairwise submit
 
 pairwise-deepseek:
-	uv run python -m footbench pairwise deepseek
+	uv run python -m footval pairwise deepseek
 
 pairwise-status:
-	uv run python -m footbench pairwise status
+	uv run python -m footval pairwise status
 
 pairwise-collect:
-	uv run python -m footbench pairwise collect
+	uv run python -m footval pairwise collect
 
 pairwise-csv:
-	uv run python -m footbench pairwise csv
+	uv run python -m footval pairwise csv
 
 bradley-terry:
-	uv run python -m footbench bradley-terry
+	uv run python -m footval bradley-terry
 
 test:
 	uv run pytest

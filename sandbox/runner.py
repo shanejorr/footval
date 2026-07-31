@@ -1,6 +1,6 @@
 """In-container runner: execute one candidate plot script, harvest figures.
 
-Runs ONLY inside the footbench-sandbox image — never on the host. Figures are
+Runs ONLY inside the footval-sandbox image — never on the host. Figures are
 harvested even when the script raises, and anything the script saved itself is
 copied out with a ``saved_`` prefix.
 """

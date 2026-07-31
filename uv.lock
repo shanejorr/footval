@@ -640,7 +640,7 @@ wheels = [
 ]
 
 [[package]]
-name = "footbench"
+name = "footval"
 version = "0.1.0"
 source = { editable = "." }
 dependencies = [

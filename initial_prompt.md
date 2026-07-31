@@ -1,6 +1,6 @@
-# Footbench — Implementation Spec
+# Footval — Implementation Spec
 
-A subjective, multi-model LLM evaluation. Candidate models answer `footbench/footbench.prompt.md`; their responses are executed, auto-checked, and judged by an LLM panel through a **pairwise head-to-head tournament** (every pair of responses compared on soundness and priors, forced A/B choice), then published to a public web page as win-percentage rankings.
+A subjective, multi-model LLM evaluation. Candidate models answer `footval/footval.prompt.md`; their responses are executed, auto-checked, and judged by an LLM panel through a **pairwise head-to-head tournament** (every pair of responses compared on soundness and priors, forced A/B choice), then published to a public web page as win-percentage rankings.
 
 ---
 
@@ -63,13 +63,13 @@ reproducible and the website is a pure view over stored data.
 
 ## 3. Stage 1 — Generate responses
 
-For each candidate model, generate `n_samples` independent responses to `footbench.prompt.md` at `gen_temperature`.
+For each candidate model, generate `n_samples` independent responses to `footval.prompt.md` at `gen_temperature`.
 
 - Treat each (model, sample) pair as a distinct **response instance** with its own `instance_id`. All later stages operate on instances.
 - Capture and store: model snapshot ID, timestamp, temperature, seed, raw text, and the parsed JSON object.
 - Do not retry or repair malformed output; a malformed response is a real signal and is handled by Stage 3.
 
-API keys are in `footbench/.env` and have the following names:
+API keys are in `footval/.env` and have the following names:
 
 - Anthropic — auto-read by the anthropic SDK
 `ANTHROPIC_API_KEY`
@@ -87,7 +87,7 @@ API keys are in `footbench/.env` and have the following names:
 
 ## 4. Stage 2 — Execute code
 
-The footbench JSON contains one `plot_script`. Execute it; do not ask a judge to predict whether it runs.
+The footval JSON contains one `plot_script`. Execute it; do not ask a judge to predict whether it runs.
 
 **Sandbox requirements** (the code is untrusted, model-generated):
 
@@ -131,7 +131,7 @@ scale and no separate per-response score.
 Each judge call shows **two anonymized responses** ("Response A" and "Response B") for the same
 task. Each call provides:
 
-- `footbench.prompt.md` (the task both candidates were given).
+- `footval.prompt.md` (the task both candidates were given).
 - The two **anonymized** response bundles (strip any model-identifying text; label only as
   "Response A" / "Response B"), each as pretty-printed JSON (or raw text if it failed to parse).
 - The Stage 3 automated check report for each response, as ground truth for the mechanical facts.
@@ -250,7 +250,7 @@ Audience is non-technical. The page reads from the Stage 8 artifacts.
 1. **Plain-language intro** — what the test asked the models to do, in one short paragraph. Explain "prior" and "uncertainty interval" with a one-line analogy (e.g., a prior is the model's best guess plus an honest statement of how unsure it is).
 2. **Leaderboard** — win-percentage ranking (head-to-head wins ÷ comparisons), with a toggle to view overall vs. each of the two criteria. Alongside, show the judge-agreement diagnostics (vote-split mix and order consistency) with a plain label so the ranking isn't read as more precise than the panel's agreement justifies. Use visualizations.
 3. **Per-model response viewer** — each model's full response, with the `plot_script` **rendered as its plot image and the source code collapsed by default**. Show a clear "failed to render" state for instances where `ran_ok` is false.
-4. **Prior comparison** — **re-plot from the reported parameters, not the models' scripts.** Parse each model's family + parameters from the JSON and redraw every prior with one canonical routine on shared axes and shared styling. Lay out as small multiples by grid cell (6 cells) with the ability to overlay or toggle models within a cell. This is the clean payoff of the structured footbench schema; it sidesteps 12 inconsistent matplotlib styles.
+4. **Prior comparison** — **re-plot from the reported parameters, not the models' scripts.** Parse each model's family + parameters from the JSON and redraw every prior with one canonical routine on shared axes and shared styling. Lay out as small multiples by grid cell (6 cells) with the ability to overlay or toggle models within a cell. This is the clean payoff of the structured footval schema; it sidesteps 12 inconsistent matplotlib styles.
 5. **Methodology & limitations** — disclose: judges are also contestants (self-preference risk, with the Section 7.3 gap shown); single-vendor judge pool; `n_samples` is small; "underutilized" is a subjective, time-sensitive call partly reflecting the judges' own football knowledge.
 
 Interactive tabs/toggles are encouraged where they aid clarity (criterion toggle on the leaderboard, model toggle on the comparison view).
@@ -260,4 +260,4 @@ Interactive tabs/toggles are encouraged where they aid clarity (criterion toggle
 ## 10. Decisions deliberately left open
 
 - `n_samples` and `gen_temperature` are set as defaults; adjust to taste and budget.
-- The footbench prompt leaves the plausible effect-size **scale** unspecified on purpose, so the priors criterion partly tests whether a model picks sane magnitudes. Keep it that way unless you decide to anchor it.
+- The footval prompt leaves the plausible effect-size **scale** unspecified on purpose, so the priors criterion partly tests whether a model picks sane magnitudes. Keep it that way unless you decide to anchor it.

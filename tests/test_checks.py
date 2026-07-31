@@ -3,8 +3,8 @@ import copy
 from conftest import CELLS, normal_strategy, skew_strategy, strategy, t_strategy, valid_response
 from scipy import stats as st
 
-from footbench.checks import CHECK_NAMES, check_instance
-from footbench.distributions import skewnorm_mode
+from footval.checks import CHECK_NAMES, check_instance
+from footval.distributions import skewnorm_mode
 
 TOL = 0.10
 

@@ -1,4 +1,4 @@
-# Footbench run configuration — spec section 1 values + per-model API registry.
+# Footval run configuration — spec section 1 values + per-model API registry.
 #
 # Model IDs and API params WILL drift; fix them HERE, never in code.
 # `make probe` makes one cheap call per model and prints resolved snapshot IDs.
@@ -25,7 +25,7 @@ seed: 42                  # where the provider supports it
 interval_tol: 0.10        # relative tolerance for parameter-reproduction check
 
 sandbox:
-  image: footbench-sandbox
+  image: footval-sandbox
   timeout_seconds: 60
   memory: 1g
   cpus: 1

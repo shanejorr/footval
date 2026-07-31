@@ -1,6 +1,6 @@
 import json
 
-from footbench.parsing import parse_candidate_json, redact
+from footval.parsing import parse_candidate_json, redact
 
 
 def test_direct_parse():

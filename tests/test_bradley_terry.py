@@ -7,7 +7,7 @@ from __future__ import annotations
 import polars as pl
 import pytest
 
-from footbench import bradley_terry as bt
+from footval import bradley_terry as bt
 
 # m1/m2 openai, m3/m4 anthropic, judge j1 anthropic.
 FAM = {"m1": "openai", "m2": "openai", "m3": "anthropic", "m4": "anthropic", "j1": "anthropic"}

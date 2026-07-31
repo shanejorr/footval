@@ -1,6 +1,6 @@
-# Footbench — a football-coaching evaluation for large language models
+# Footval — a football-coaching evaluation for large language models
 
-Footbench is a small, opinionated test of how well today's leading AI models can think
+Footval is a small, opinionated test of how well today's leading AI models can think
 **like a football coach**. Every model is handed the exact same assignment: play the role of
 an NFL head coach, recommend smart-but-underused strategies, and — crucially — say honestly
 how *sure* it is about each one. The models' answers are then graded, partly by computer and
@@ -14,7 +14,7 @@ works. It does **not** report who won — it only describes the evaluation itsel
 >   honest hunch about how much a strategy will help.
 > - An **uncertainty interval** is the range the model is fairly confident the true answer
 >   falls inside. A narrow range means "I'm pretty sure"; a wide range means "I really don't
->   know." Forcing each model to state this range is how Footbench measures *confidence*, not
+>   know." Forcing each model to state this range is how Footval measures *confidence*, not
 >   just opinion.
 
 ---
@@ -28,13 +28,13 @@ there it must recommend exactly **six** underutilized strategies — laid out on
 thinks the strategy is worth, **plus** an honest statement of how uncertain it is about that
 number. Finally, it must write a short Python program that draws all six of those
 uncertainty curves. The full, word-for-word prompt every model receives lives in
-[`footbench.prompt.md`](footbench.prompt.md).
+[`footval.prompt.md`](footval.prompt.md).
 
 ---
 
 ## Types of questions
 
-Footbench deliberately mixes three different *kinds* of thinking. A model can be great at one
+Footval deliberately mixes three different *kinds* of thinking. A model can be great at one
 and weak at another, and the test is designed to pull those apart.
 
 ### 1. Reasoning with evidence (the "analytics" row)
@@ -153,7 +153,7 @@ bug to fix.
 
 ## Judge models (the graders)
 
-Footbench is a **subjective** evaluation, so the grading is done by other AI models acting as
+Footval is a **subjective** evaluation, so the grading is done by other AI models acting as
 judges. A single four-model panel renders every head-to-head comparison (described under
 [Scoring](#scoring)):
 
@@ -163,7 +163,7 @@ Two facts about the judges are important and are disclosed as limitations:
 
 - **The judges are also contestants.** Every judge is itself one of the candidate families, so
   a judge will sometimes grade its own or a sibling model's answer. Rather than throw that data
-  away, Footbench *keeps* it, *labels* it ("is this the judge's own answer? its own family?"),
+  away, Footval *keeps* it, *labels* it ("is this the judge's own answer? its own family?"),
   and separately measures whether judges favor their own family.
 - **Judges never see who wrote an answer.** Before any answer reaches a judge, every brand and
   model name (Claude, GPT, Gemini, DeepSeek, etc.) is automatically stripped out and replaced
@@ -178,14 +178,14 @@ Judges run as deterministically as their APIs allow (temperature 0).
 ### Objective checks come first (no judging required)
 
 Some things are simply facts, not opinions, so a computer settles them before any judge weighs
-in. Footbench runs two automated stages:
+in. Footval runs two automated stages:
 
 - **Execution.** Each model's Python plotting script is actually run — inside a locked-down
   sandbox with no internet, capped memory and CPU, and a hard 60-second timeout (the code is
   untrusted, model-written code). Whether it ran, and the images it produced, are recorded.
 - **Structural checks.** The JSON is checked for: valid format; a complete 6-cell grid with
   distinct titles; sane intervals (low < best guess < high); a valid distribution family; and —
-  the clever one — **parameter reproduction**: Footbench recomputes the 95% interval from the
+  the clever one — **parameter reproduction**: Footval recomputes the 95% interval from the
   model's own reported parameters and confirms it matches the interval the model claimed.
 
 These objective results are handed to the judges as **ground truth**, so judges don't have to
@@ -246,11 +246,11 @@ reproducible and any single stage can be re-run on its own:
 
 ## Where things live
 
-- [`footbench.prompt.md`](footbench.prompt.md) — the exact prompt every candidate receives.
+- [`footval.prompt.md`](footval.prompt.md) — the exact prompt every candidate receives.
 - [`initial_prompt.md`](initial_prompt.md) — the full methodology specification.
 - [`config.yaml`](config.yaml) — the candidate list, the pairwise judge panel, and per-model settings.
 - [`CLAUDE.md`](CLAUDE.md) — orientation for developers working on the code.
-- `footbench/` — the Python implementation, one module per stage.
+- `footval/` — the Python implementation, one module per stage.
 - `artifacts/` — the structured per-stage outputs (not committed).
 - `outputs/data/` — the final results (`pairwise_results.csv`), plus an optional hierarchical
   Bayesian Bradley-Terry ranking with uncertainty bands and judge-bias estimates
@@ -264,7 +264,7 @@ reproducible and any single stage can be re-run on its own:
 
 ## Limitations, gaps, and ways this could mislead
 
-Footbench is a fun, carefully built experiment — but it is an experiment, and a skeptical
+Footval is a fun, carefully built experiment — but it is an experiment, and a skeptical
 reader should treat its rankings as *suggestive, not authoritative*. The honest case against
 taking the numbers at face value is below, roughly in order of how much it should worry you.
 
@@ -275,7 +275,7 @@ expert, and no external ground truth anywhere in the loop**. That creates two di
 problems:
 
 - **Self-preference.** A model grading (a disguised copy of) its own answer has an obvious
-  conflict of interest. Footbench mitigates this — judging is blind, every pair is judged in both
+  conflict of interest. Footval mitigates this — judging is blind, every pair is judged in both
   presentation orders, and a per-judge own-family-vs-others win-rate gap is reported — but
   mitigation isn't elimination. With only four judges, two of which come from the largest
   families, a shared family lean can still tilt results.
@@ -283,7 +283,7 @@ problems:
   football takes from the same internet during training, they will agree *with each other* and
   *with candidates that echo those takes* — even if those takes are wrong. High inter-rater
   agreement would then look like reliability when it's really shared bias. **Agreement is not
-  the same as correctness.** Footbench measures the former and silently hopes it implies the
+  the same as correctness.** Footval measures the former and silently hopes it implies the
   latter.
 
 ### 2. "Blind" judging is only partly blind
@@ -311,7 +311,7 @@ Both judged criteria reward judgments that **cannot be checked against reality**
   vice versa. Notably, the panel agreed most often on priors — but that may partly reflect judges
   anchoring on the same auto-check report (see §7) rather than independently assessing realism.
 
-In short, Footbench can tell you which answers *other LLMs like*, not which answers are
+In short, Footval can tell you which answers *other LLMs like*, not which answers are
 *actually good coaching*.
 
 ### 4. "Underutilized" drifts with time and training data
@@ -411,7 +411,7 @@ field. The pipeline is carefully made reproducible *given the stored artifacts*,
 
 ### Bottom line
 
-Footbench is best read as **"which answers did a small panel of frontier LLMs prefer, on one
+Footval is best read as **"which answers did a small panel of frontier LLMs prefer, on one
 quirky football task, on one day"** — an interesting lens on model behavior and a nice showcase
 of structured-output evaluation, not a definitive verdict on which model is the better reasoner.
 The most trustworthy outputs are the *objective* ones (did the code run, is the JSON
