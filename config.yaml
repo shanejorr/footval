@@ -25,9 +25,6 @@ interval_tol: 0.10        # relative tolerance for parameter-reproduction check
 
 generation:
   max_output_tokens: 64000
-judging:
-  max_output_tokens: 16000
-  max_format_retries: 2
 
 # Pairwise comparison stage — the only judging round. One criterion (soundness),
 # text-only, forced A/B. Batch APIs where available; z.ai has none, so GLM runs
@@ -42,6 +39,7 @@ pairwise:
   # Judges deliberate at one effort tier above the candidates, so leave room for
   # thinking tokens — a 16k cap starved the previous panel on close comparisons.
   max_output_tokens: 32000
+  max_format_retries: 2
 
 # Thinking/effort policy: candidates run one notch above the middle of each
 # provider's ladder, judges one notch above that.
@@ -57,7 +55,6 @@ models:
     family: anthropic
     supports_temperature: false
     supports_seed: false
-    supports_images: true
     params:
       thinking: {type: adaptive}
       output_config: {effort: high}
@@ -68,7 +65,6 @@ models:
     family: anthropic
     supports_temperature: false
     supports_seed: false
-    supports_images: true
     params:
       thinking: {type: adaptive}
       output_config: {effort: high}
@@ -77,7 +73,6 @@ models:
     family: anthropic
     supports_temperature: false
     supports_seed: false
-    supports_images: true
     params:
       thinking: {type: adaptive}
       output_config: {effort: high}
@@ -89,7 +84,6 @@ models:
     family: openai
     supports_temperature: false
     supports_seed: false
-    supports_images: true
     params:
       reasoning: {effort: high}
     judge_params:
@@ -99,7 +93,6 @@ models:
     family: openai
     supports_temperature: false
     supports_seed: false
-    supports_images: true
     params:
       reasoning: {effort: high}
 
@@ -112,7 +105,6 @@ models:
     family: google
     supports_temperature: true
     supports_seed: true
-    supports_images: true
     params:
       thinking_config: {thinking_level: HIGH}
   gemini-3.6-flash:
@@ -120,7 +112,6 @@ models:
     family: google
     supports_temperature: true
     supports_seed: true
-    supports_images: true
     params:
       thinking_config: {thinking_level: HIGH}
   gemini-3.5-flash:            # judge only — not on the candidate roster
@@ -128,19 +119,18 @@ models:
     family: google
     supports_temperature: true
     supports_seed: true
-    supports_images: true
     params:
       thinking_config: {thinking_level: HIGH}
 
   # --- Z.ai GLM (OpenAI-compatible chat completions). No batch API, so its judge
-  # items run synchronously. Vision unverified, so supports_images=false.
+  # items run synchronously. `thinking` is a z.ai-only knob; the adapter ships it
+  # via extra_body because the OpenAI SDK rejects unknown kwargs.
   glm-5.2:
     provider: zai
     family: zai
     base_url: https://api.z.ai/api/paas/v4
     supports_temperature: true
     supports_seed: false
-    supports_images: false
     params:
       thinking: {type: enabled}
       reasoning_effort: high

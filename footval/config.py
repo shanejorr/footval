@@ -36,7 +36,6 @@ class ModelCfg:
     family: str
     supports_temperature: bool = True
     supports_seed: bool = False
-    supports_images: bool = True
     base_url: str | None = None
     params: dict[str, Any] = field(default_factory=dict)
     # Merged over `params` only when this model judges. Three models sit on both
@@ -54,16 +53,11 @@ class Config:
     seed: int
     interval_tol: float
     generation_max_output_tokens: int
-    judging_max_output_tokens: int
-    judge_max_format_retries: int
     models: dict[str, ModelCfg]
     pairwise_judges: tuple[str, ...] = ()
     pairwise_both_orders: bool = False
-    pairwise_max_output_tokens: int | None = None  # None -> judging_max_output_tokens
-
-    @property
-    def pairwise_output_cap(self) -> int:
-        return self.pairwise_max_output_tokens or self.judging_max_output_tokens
+    pairwise_max_output_tokens: int = 32000
+    pairwise_max_format_retries: int = 2
 
     @property
     def artifacts_dir(self) -> Path:
@@ -116,7 +110,6 @@ def load_config(root: Path | None = None) -> Config:
             family=m["family"],
             supports_temperature=m.get("supports_temperature", True),
             supports_seed=m.get("supports_seed", False),
-            supports_images=m.get("supports_images", True),
             base_url=m.get("base_url"),
             params=m.get("params") or {},
             judge_params=m.get("judge_params") or {},
@@ -130,7 +123,6 @@ def load_config(root: Path | None = None) -> Config:
             raise ValueError(f"model {name!r} has unknown provider {models[name].provider!r}")
 
     gen = raw.get("generation") or {}
-    judging = raw.get("judging") or {}
     return Config(
         root=root,
         candidate_models=tuple(raw["candidate_models"]),
@@ -140,14 +132,11 @@ def load_config(root: Path | None = None) -> Config:
         seed=int(raw["seed"]),
         interval_tol=float(raw["interval_tol"]),
         generation_max_output_tokens=int(gen.get("max_output_tokens", 64000)),
-        judging_max_output_tokens=int(judging.get("max_output_tokens", 16000)),
-        judge_max_format_retries=int(judging.get("max_format_retries", 2)),
         models=models,
         pairwise_judges=pairwise_judges,
         pairwise_both_orders=bool(pairwise.get("both_orders", False)),
-        pairwise_max_output_tokens=(
-            int(pairwise["max_output_tokens"]) if pairwise.get("max_output_tokens") else None
-        ),
+        pairwise_max_output_tokens=int(pairwise.get("max_output_tokens", 32000)),
+        pairwise_max_format_retries=int(pairwise.get("max_format_retries", 2)),
     )
 
 

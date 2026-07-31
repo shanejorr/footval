@@ -158,8 +158,8 @@ def test_bundle_byte_stability_across_pairs(tmp_path):
     parts_ac = pairwise.build_parts("TASK", a1, "bundle-c", retry=False)
     # every cached prefix part is byte-identical when candidate A is unchanged
     for idx in pairwise.CACHE_PART_IDXS:
-        assert parts_ab[idx].text == parts_ac[idx].text, idx
-    assert parts_ab[2].text != parts_ac[2].text
+        assert parts_ab[idx] == parts_ac[idx], idx
+    assert parts_ab[2] != parts_ac[2]
 
 
 def test_bundle_label_and_check_report(tmp_path):
@@ -212,7 +212,7 @@ def test_unparsed_bundle_shown_raw_and_whole(tmp_path):
 def test_retry_part_appended(tmp_path):
     parts = pairwise.build_parts("TASK", "a", "b", retry=True)
     assert len(parts) == 5
-    assert "REMINDER" in parts[-1].text
+    assert "REMINDER" in parts[-1]
 
 
 # --- verdict parsing --------------------------------------------------------------------
@@ -334,7 +334,7 @@ def test_zai_vendor_params_ride_extra_body():
     req = providers.LLMRequest(
         model=mcfg,
         system="s",
-        parts=(providers.ContentPart(kind="text", text="hello"),),
+        parts=("hello",),
         temperature=0.0,
         seed=None,
         max_output_tokens=10,
@@ -346,26 +346,13 @@ def test_zai_vendor_params_ride_extra_body():
     assert kwargs["reasoning_effort"] == "high"
 
 
-def test_gemini_batch_request_shape_and_text_only(tmp_path):
+def test_gemini_batch_request_shape(tmp_path):
     cfg = pw_cfg(tmp_path, judges=("m3",))  # m3 -> google/gemini provider
     item = _item(cfg, judge_name="m3")
     req = providers.gemini_batch_request(item)
     assert req["metadata"] == {"custom_id": "p00-ab"}
     assert req["config"]["system_instruction"] == JUDGE_PROMPT_TEXT
     assert req["contents"][0]["parts"][0]["text"] == "=== TASK GIVEN TO BOTH MODELS ===\nTASK"
-    bad = providers.BatchItem(
-        custom_id="x",
-        req=providers.LLMRequest(
-            model=cfg.model("m3"),
-            system=None,
-            parts=(providers.ContentPart(kind="image_png", png_bytes=b"x"),),
-            temperature=None,
-            seed=None,
-            max_output_tokens=10,
-        ),
-    )
-    with pytest.raises(ValueError):
-        providers.gemini_batch_request(bad)
 
 
 # --- manifest & outstanding set ---------------------------------------------------------

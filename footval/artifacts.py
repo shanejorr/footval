@@ -2,10 +2,16 @@
 
 from __future__ import annotations
 
+import datetime as dt
 import json
 import os
 from pathlib import Path
 from typing import Any
+
+
+def now_iso() -> str:
+    """UTC timestamp used in every artifact record."""
+    return dt.datetime.now(dt.UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
 
 
 def instance_id(model: str, sample_idx: int) -> str:

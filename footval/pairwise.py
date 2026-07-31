@@ -17,7 +17,6 @@ subcommand is always safe and resubmission IS the retry mechanism.
 from __future__ import annotations
 
 import csv
-import datetime as dt
 import json
 import random
 import re
@@ -150,7 +149,7 @@ def load_or_write_manifest(cfg: Config, store: artifacts.Store) -> dict[str, Any
                     "Move artifacts/pairwise/ aside to restart."
                 )
     if existing is None or existing.get("comparisons") != fresh["comparisons"]:
-        store.write_json(store.pairwise_manifest_path, {**fresh, "ts": _now()})
+        store.write_json(store.pairwise_manifest_path, {**fresh, "ts": artifacts.now_iso()})
     return fresh
 
 
@@ -224,32 +223,28 @@ def build_bundle(store: artifacts.Store, iid: str, label: str) -> tuple[str, int
     return parsing.redact(text)
 
 
-def build_parts(
-    prompt_md: str, bundle_a: str, bundle_b: str, retry: bool
-) -> tuple[providers.ContentPart, ...]:
+def build_parts(prompt_md: str, bundle_a: str, bundle_b: str, retry: bool) -> tuple[str, ...]:
     """Ordered most-stable to least-stable, which is what makes prefix caching work:
     task (identical everywhere) -> bundle A -> bundle B -> instruction -> retry note."""
     parts = [
-        providers.ContentPart(kind="text", text="=== TASK GIVEN TO BOTH MODELS ===\n" + prompt_md),
-        providers.ContentPart(kind="text", text=bundle_a),
-        providers.ContentPart(kind="text", text=bundle_b),
-        providers.ContentPart(kind="text", text=_INSTRUCTION),
+        "=== TASK GIVEN TO BOTH MODELS ===\n" + prompt_md,
+        bundle_a,
+        bundle_b,
+        _INSTRUCTION,
     ]
     if retry:
-        parts.append(providers.ContentPart(kind="text", text=_RETRY_NOTE))
+        parts.append(_RETRY_NOTE)
     return tuple(parts)
 
 
-def build_request(
-    cfg: Config, judge_cfg: ModelCfg, parts: tuple[providers.ContentPart, ...]
-) -> providers.LLMRequest:
+def build_request(cfg: Config, judge_cfg: ModelCfg, parts: tuple[str, ...]) -> providers.LLMRequest:
     return providers.LLMRequest(
         model=judge_cfg,
         system=judge_system(cfg),
         parts=parts,
         temperature=cfg.judge_temperature,
         seed=cfg.seed,
-        max_output_tokens=cfg.pairwise_output_cap,
+        max_output_tokens=cfg.pairwise_max_output_tokens,
         cache_part_idxs=CACHE_PART_IDXS,
         cache_key=f"footval-pairwise-{judge_cfg.name}",
     )
@@ -347,7 +342,7 @@ def _verdict_record(
         "verdicts": verdicts,
         "raw_text": raw_text,
         "error": error,
-        "ts": _now(),
+        "ts": artifacts.now_iso(),
     }
 
 
@@ -421,7 +416,7 @@ def submit(cfg: Config, only_judges: list[str] | None = None, dump_prompt: bool 
             print(f"\n===== pairwise prompt: judge={judge_name} custom_id={item.custom_id} =====")
             print(f"--- system ---\n{item.req.system}\n")
             for part in item.req.parts:
-                print(f"--- text part ({len(part.text)} chars) ---\n{part.text[:1500]}\n[...]\n")
+                print(f"--- text part ({len(part)} chars) ---\n{part[:1500]}\n[...]\n")
             return
         if jcfg.provider not in providers.BATCH_PROVIDERS:
             print(
@@ -448,7 +443,7 @@ def submit(cfg: Config, only_judges: list[str] | None = None, dump_prompt: bool 
                 "judge": judge_name,
                 **info,
                 "custom_ids": [i.custom_id for i in items],
-                "submitted_at": _now(),
+                "submitted_at": artifacts.now_iso(),
                 "state": "submitted",
             }
         )
@@ -497,7 +492,7 @@ def run_sync(cfg: Config, only_judges: list[str] | None = None) -> None:
             res = None
             error = None
             attempt = 0
-            for attempt in range(cfg.judge_max_format_retries + 1):
+            for attempt in range(cfg.pairwise_max_format_retries + 1):
                 parts = build_parts(prompt_md, a_text, b_text, retry=attempt > 0)
                 try:
                     res = providers.complete(build_request(cfg, jcfg, parts))
@@ -614,7 +609,7 @@ def collect(cfg: Config) -> None:
                 continue
             n = attempts.setdefault(b["judge"], {})
             n[cid] = n.get(cid, 0) + 1
-            if n[cid] > cfg.judge_max_format_retries:
+            if n[cid] > cfg.pairwise_max_format_retries:
                 record = _verdict_record(
                     cfg,
                     manifest,
@@ -707,7 +702,3 @@ def run_cli(
     if subcommand not in subs:
         raise SystemExit(f"usage: python -m footval pairwise {{{' | '.join(subs)}}}")
     subs[subcommand]()
-
-
-def _now() -> str:
-    return dt.datetime.now(dt.UTC).strftime("%Y-%m-%dT%H:%M:%SZ")

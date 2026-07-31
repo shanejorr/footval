@@ -105,7 +105,7 @@ make pairwise-csv        # outputs/data/pairwise_results.csv (judge, model_a, mo
 
 State lives under `artifacts/pairwise/`: `manifest.json` (custom_id -> pair mapping; drift
 hard-fails), `batches.json` (submitted batch ids + submission order), `attempts.json`
-(format-failure counts; after `judging.max_format_retries` an item gets a terminal
+(format-failure counts; after `pairwise.max_format_retries` an item gets a terminal
 `verdicts: null` file), `verdicts/{judge}/{custom_id}.json`, and `raw/` (verbatim batch
 output for audit). `outstanding = expected − verdict files`, so every subcommand is
 idempotent and safe to re-run.

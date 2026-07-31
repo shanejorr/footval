@@ -1,5 +1,5 @@
 """Vendor-specific LLM access. Every SDK import, thinking-parameter name,
-image-block shape, and snapshot-ID read lives here and nowhere else.
+and snapshot-ID read lives here and nowhere else.
 
 Four adapters: anthropic, openai (Responses API), gemini (google-genai),
 zai (OpenAI-compatible chat completions, for GLM). Per-model `params` from
@@ -15,11 +15,10 @@ system prompt is always one) and ``cache_key`` becomes OpenAI's
 
 from __future__ import annotations
 
-import base64
 import os
 import time
-from dataclasses import dataclass, field, replace
-from typing import Any, Literal
+from dataclasses import dataclass, replace
+from typing import Any
 
 import httpx
 
@@ -42,17 +41,12 @@ class ModelConfigError(Exception):
 
 
 @dataclass(frozen=True)
-class ContentPart:
-    kind: Literal["text", "image_png"]
-    text: str | None = None
-    png_bytes: bytes | None = None
-
-
-@dataclass(frozen=True)
 class LLMRequest:
     model: ModelCfg
     system: str | None
-    parts: tuple[ContentPart, ...]
+    # Ordered text segments, sent as separate content parts (or joined, for
+    # chat completions). The whole pipeline is text-only by design.
+    parts: tuple[str, ...]
     temperature: float | None
     seed: int | None
     max_output_tokens: int
@@ -72,15 +66,20 @@ class LLMResult:
     request_params: dict[str, Any]  # what was ACTUALLY sent (audit record; no content)
     stop_reason: str | None
     usage: dict[str, Any]
-    images_included: bool = field(default=False)
 
 
 def complete(req: LLMRequest) -> LLMResult:
     """Public entry: dispatch to the vendor adapter with transient-error retries."""
+    adapter = {
+        "anthropic": _anthropic,
+        "openai": _openai,
+        "gemini": _gemini,
+        "zai": _zai,
+    }[req.model.provider]
     last: Exception | None = None
     for attempt, delay in enumerate((*_RETRY_DELAYS_S, None)):
         try:
-            return _dispatch(req)
+            return adapter(req)
         except TransientAPIError as exc:
             last = exc
             if delay is None:
@@ -88,21 +87,6 @@ def complete(req: LLMRequest) -> LLMResult:
             print(f"    transient error ({exc}); retry {attempt + 1} in {delay}s")
             time.sleep(delay)
     raise TransientAPIError(f"retries exhausted: {last}") from last
-
-
-def _dispatch(req: LLMRequest) -> LLMResult:
-    images_ok = req.model.supports_images
-    if not images_ok:
-        req = replace(req, parts=tuple(p for p in req.parts if p.kind == "text"))
-    adapter = {
-        "anthropic": _anthropic,
-        "openai": _openai,
-        "gemini": _gemini,
-        "zai": _zai,
-    }[req.model.provider]
-    result = adapter(req)
-    had_images = any(p.kind == "image_png" for p in req.parts)
-    return replace(result, images_included=images_ok and had_images)
 
 
 def _audit(kwargs: dict[str, Any], content_keys: tuple[str, ...]) -> dict[str, Any]:
@@ -124,21 +108,7 @@ def _anthropic_kwargs(req: LLMRequest) -> dict[str, Any]:
     the longest matching prefix, so ordering stable content first is what makes
     them pay off.
     """
-    content: list[dict[str, Any]] = []
-    for part in req.parts:
-        if part.kind == "text":
-            content.append({"type": "text", "text": part.text})
-        else:
-            content.append(
-                {
-                    "type": "image",
-                    "source": {
-                        "type": "base64",
-                        "media_type": "image/png",
-                        "data": base64.standard_b64encode(part.png_bytes).decode(),
-                    },
-                }
-            )
+    content: list[dict[str, Any]] = [{"type": "text", "text": text} for text in req.parts]
     for idx in req.cache_part_idxs:
         if 0 <= idx < len(content):
             content[idx]["cache_control"] = dict(_EPHEMERAL)
@@ -202,13 +172,7 @@ def _openai(req: LLMRequest) -> LLMResult:
 
 def _responses_kwargs(req: LLMRequest) -> dict[str, Any]:
     """Responses-API kwargs; also the batch JSONL `body` for /v1/responses."""
-    content: list[dict[str, Any]] = []
-    for part in req.parts:
-        if part.kind == "text":
-            content.append({"type": "input_text", "text": part.text})
-        else:
-            b64 = base64.standard_b64encode(part.png_bytes).decode()
-            content.append({"type": "input_image", "image_url": f"data:image/png;base64,{b64}"})
+    content = [{"type": "input_text", "text": text} for text in req.parts]
     kwargs: dict[str, Any] = {
         "model": req.model.name,
         "input": [{"role": "user", "content": content}],
@@ -277,13 +241,8 @@ def _gemini_config(req: LLMRequest) -> dict[str, Any]:
 
 
 def _gemini_contents_dict(req: LLMRequest) -> list[dict[str, Any]]:
-    """Dict-form contents for the batch path (text-only by design)."""
-    parts = []
-    for part in req.parts:
-        if part.kind != "text":
-            raise ValueError("gemini batch path is text-only; image parts unsupported")
-        parts.append({"text": part.text})
-    return [{"role": "user", "parts": parts}]
+    """Dict-form contents for the batch path."""
+    return [{"role": "user", "parts": [{"text": text} for text in req.parts]}]
 
 
 def _gemini(req: LLMRequest) -> LLMResult:
@@ -291,12 +250,7 @@ def _gemini(req: LLMRequest) -> LLMResult:
     from google.genai import errors, types
 
     client = genai.Client()  # reads GEMINI_API_KEY
-    parts: list[Any] = []
-    for part in req.parts:
-        if part.kind == "text":
-            parts.append(types.Part.from_text(text=part.text))
-        else:
-            parts.append(types.Part.from_bytes(data=part.png_bytes, mime_type="image/png"))
+    parts = [types.Part.from_text(text=text) for text in req.parts]
     config = _gemini_config(req)
     try:
         gen_config = types.GenerateContentConfig(**config)
@@ -345,19 +299,7 @@ def _gemini(req: LLMRequest) -> LLMResult:
 
 def _chat_kwargs(req: LLMRequest) -> dict[str, Any]:
     """Chat-completions kwargs; z.ai sync and the /v1/chat/completions batch body."""
-    content: list[dict[str, Any]] | str
-    if any(p.kind == "image_png" for p in req.parts):
-        content = []
-        for part in req.parts:
-            if part.kind == "text":
-                content.append({"type": "text", "text": part.text})
-            else:
-                b64 = base64.standard_b64encode(part.png_bytes).decode()
-                content.append(
-                    {"type": "image_url", "image_url": {"url": f"data:image/png;base64,{b64}"}}
-                )
-    else:
-        content = "\n\n".join(p.text for p in req.parts if p.kind == "text")
+    content = "\n\n".join(req.parts)
     messages: list[dict[str, Any]] = []
     if req.system:
         messages.append({"role": "system", "content": req.system})
@@ -470,7 +412,7 @@ def probe_cli(cfg: Config, only: list[str] | None = None, full: bool = False) ->
         req = LLMRequest(
             model=probe_model,
             system=None,
-            parts=(ContentPart(kind="text", text="Reply with the single word: OK"),),
+            parts=("Reply with the single word: OK",),
             temperature=None,
             seed=None,
             max_output_tokens=2048,

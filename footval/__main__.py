@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import argparse
 
-from .config import load_config
+from .config import load_config, missing_api_keys
 
 
 def main(argv: list[str] | None = None) -> None:
@@ -45,6 +45,16 @@ def main(argv: list[str] | None = None) -> None:
     )
     args = parser.parse_args(argv)
     cfg = load_config()
+
+    # Fail fast on commands that will call provider APIs: a missing key should
+    # surface here, not as a confusing auth error seven models into a paid run.
+    calls_apis = args.command in ("probe", "generate", "run") or (
+        args.command == "pairwise" and args.subcommand in ("submit", "sync", "status", "collect")
+    )
+    if calls_apis:
+        missing = missing_api_keys(cfg)
+        if missing:
+            raise SystemExit(f"missing API keys: {', '.join(missing)} — set them in .env")
 
     def do(command: str) -> None:
         if command == "probe":

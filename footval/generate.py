@@ -8,8 +8,6 @@ Resumable: instances with a stored response.json are skipped.
 
 from __future__ import annotations
 
-import datetime as dt
-
 from . import artifacts, parsing, providers
 from .config import Config
 
@@ -36,7 +34,7 @@ def run(cfg: Config, only: list[str] | None = None) -> None:
             req = providers.LLMRequest(
                 model=mcfg,
                 system=None,
-                parts=(providers.ContentPart(kind="text", text=prompt),),
+                parts=(prompt,),
                 temperature=cfg.gen_temperature,
                 seed=cfg.seed,
                 max_output_tokens=cfg.generation_max_output_tokens,
@@ -54,7 +52,7 @@ def run(cfg: Config, only: list[str] | None = None) -> None:
                         "sample_idx": sample_idx,
                         "error_type": type(exc).__name__,
                         "message": str(exc),
-                        "ts": _now(),
+                        "ts": artifacts.now_iso(),
                     },
                 )
                 failed.append((iid, str(exc)))
@@ -69,7 +67,7 @@ def run(cfg: Config, only: list[str] | None = None) -> None:
                     "model": model_name,
                     "sample_idx": sample_idx,
                     "snapshot_id": res.snapshot_id,
-                    "ts": _now(),
+                    "ts": artifacts.now_iso(),
                     "temperature": cfg.gen_temperature if mcfg.supports_temperature else None,
                     "seed": cfg.seed if mcfg.supports_seed else None,
                     "request_params": res.request_params,
@@ -98,12 +96,11 @@ def run(cfg: Config, only: list[str] | None = None) -> None:
             "fix model IDs/params in config.yaml and re-run `make generate`"
             " (existing responses are kept)."
         )
-    truncated = [
-        iid
-        for iid in store.instance_ids()
-        if (store.load_response(iid) or {}).get("stop_reason") in ("max_tokens", "length")
-        or str((store.load_response(iid) or {}).get("stop_reason", "")).startswith("incomplete")
-    ]
+    truncated = []
+    for iid in store.instance_ids():
+        stop = str((store.load_response(iid) or {}).get("stop_reason") or "")
+        if stop in ("max_tokens", "length") or stop.startswith("incomplete"):
+            truncated.append(iid)
     if truncated:
         print(f"WARNING: truncated responses (raise generation.max_output_tokens?): {truncated}")
 
@@ -121,9 +118,5 @@ def _record_run_meta(cfg: Config, store: artifacts.Store) -> None:
             "interval_tol": cfg.interval_tol,
         }
     )
-    meta.setdefault("stage_timestamps", {})["generate"] = _now()
+    meta.setdefault("stage_timestamps", {})["generate"] = artifacts.now_iso()
     store.write_json(store.run_meta_path, meta)
-
-
-def _now() -> str:
-    return dt.datetime.now(dt.UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
