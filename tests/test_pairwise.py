@@ -448,6 +448,21 @@ def test_gemini_batch_request_shape(tmp_path):
 # --- manifest & outstanding set ---------------------------------------------------------
 
 
+def test_manifest_judges_only_the_configured_samples(tmp_path):
+    import dataclasses
+
+    cfg = dataclasses.replace(pw_cfg(tmp_path), pairwise_judged_samples=1)
+    store = seeded_store(tmp_path, ["mA__s0", "mB__s0", "mA__s1", "mB__s1", "mC__s1"])
+    manifest = pairwise.build_manifest(cfg, store)
+    # s1 instances are unjudged artifacts: only the s0 pair is enumerated, so
+    # extra generation runs never renumber pairs under existing verdicts
+    assert manifest["instances"] == ["mA__s0", "mB__s0"]
+    assert len(manifest["comparisons"]) == 1 * N_CRITERIA
+    # default (None) keeps the judge-everything behavior
+    all_manifest = pairwise.build_manifest(pw_cfg(tmp_path), store)
+    assert len(all_manifest["instances"]) == 5
+
+
 def test_manifest_round_trip_and_outstanding(tmp_path):
     cfg = pw_cfg(tmp_path)
     store = seeded_store(tmp_path, ["mA__s0", "mB__s0", "mC__s0"])

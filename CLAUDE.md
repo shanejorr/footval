@@ -86,6 +86,9 @@ prompts carry the "judge the inference, not the conclusion" rule. Judges and the
 `both_orders` flag live under `pairwise:` in config.yaml. Which model is shown as
 "Response A" is a deterministic per-pair coin flip from the run seed, shared by both criteria
 of a pair; presentation order is recorded so position bias is analyzable.
+`pairwise.judged_samples` caps which sample indices enter the manifest (currently 1: only
+`s0` is judged; later samples are unjudged artifacts for the published response viewer, and
+excluding them keeps extra generation runs from renumbering pairs under existing verdicts).
 
 **Priors are generated but not judged.** The candidates still produce a Bayesian prior per
 strategy (Part 2 of the prompt) and the checks stage still validates them for the published

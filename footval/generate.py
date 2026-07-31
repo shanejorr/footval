@@ -28,6 +28,11 @@ def run(cfg: Config, only: list[str] | None = None) -> None:
                 skipped.append(iid)
                 continue
             print(f"  generating {iid} ...")
+            # Offset the seed per sample where the provider honors it: a fixed
+            # seed makes some providers (Gemini) replay sample 0 verbatim, and
+            # distinct draws are the whole point of n_samples > 1. Sample 0
+            # keeps the bare run seed, so prior runs stay reproducible.
+            sample_seed = cfg.seed + sample_idx
             # The prompt is byte-identical for every candidate call, so marking it
             # cacheable pays off whenever a model is called more than once —
             # n_samples > 1, a resumed run, or a re-run inside the cache TTL.
@@ -36,7 +41,7 @@ def run(cfg: Config, only: list[str] | None = None) -> None:
                 system=None,
                 parts=(prompt,),
                 temperature=cfg.gen_temperature,
-                seed=cfg.seed,
+                seed=sample_seed,
                 max_output_tokens=cfg.generation_max_output_tokens,
                 cache_part_idxs=(0,),
                 cache_key="footval-candidate-prompt",
@@ -69,7 +74,7 @@ def run(cfg: Config, only: list[str] | None = None) -> None:
                     "snapshot_id": res.snapshot_id,
                     "ts": artifacts.now_iso(),
                     "temperature": cfg.gen_temperature if mcfg.supports_temperature else None,
-                    "seed": cfg.seed if mcfg.supports_seed else None,
+                    "seed": sample_seed if mcfg.supports_seed else None,
                     "request_params": res.request_params,
                     "stop_reason": res.stop_reason,
                     "usage": res.usage,

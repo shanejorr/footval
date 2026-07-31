@@ -66,6 +66,8 @@ class Config:
     pairwise_both_orders: bool = False
     pairwise_max_output_tokens: int = 32000
     pairwise_max_format_retries: int = 2
+    # Judge only sample indices < this value (None -> judge every instance).
+    pairwise_judged_samples: int | None = None
 
     @property
     def artifacts_dir(self) -> Path:
@@ -147,6 +149,9 @@ def load_config(root: Path | None = None) -> Config:
         pairwise_both_orders=bool(pairwise.get("both_orders", False)),
         pairwise_max_output_tokens=int(pairwise.get("max_output_tokens", 32000)),
         pairwise_max_format_retries=int(pairwise.get("max_format_retries", 2)),
+        pairwise_judged_samples=(
+            int(pairwise["judged_samples"]) if pairwise.get("judged_samples") is not None else None
+        ),
     )
 
 

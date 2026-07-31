@@ -1,0 +1,179 @@
+{
+  "detail": {
+    "grid": {
+      "duplicate_cells": [],
+      "duplicate_titles": [],
+      "issues": [],
+      "missing_cells": [],
+      "n_strategies": 6
+    },
+    "json": {
+      "missing_keys": []
+    },
+    "parse_mode": "direct",
+    "strategies": [
+      {
+        "cell": "analytics/game_management",
+        "errors": {
+          "center": 0.0,
+          "high": 0.00039999999999995595,
+          "low": 0.00039999999999990044
+        },
+        "family": "normal",
+        "family_valid": true,
+        "idx": 0,
+        "interval_sane": true,
+        "params_ok": true,
+        "reason": null,
+        "recomputed": {
+          "center": 1.2,
+          "high": 2.1996,
+          "low": 0.2003999999999999
+        },
+        "reported": {
+          "high": 2.2,
+          "low": 0.2,
+          "most_plausible_value": 1.2
+        },
+        "title": "Never Punt in the 'Dead Zone'",
+        "tol_abs": 0.2
+      },
+      {
+        "cell": "analytics/offensive",
+        "errors": {
+          "center": 0.22707651485622793,
+          "high": 0.26382350765574625,
+          "low": 0.26882677840687175
+        },
+        "family": "skew_normal",
+        "family_valid": true,
+        "idx": 1,
+        "interval_sane": true,
+        "params_ok": true,
+        "reason": null,
+        "recomputed": {
+          "center": 2.027076514856228,
+          "high": 4.263823507655746,
+          "low": 0.7688267784068717
+        },
+        "reported": {
+          "high": 4.0,
+          "low": 0.5,
+          "most_plausible_value": 1.8
+        },
+        "title": "Extreme Early-Down Passing",
+        "tol_abs": 0.35000000000000003
+      },
+      {
+        "cell": "analytics/defensive",
+        "errors": {
+          "center": 0.0,
+          "high": 0.0014392863863825767,
+          "low": 0.0014392863863830208
+        },
+        "family": "student_t",
+        "family_valid": true,
+        "idx": 2,
+        "interval_sane": true,
+        "params_ok": true,
+        "reason": null,
+        "recomputed": {
+          "center": 2.0,
+          "high": 4.998560713613617,
+          "low": -0.998560713613617
+        },
+        "reported": {
+          "high": 5.0,
+          "low": -1.0,
+          "most_plausible_value": 2.0
+        },
+        "title": "Concede the Run (Light Boxes)",
+        "tol_abs": 0.6000000000000001
+      },
+      {
+        "cell": "intuition/game_management",
+        "errors": {
+          "center": 0.05500710265420283,
+          "high": 0.14308842642701403,
+          "low": 0.07279712576003317
+        },
+        "family": "skew_normal",
+        "family_valid": true,
+        "idx": 3,
+        "interval_sane": true,
+        "params_ok": true,
+        "reason": null,
+        "recomputed": {
+          "center": 0.24499289734579716,
+          "high": 1.356911573572986,
+          "low": -0.42720287423996683
+        },
+        "reported": {
+          "high": 1.5,
+          "low": -0.5,
+          "most_plausible_value": 0.3
+        },
+        "title": "Intentional Defensive Encroachment",
+        "tol_abs": 0.2
+      },
+      {
+        "cell": "intuition/offensive",
+        "errors": {
+          "center": 0.0,
+          "high": 0.0016791674507796728,
+          "low": 0.0016791674507801169
+        },
+        "family": "student_t",
+        "family_valid": true,
+        "idx": 4,
+        "interval_sane": true,
+        "params_ok": true,
+        "reason": null,
+        "recomputed": {
+          "center": 1.5,
+          "high": 4.99832083254922,
+          "low": -1.9983208325492199
+        },
+        "reported": {
+          "high": 5.0,
+          "low": -2.0,
+          "most_plausible_value": 1.5
+        },
+        "title": "Relentless No-Huddle Tempo",
+        "tol_abs": 0.7000000000000001
+      },
+      {
+        "cell": "intuition/defensive",
+        "errors": {
+          "center": 0.0,
+          "high": 0.00039999999999995595,
+          "low": 0.00040000000000001146
+        },
+        "family": "normal",
+        "family_valid": true,
+        "idx": 5,
+        "interval_sane": true,
+        "params_ok": true,
+        "reason": null,
+        "recomputed": {
+          "center": 0.8,
+          "high": 1.7996,
+          "low": -0.1996
+        },
+        "reported": {
+          "high": 1.8,
+          "low": -0.2,
+          "most_plausible_value": 0.8
+        },
+        "title": "Extreme DL Rotation",
+        "tol_abs": 0.2
+      }
+    ]
+  },
+  "family_ok": true,
+  "grid_complete": true,
+  "instance_id": "gemini-3.1-pro-preview__s1",
+  "intervals_ok": true,
+  "json_valid": true,
+  "params_reproduce_ok": true
+}

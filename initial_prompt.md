@@ -124,10 +124,12 @@ prompt, so a prior-mechanics failure cannot leak into either reasoning verdict.
 
 ## 5. Judging — pairwise head-to-head tournament
 
-The only judging round. Every unordered pair of response instances is compared by the
-three-judge panel on **two criteria — analytical reasoning and intuitive reasoning** — each as
-its own forced A/B call scoped to just the grid row that criterion covers. There is no numeric
-scale and no separate per-response score.
+The only judging round. Every unordered pair of **judged** response instances is compared by
+the three-judge panel on **two criteria — analytical reasoning and intuitive reasoning** —
+each as its own forced A/B call scoped to just the grid row that criterion covers. There is no
+numeric scale and no separate per-response score. `pairwise.judged_samples` limits which
+sample indices are judged (currently only `s0`); additional samples are generated, checked,
+and published as unjudged artifacts so readers can see draw-to-draw variability.
 
 The construct being measured is **reasoning quality**, not knowledge of the current NFL meta:
 judges are instructed to judge the inference rather than the conclusion, and

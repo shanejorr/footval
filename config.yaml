@@ -20,7 +20,7 @@ candidate_models:
   - gemini-3.6-flash
   - glm-5.2
 
-n_samples: 1              # responses generated per candidate
+n_samples: 2              # responses generated per candidate (s1+ unjudged; see pairwise.judged_samples)
 gen_temperature: 1.0      # fixed for all candidates (where the API accepts it)
 judge_temperature: 0.0    # judges run as deterministically as the APIs allow
 seed: 42                  # where the provider supports it
@@ -43,6 +43,10 @@ pairwise:
   # thinking tokens — a 16k cap starved the previous panel on close comparisons.
   max_output_tokens: 32000
   max_format_retries: 2
+  # Only sample s0 enters the judged tournament. Later samples exist to show
+  # draw-to-draw variability in the published response viewer; keeping them out
+  # of the manifest also protects existing verdicts from pair renumbering.
+  judged_samples: 1
 
 # Thinking/effort policy: candidates run one notch above the middle of each
 # provider's ladder, judges one notch above that.

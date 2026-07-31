@@ -1,0 +1,179 @@
+{
+  "detail": {
+    "grid": {
+      "duplicate_cells": [],
+      "duplicate_titles": [],
+      "issues": [],
+      "missing_cells": [],
+      "n_strategies": 6
+    },
+    "json": {
+      "missing_keys": []
+    },
+    "parse_mode": "direct",
+    "strategies": [
+      {
+        "cell": "analytics/game_management",
+        "errors": {
+          "center": 0.0,
+          "high": 0.00012000000000000899,
+          "low": 0.00011999999999999511
+        },
+        "family": "normal",
+        "family_valid": true,
+        "idx": 0,
+        "interval_sane": true,
+        "params_ok": true,
+        "reason": null,
+        "recomputed": {
+          "center": 0.35,
+          "high": 0.64988,
+          "low": 0.05012
+        },
+        "reported": {
+          "high": 0.65,
+          "low": 0.05,
+          "most_plausible_value": 0.35
+        },
+        "title": "Down-14 Two-Point Conversion Protocol",
+        "tol_abs": 0.06
+      },
+      {
+        "cell": "analytics/offensive",
+        "errors": {
+          "center": 0.0,
+          "high": 0.00024000000000024002,
+          "low": 0.00024000000000004573
+        },
+        "family": "normal",
+        "family_valid": true,
+        "idx": 1,
+        "interval_sane": true,
+        "params_ok": true,
+        "reason": null,
+        "recomputed": {
+          "center": 0.75,
+          "high": 1.3497599999999998,
+          "low": 0.15024000000000004
+        },
+        "reported": {
+          "high": 1.35,
+          "low": 0.15,
+          "most_plausible_value": 0.75
+        },
+        "title": "Neutral-State Early-Down Passing Bias",
+        "tol_abs": 0.12000000000000002
+      },
+      {
+        "cell": "analytics/defensive",
+        "errors": {
+          "center": 0.0,
+          "high": 0.0003838097030355314,
+          "low": 0.00038380970303564244
+        },
+        "family": "student_t",
+        "family_valid": true,
+        "idx": 2,
+        "interval_sane": true,
+        "params_ok": true,
+        "reason": null,
+        "recomputed": {
+          "center": 0.4,
+          "high": 1.1996161902969644,
+          "low": -0.3996161902969644
+        },
+        "reported": {
+          "high": 1.2,
+          "low": -0.4,
+          "most_plausible_value": 0.4
+        },
+        "title": "Two-High Safety Shell Against Heavy Personnel",
+        "tol_abs": 0.16000000000000003
+      },
+      {
+        "cell": "intuition/game_management",
+        "errors": {
+          "center": 0.038590841947818755,
+          "high": 0.02826696374382709,
+          "low": 0.07636115893480934
+        },
+        "family": "skew_normal",
+        "family_valid": true,
+        "idx": 3,
+        "interval_sane": true,
+        "params_ok": true,
+        "reason": null,
+        "recomputed": {
+          "center": 0.21140915805218125,
+          "high": 0.8717330362561729,
+          "low": -0.12363884106519067
+        },
+        "reported": {
+          "high": 0.9,
+          "low": -0.2,
+          "most_plausible_value": 0.25
+        },
+        "title": "End-of-Quarter Tempo Acceleration to Trap Personnel",
+        "tol_abs": 0.11000000000000001
+      },
+      {
+        "cell": "intuition/offensive",
+        "errors": {
+          "center": 0.013544551407197625,
+          "high": 0.06722851599179958,
+          "low": 0.15411902163367644
+        },
+        "family": "skew_normal",
+        "family_valid": true,
+        "idx": 4,
+        "interval_sane": true,
+        "params_ok": true,
+        "reason": null,
+        "recomputed": {
+          "center": 0.4364554485928024,
+          "high": 1.3827714840082004,
+          "low": -0.09588097836632356
+        },
+        "reported": {
+          "high": 1.45,
+          "low": -0.25,
+          "most_plausible_value": 0.45
+        },
+        "title": "Positionless Heavy-Personnel Spread Formations",
+        "tol_abs": 0.17
+      },
+      {
+        "cell": "intuition/defensive",
+        "errors": {
+          "center": 0.0,
+          "high": 0.00038380970303575346,
+          "low": 0.0003838097030355869
+        },
+        "family": "student_t",
+        "family_valid": true,
+        "idx": 5,
+        "interval_sane": true,
+        "params_ok": true,
+        "reason": null,
+        "recomputed": {
+          "center": 0.3,
+          "high": 1.0996161902969643,
+          "low": -0.4996161902969644
+        },
+        "reported": {
+          "high": 1.1,
+          "low": -0.5,
+          "most_plausible_value": 0.3
+        },
+        "title": "Late Play-Clock Defensive Line Stemming",
+        "tol_abs": 0.16000000000000003
+      }
+    ]
+  },
+  "family_ok": true,
+  "grid_complete": true,
+  "instance_id": "gemini-3.6-flash__s1",
+  "intervals_ok": true,
+  "json_valid": true,
+  "params_reproduce_ok": true
+}

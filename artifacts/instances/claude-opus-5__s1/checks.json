@@ -1,0 +1,179 @@
+{
+  "detail": {
+    "grid": {
+      "duplicate_cells": [],
+      "duplicate_titles": [],
+      "issues": [],
+      "missing_cells": [],
+      "n_strategies": 6
+    },
+    "json": {
+      "missing_keys": []
+    },
+    "parse_mode": "direct",
+    "strategies": [
+      {
+        "cell": "analytics/game_management",
+        "errors": {
+          "center": 0.0015693295268353058,
+          "high": 0.008119926088521634,
+          "low": 0.0010836164106210553
+        },
+        "family": "skew_normal",
+        "family_valid": true,
+        "idx": 0,
+        "interval_sane": true,
+        "params_ok": true,
+        "reason": null,
+        "recomputed": {
+          "center": 0.7484306704731647,
+          "high": 1.9681199260885216,
+          "low": 0.011083616410621056
+        },
+        "reported": {
+          "high": 1.96,
+          "low": 0.01,
+          "most_plausible_value": 0.75
+        },
+        "title": "Model-driven fourth-down and two-point chart, pre-committed",
+        "tol_abs": 0.195
+      },
+      {
+        "cell": "analytics/offensive",
+        "errors": {
+          "center": 0.0,
+          "high": 0.000179031354920145,
+          "low": 0.00017903135491981192
+        },
+        "family": "student_t",
+        "family_valid": true,
+        "idx": 1,
+        "interval_sane": true,
+        "params_ok": true,
+        "reason": null,
+        "recomputed": {
+          "center": 1.12,
+          "high": 2.84017903135492,
+          "low": -0.6001790313549198
+        },
+        "reported": {
+          "high": 2.84,
+          "low": -0.6,
+          "most_plausible_value": 1.12
+        },
+        "title": "Early-down pass tilt with heavy play-action",
+        "tol_abs": 0.34400000000000003
+      },
+      {
+        "cell": "analytics/defensive",
+        "errors": {
+          "center": 0.0,
+          "high": 0.000520000000000076,
+          "low": 0.000520000000000076
+        },
+        "family": "normal",
+        "family_valid": true,
+        "idx": 2,
+        "interval_sane": true,
+        "params_ok": true,
+        "reason": null,
+        "recomputed": {
+          "center": 0.55,
+          "high": 1.84948,
+          "low": -0.7494799999999999
+        },
+        "reported": {
+          "high": 1.85,
+          "low": -0.75,
+          "most_plausible_value": 0.55
+        },
+        "title": "Light boxes and four-man pressure allocation",
+        "tol_abs": 0.26
+      },
+      {
+        "cell": "intuition/game_management",
+        "errors": {
+          "center": 0.0,
+          "high": 0.0005490491171060707,
+          "low": 0.0005490491171060707
+        },
+        "family": "student_t",
+        "family_valid": true,
+        "idx": 3,
+        "interval_sane": true,
+        "params_ok": true,
+        "reason": null,
+        "recomputed": {
+          "center": 0.22,
+          "high": 1.019450950882894,
+          "low": -0.5794509508828939
+        },
+        "reported": {
+          "high": 1.02,
+          "low": -0.58,
+          "most_plausible_value": 0.22
+        },
+        "title": "First-half timeout and challenge liberalism",
+        "tol_abs": 0.16000000000000003
+      },
+      {
+        "cell": "intuition/offensive",
+        "errors": {
+          "center": 0.001752643562861922,
+          "high": 0.010324445466721066,
+          "low": 0.013260668813867449
+        },
+        "family": "skew_normal",
+        "family_valid": true,
+        "idx": 4,
+        "interval_sane": true,
+        "params_ok": true,
+        "reason": null,
+        "recomputed": {
+          "center": 0.4217526435628619,
+          "high": 1.390324445466721,
+          "low": -0.9067393311861326
+        },
+        "reported": {
+          "high": 1.38,
+          "low": -0.92,
+          "most_plausible_value": 0.42
+        },
+        "title": "Intra-drive tempo whiplash with locked personnel",
+        "tol_abs": 0.22999999999999998
+      },
+      {
+        "cell": "intuition/defensive",
+        "errors": {
+          "center": 0.0,
+          "high": 0.00035999999999991594,
+          "low": 0.00036000000000002697
+        },
+        "family": "normal",
+        "family_valid": true,
+        "idx": 5,
+        "interval_sane": true,
+        "params_ok": true,
+        "reason": null,
+        "recomputed": {
+          "center": 0.24,
+          "high": 1.13964,
+          "low": -0.65964
+        },
+        "reported": {
+          "high": 1.14,
+          "low": -0.66,
+          "most_plausible_value": 0.24
+        },
+        "title": "Hard snap-count caps for interior defensive linemen",
+        "tol_abs": 0.18
+      }
+    ]
+  },
+  "family_ok": true,
+  "grid_complete": true,
+  "instance_id": "claude-opus-5__s1",
+  "intervals_ok": true,
+  "json_valid": true,
+  "params_reproduce_ok": true
+}

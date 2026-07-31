@@ -1,0 +1,179 @@
+{
+  "detail": {
+    "grid": {
+      "duplicate_cells": [],
+      "duplicate_titles": [],
+      "issues": [],
+      "missing_cells": [],
+      "n_strategies": 6
+    },
+    "json": {
+      "missing_keys": []
+    },
+    "parse_mode": "direct",
+    "strategies": [
+      {
+        "cell": "analytics/game_management",
+        "errors": {
+          "center": 0.0,
+          "high": 5.199999999994098e-05,
+          "low": 5.199999999998782e-05
+        },
+        "family": "normal",
+        "family_valid": true,
+        "idx": 0,
+        "interval_sane": true,
+        "params_ok": true,
+        "reason": null,
+        "recomputed": {
+          "center": 0.37,
+          "high": 0.7300519999999999,
+          "low": 0.009948000000000012
+        },
+        "reported": {
+          "high": 0.73,
+          "low": 0.01,
+          "most_plausible_value": 0.37
+        },
+        "title": "Model-first fourth-down and two-point policy",
+        "tol_abs": 0.072
+      },
+      {
+        "cell": "analytics/offensive",
+        "errors": {
+          "center": 0.0,
+          "high": 0.0009031167835156229,
+          "low": 0.0009031167835155673
+        },
+        "family": "student_t",
+        "family_valid": true,
+        "idx": 1,
+        "interval_sane": true,
+        "params_ok": true,
+        "reason": null,
+        "recomputed": {
+          "center": 0.29,
+          "high": 0.7109031167835156,
+          "low": -0.13090311678351557
+        },
+        "reported": {
+          "high": 0.71,
+          "low": -0.13,
+          "most_plausible_value": 0.29
+        },
+        "title": "Pass-first neutral-down offense",
+        "tol_abs": 0.084
+      },
+      {
+        "cell": "analytics/defensive",
+        "errors": {
+          "center": 0.0,
+          "high": 3.6000000000036e-05,
+          "low": 3.599999999998049e-05
+        },
+        "family": "normal",
+        "family_valid": true,
+        "idx": 2,
+        "interval_sane": true,
+        "params_ok": true,
+        "reason": null,
+        "recomputed": {
+          "center": 0.17,
+          "high": 0.570036,
+          "low": -0.230036
+        },
+        "reported": {
+          "high": 0.57,
+          "low": -0.23,
+          "most_plausible_value": 0.17
+        },
+        "title": "Reduce discretionary third-down blitzes",
+        "tol_abs": 0.08
+      },
+      {
+        "cell": "intuition/game_management",
+        "errors": {
+          "center": 0.0,
+          "high": 0.0004311683917340159,
+          "low": 0.0004311683917340159
+        },
+        "family": "student_t",
+        "family_valid": true,
+        "idx": 3,
+        "interval_sane": true,
+        "params_ok": true,
+        "reason": null,
+        "recomputed": {
+          "center": 0.04,
+          "high": 0.35956883160826597,
+          "low": -0.279568831608266
+        },
+        "reported": {
+          "high": 0.36,
+          "low": -0.28,
+          "most_plausible_value": 0.04
+        },
+        "title": "Timeouts as defensive-front recovery tools",
+        "tol_abs": 0.064
+      },
+      {
+        "cell": "intuition/offensive",
+        "errors": {
+          "center": 0.0,
+          "high": 0.0004983350897651562,
+          "low": 0.0004983350897652117
+        },
+        "family": "student_t",
+        "family_valid": true,
+        "idx": 4,
+        "interval_sane": true,
+        "params_ok": true,
+        "reason": null,
+        "recomputed": {
+          "center": 0.13,
+          "high": 0.5895016649102348,
+          "low": -0.3295016649102348
+        },
+        "reported": {
+          "high": 0.59,
+          "low": -0.33,
+          "most_plausible_value": 0.13
+        },
+        "title": "Opponent-specific changeup package",
+        "tol_abs": 0.092
+      },
+      {
+        "cell": "intuition/defensive",
+        "errors": {
+          "center": 0.0,
+          "high": 0.0005079303323411999,
+          "low": 0.0005079303323411444
+        },
+        "family": "student_t",
+        "family_valid": true,
+        "idx": 5,
+        "interval_sane": true,
+        "params_ok": true,
+        "reason": null,
+        "recomputed": {
+          "center": 0.08,
+          "high": 0.5594920696676589,
+          "low": -0.3994920696676589
+        },
+        "reported": {
+          "high": 0.56,
+          "low": -0.4,
+          "most_plausible_value": 0.08
+        },
+        "title": "QB-specific scramble containment call",
+        "tol_abs": 0.09600000000000002
+      }
+    ]
+  },
+  "family_ok": true,
+  "grid_complete": true,
+  "instance_id": "gpt-5.6-terra__s1",
+  "intervals_ok": true,
+  "json_valid": true,
+  "params_reproduce_ok": true
+}

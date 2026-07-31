@@ -1,0 +1,198 @@
+{
+  "instance_id": "gemini-3.1-pro-preview__s1",
+  "model": "gemini-3.1-pro-preview",
+  "parse_mode": "direct",
+  "parsed_json": {
+    "quantity": {
+      "description": "Change in own-team expected single-game scoring margin from adopting the strategy",
+      "support": "unbounded real; positive favors own team",
+      "units": "points"
+    },
+    "strategies": [
+      {
+        "bucket": "analytics",
+        "prior": {
+          "belief_summaries": {
+            "interval_95_high": 2.2,
+            "interval_95_low": 0.2,
+            "most_plausible_value": 1.2,
+            "shape": "symmetric",
+            "tails": "light"
+          },
+          "consistency_check": "most_plausible_value (1.2) is exactly centered in [0.2, 2.2]. The normal distribution has unbounded real support, matching the signed quantity.",
+          "distribution_family": {
+            "justification": "The effect is well-documented by a large sample of historical play data; extreme deviations are unlikely since the situation only arises a few times per game.",
+            "name": "normal"
+          },
+          "parameters": {
+            "conversion_note": "mu = most_plausible_value (1.2). sigma = (2.2 - 0.2) / (2 * 1.96) = 0.510.",
+            "mu": 1.2,
+            "sigma": 0.51
+          }
+        },
+        "rationale": "Win probability and expected points added (EPA) models overwhelmingly show that punting to gain ~20 yards of net field position carries vastly lower EV than taking a mathematical shot at extending a scoring drive, yet most coaches still punt on 4th and long.",
+        "recommendation": "Always go for it on 4th down when the ball is between the opponent's 33 and 42-yard line, regardless of down and distance.",
+        "title": "Never Punt in the 'Dead Zone'",
+        "type": "game_management"
+      },
+      {
+        "bucket": "analytics",
+        "prior": {
+          "belief_summaries": {
+            "interval_95_high": 4.0,
+            "interval_95_low": 0.5,
+            "most_plausible_value": 1.8,
+            "shape": "right_skewed",
+            "tails": "moderate"
+          },
+          "consistency_check": "most_plausible_value (1.8) falls inside [0.5, 4.0]. Support is unbounded real, handling positive and negative effects.",
+          "distribution_family": {
+            "justification": "A right-skewed distribution captures the high upside of clicking early and building blow-out leads, while the downside is somewhat capped by the baseline efficiency of our QB.",
+            "name": "skew_normal"
+          },
+          "parameters": {
+            "alpha": 2.2,
+            "conversion_note": "Parameters were fit numerically. A location (xi) of 1.35, scale (omega) of 1.30, and shape (alpha) of 2.2 yields a mode near 1.8, with the central 95% mass roughly spanning [0.5, 4.0].",
+            "omega": 1.3,
+            "xi": 1.35
+          }
+        },
+        "rationale": "Public analytics consistently demonstrate that passing on early downs yields higher EPA per play than running, preventing negative-EV 3rd-and-long situations and maximizing explosive play potential.",
+        "recommendation": "Pass the ball on 80% of 1st-and-10 situations in the first three quarters.",
+        "title": "Extreme Early-Down Passing",
+        "type": "offensive"
+      },
+      {
+        "bucket": "analytics",
+        "prior": {
+          "belief_summaries": {
+            "interval_95_high": 5.0,
+            "interval_95_low": -1.0,
+            "most_plausible_value": 2.0,
+            "shape": "symmetric",
+            "tails": "heavy"
+          },
+          "consistency_check": "most_plausible_value (2.0) is centered in [-1.0, 5.0]. Support covers the entire real line.",
+          "distribution_family": {
+            "justification": "While generally optimal, there is a non-trivial chance a dominant opposing rushing attack exploits this so heavily that it dictates the entire game script, resulting in heavy downside tails.",
+            "name": "student_t"
+          },
+          "parameters": {
+            "conversion_note": "Used t_{0.975, 4} ≈ 2.776. mu = most_plausible (2.0). sigma = (5.0 - -1.0) / (2 * 2.776) = 6.0 / 5.552 ≈ 1.08.",
+            "mu": 2.0,
+            "nu": 4.0,
+            "sigma": 1.08
+          }
+        },
+        "rationale": "Data shows defensive EPA is dictated by preventing explosive passes. Sacrificing 5 yards per carry in the run game is mathematically superior to exposing single-high coverages to 30-yard pass completions.",
+        "recommendation": "Live in two-high safety shells with 6-man boxes on early downs, daring the opponent to run the ball.",
+        "title": "Concede the Run (Light Boxes)",
+        "type": "defensive"
+      },
+      {
+        "bucket": "intuition",
+        "prior": {
+          "belief_summaries": {
+            "interval_95_high": 1.5,
+            "interval_95_low": -0.5,
+            "most_plausible_value": 0.3,
+            "shape": "right_skewed",
+            "tails": "moderate"
+          },
+          "consistency_check": "most_plausible_value (0.3) is within the interval [-0.5, 1.5]. Unbounded real support permits both positive and negative values.",
+          "distribution_family": {
+            "justification": "This is a weak, highly situational candidate. Most games it has zero effect, and occasionally giving up a 1st down via penalty backfires (-0.5), but saving 40 seconds can rarely flip a loss to a win, generating a right-skewed upside tail.",
+            "name": "skew_normal"
+          },
+          "parameters": {
+            "alpha": 2.0,
+            "conversion_note": "Fitted numerically: shape (alpha) = 2.0 pulls the mode to the right of location (xi) = -0.1, landing the mode near 0.3 and spanning [-0.5, 1.5] for the central 95% of the distribution.",
+            "omega": 0.65,
+            "xi": -0.1
+          }
+        },
+        "rationale": "By giving up 5 yards, we freeze the clock and preserve a timeout. Public models generally evaluate penalty EPA as strictly negative; they lack the situational granularity to price in the massive clock-stoppage value of a deliberate penalty when bleeding out a game.",
+        "recommendation": "When trailing by one score late in the 4th quarter and the opponent is running down the clock in FG range, deliberately jump offsides to stop the game clock.",
+        "title": "Intentional Defensive Encroachment",
+        "type": "game_management"
+      },
+      {
+        "bucket": "intuition",
+        "prior": {
+          "belief_summaries": {
+            "interval_95_high": 5.0,
+            "interval_95_low": -2.0,
+            "most_plausible_value": 1.5,
+            "shape": "symmetric",
+            "tails": "heavy"
+          },
+          "consistency_check": "most_plausible_value (1.5) is exactly centered in [-2.0, 5.0]. Support is signed.",
+          "distribution_family": {
+            "justification": "High variance strategy. It either exhausts the opponent leading to blowout wins, or we go 3-and-out in 45 seconds, stranding our own defense on the field to get shelled (heavy tails in both directions).",
+            "name": "student_t"
+          },
+          "parameters": {
+            "conversion_note": "Used t_{0.975, 4} ≈ 2.776. mu = most_plausible (1.5). sigma = (5.0 - -2.0) / (2 * 2.776) = 7.0 / 5.552 ≈ 1.26.",
+            "mu": 1.5,
+            "nu": 4.0,
+            "sigma": 1.26
+          }
+        },
+        "rationale": "I believe compounding physical exhaustion causes drastic late-game defensive busts. Analytics models measure play-level EPA based on down and distance, but are virtually silent on quantifying the cumulative, non-linear impact of fatigue on an opposing defense over 60 minutes.",
+        "recommendation": "Run 100% no-huddle tempo offense on all drives unless killing the clock in the final 4 minutes of the game.",
+        "title": "Relentless No-Huddle Tempo",
+        "type": "offensive"
+      },
+      {
+        "bucket": "intuition",
+        "prior": {
+          "belief_summaries": {
+            "interval_95_high": 1.8,
+            "interval_95_low": -0.2,
+            "most_plausible_value": 0.8,
+            "shape": "symmetric",
+            "tails": "light"
+          },
+          "consistency_check": "most_plausible_value (0.8) is exactly centered in [-0.2, 1.8]. The normal distribution has unbounded real support.",
+          "distribution_family": {
+            "justification": "The talent downgrade mitigates some of the fatigue advantage, keeping the overall magnitude of the effect constrained to a narrow, roughly symmetric band around a modest positive gain.",
+            "name": "normal"
+          },
+          "parameters": {
+            "conversion_note": "mu = most_plausible_value (0.8). sigma = (1.8 - -0.2) / (2 * 1.96) = 2.0 / 3.92 ≈ 0.510.",
+            "mu": 0.8,
+            "sigma": 0.51
+          }
+        },
+        "rationale": "Analytics relies on cumulative player grades (PFF, WAR), evaluating players over full seasons. It is mixed/silent on the exact per-play efficiency drop-off of an exhausted All-Pro versus a fresh backup; my intuition is that maximum burst from a lesser player exceeds the tired reps of a star.",
+        "recommendation": "Rotate interior defensive linemen every 3 plays unconditionally, benching star players for up to 45% of total defensive snaps.",
+        "title": "Extreme DL Rotation",
+        "type": "defensive"
+      }
+    ]
+  },
+  "raw_text": "{\n  \"quantity\": {\n    \"description\": \"Change in own-team expected single-game scoring margin from adopting the strategy\",\n    \"units\": \"points\",\n    \"support\": \"unbounded real; positive favors own team\"\n  },\n  \"strategies\": [\n    {\n      \"bucket\": \"analytics\",\n      \"type\": \"game_management\",\n      \"title\": \"Never Punt in the 'Dead Zone'\",\n      \"recommendation\": \"Always go for it on 4th down when the ball is between the opponent's 33 and 42-yard line, regardless of down and distance.\",\n      \"rationale\": \"Win probability and expected points added (EPA) models overwhelmingly show that punting to gain ~20 yards of net field position carries vastly lower EV than taking a mathematical shot at extending a scoring drive, yet most coaches still punt on 4th and long.\",\n      \"prior\": {\n        \"belief_summaries\": {\n          \"most_plausible_value\": 1.2,\n          \"interval_95_low\": 0.2,\n          \"interval_95_high\": 2.2,\n          \"shape\": \"symmetric\",\n          \"tails\": \"light\"\n        },\n        \"distribution_family\": {\n          \"name\": \"normal\",\n          \"justification\": \"The effect is well-documented by a large sample of historical play data; extreme deviations are unlikely since the situation only arises a few times per game.\"\n        },\n        \"parameters\": {\n          \"mu\": 1.2,\n          \"sigma\": 0.51,\n          \"conversion_note\": \"mu = most_plausible_value (1.2). sigma = (2.2 - 0.2) / (2 * 1.96) = 0.510.\"\n        },\n        \"consistency_check\": \"most_plausible_value (1.2) is exactly centered in [0.2, 2.2]. The normal distribution has unbounded real support, matching the signed quantity.\"\n      }\n    },\n    {\n      \"bucket\": \"analytics\",\n      \"type\": \"offensive\",\n      \"title\": \"Extreme Early-Down Passing\",\n      \"recommendation\": \"Pass the ball on 80% of 1st-and-10 situations in the first three quarters.\",\n      \"rationale\": \"Public analytics consistently demonstrate that passing on early downs yields higher EPA per play than running, preventing negative-EV 3rd-and-long situations and maximizing explosive play potential.\",\n      \"prior\": {\n        \"belief_summaries\": {\n          \"most_plausible_value\": 1.8,\n          \"interval_95_low\": 0.5,\n          \"interval_95_high\": 4.0,\n          \"shape\": \"right_skewed\",\n          \"tails\": \"moderate\"\n        },\n        \"distribution_family\": {\n          \"name\": \"skew_normal\",\n          \"justification\": \"A right-skewed distribution captures the high upside of clicking early and building blow-out leads, while the downside is somewhat capped by the baseline efficiency of our QB.\"\n        },\n        \"parameters\": {\n          \"xi\": 1.35,\n          \"omega\": 1.30,\n          \"alpha\": 2.2,\n          \"conversion_note\": \"Parameters were fit numerically. A location (xi) of 1.35, scale (omega) of 1.30, and shape (alpha) of 2.2 yields a mode near 1.8, with the central 95% mass roughly spanning [0.5, 4.0].\"\n        },\n        \"consistency_check\": \"most_plausible_value (1.8) falls inside [0.5, 4.0]. Support is unbounded real, handling positive and negative effects.\"\n      }\n    },\n    {\n      \"bucket\": \"analytics\",\n      \"type\": \"defensive\",\n      \"title\": \"Concede the Run (Light Boxes)\",\n      \"recommendation\": \"Live in two-high safety shells with 6-man boxes on early downs, daring the opponent to run the ball.\",\n      \"rationale\": \"Data shows defensive EPA is dictated by preventing explosive passes. Sacrificing 5 yards per carry in the run game is mathematically superior to exposing single-high coverages to 30-yard pass completions.\",\n      \"prior\": {\n        \"belief_summaries\": {\n          \"most_plausible_value\": 2.0,\n          \"interval_95_low\": -1.0,\n          \"interval_95_high\": 5.0,\n          \"shape\": \"symmetric\",\n          \"tails\": \"heavy\"\n        },\n        \"distribution_family\": {\n          \"name\": \"student_t\",\n          \"justification\": \"While generally optimal, there is a non-trivial chance a dominant opposing rushing attack exploits this so heavily that it dictates the entire game script, resulting in heavy downside tails.\"\n        },\n        \"parameters\": {\n          \"nu\": 4.0,\n          \"mu\": 2.0,\n          \"sigma\": 1.08,\n          \"conversion_note\": \"Used t_{0.975, 4} ≈ 2.776. mu = most_plausible (2.0). sigma = (5.0 - -1.0) / (2 * 2.776) = 6.0 / 5.552 ≈ 1.08.\"\n        },\n        \"consistency_check\": \"most_plausible_value (2.0) is centered in [-1.0, 5.0]. Support covers the entire real line.\"\n      }\n    },\n    {\n      \"bucket\": \"intuition\",\n      \"type\": \"game_management\",\n      \"title\": \"Intentional Defensive Encroachment\",\n      \"recommendation\": \"When trailing by one score late in the 4th quarter and the opponent is running down the clock in FG range, deliberately jump offsides to stop the game clock.\",\n      \"rationale\": \"By giving up 5 yards, we freeze the clock and preserve a timeout. Public models generally evaluate penalty EPA as strictly negative; they lack the situational granularity to price in the massive clock-stoppage value of a deliberate penalty when bleeding out a game.\",\n      \"prior\": {\n        \"belief_summaries\": {\n          \"most_plausible_value\": 0.3,\n          \"interval_95_low\": -0.5,\n          \"interval_95_high\": 1.5,\n          \"shape\": \"right_skewed\",\n          \"tails\": \"moderate\"\n        },\n        \"distribution_family\": {\n          \"name\": \"skew_normal\",\n          \"justification\": \"This is a weak, highly situational candidate. Most games it has zero effect, and occasionally giving up a 1st down via penalty backfires (-0.5), but saving 40 seconds can rarely flip a loss to a win, generating a right-skewed upside tail.\"\n        },\n        \"parameters\": {\n          \"xi\": -0.1,\n          \"omega\": 0.65,\n          \"alpha\": 2.0,\n          \"conversion_note\": \"Fitted numerically: shape (alpha) = 2.0 pulls the mode to the right of location (xi) = -0.1, landing the mode near 0.3 and spanning [-0.5, 1.5] for the central 95% of the distribution.\"\n        },\n        \"consistency_check\": \"most_plausible_value (0.3) is within the interval [-0.5, 1.5]. Unbounded real support permits both positive and negative values.\"\n      }\n    },\n    {\n      \"bucket\": \"intuition\",\n      \"type\": \"offensive\",\n      \"title\": \"Relentless No-Huddle Tempo\",\n      \"recommendation\": \"Run 100% no-huddle tempo offense on all drives unless killing the clock in the final 4 minutes of the game.\",\n      \"rationale\": \"I believe compounding physical exhaustion causes drastic late-game defensive busts. Analytics models measure play-level EPA based on down and distance, but are virtually silent on quantifying the cumulative, non-linear impact of fatigue on an opposing defense over 60 minutes.\",\n      \"prior\": {\n        \"belief_summaries\": {\n          \"most_plausible_value\": 1.5,\n          \"interval_95_low\": -2.0,\n          \"interval_95_high\": 5.0,\n          \"shape\": \"symmetric\",\n          \"tails\": \"heavy\"\n        },\n        \"distribution_family\": {\n          \"name\": \"student_t\",\n          \"justification\": \"High variance strategy. It either exhausts the opponent leading to blowout wins, or we go 3-and-out in 45 seconds, stranding our own defense on the field to get shelled (heavy tails in both directions).\"\n        },\n        \"parameters\": {\n          \"nu\": 4.0,\n          \"mu\": 1.5,\n          \"sigma\": 1.26,\n          \"conversion_note\": \"Used t_{0.975, 4} ≈ 2.776. mu = most_plausible (1.5). sigma = (5.0 - -2.0) / (2 * 2.776) = 7.0 / 5.552 ≈ 1.26.\"\n        },\n        \"consistency_check\": \"most_plausible_value (1.5) is exactly centered in [-2.0, 5.0]. Support is signed.\"\n      }\n    },\n    {\n      \"bucket\": \"intuition\",\n      \"type\": \"defensive\",\n      \"title\": \"Extreme DL Rotation\",\n      \"recommendation\": \"Rotate interior defensive linemen every 3 plays unconditionally, benching star players for up to 45% of total defensive snaps.\",\n      \"rationale\": \"Analytics relies on cumulative player grades (PFF, WAR), evaluating players over full seasons. It is mixed/silent on the exact per-play efficiency drop-off of an exhausted All-Pro versus a fresh backup; my intuition is that maximum burst from a lesser player exceeds the tired reps of a star.\",\n      \"prior\": {\n        \"belief_summaries\": {\n          \"most_plausible_value\": 0.8,\n          \"interval_95_low\": -0.2,\n          \"interval_95_high\": 1.8,\n          \"shape\": \"symmetric\",\n          \"tails\": \"light\"\n        },\n        \"distribution_family\": {\n          \"name\": \"normal\",\n          \"justification\": \"The talent downgrade mitigates some of the fatigue advantage, keeping the overall magnitude of the effect constrained to a narrow, roughly symmetric band around a modest positive gain.\"\n        },\n        \"parameters\": {\n          \"mu\": 0.8,\n          \"sigma\": 0.51,\n          \"conversion_note\": \"mu = most_plausible_value (0.8). sigma = (1.8 - -0.2) / (2 * 1.96) = 2.0 / 3.92 ≈ 0.510.\"\n        },\n        \"consistency_check\": \"most_plausible_value (0.8) is exactly centered in [-0.2, 1.8]. The normal distribution has unbounded real support.\"\n      }\n    }\n  ]\n}",
+  "request_params": {
+    "config": {
+      "max_output_tokens": 64000,
+      "seed": 42,
+      "temperature": 1.0,
+      "thinking_config": {
+        "thinking_level": "HIGH"
+      }
+    },
+    "model": "gemini-3.1-pro-preview"
+  },
+  "sample_idx": 1,
+  "seed": 42,
+  "snapshot_id": "gemini-3.1-pro-preview",
+  "stop_reason": "STOP",
+  "temperature": 1.0,
+  "ts": "2026-07-31T21:55:58Z",
+  "usage": {
+    "cached_tokens": null,
+    "input_tokens": 1694,
+    "output_tokens": 2622,
+    "thoughts_tokens": 3232
+  }
+}

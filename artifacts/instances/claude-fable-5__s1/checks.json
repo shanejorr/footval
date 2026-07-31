@@ -1,0 +1,179 @@
+{
+  "detail": {
+    "grid": {
+      "duplicate_cells": [],
+      "duplicate_titles": [],
+      "issues": [],
+      "missing_cells": [],
+      "n_strategies": 6
+    },
+    "json": {
+      "missing_keys": []
+    },
+    "parse_mode": "direct",
+    "strategies": [
+      {
+        "cell": "analytics/game_management",
+        "errors": {
+          "center": 0.114044705060182,
+          "high": 0.05966968966454167,
+          "low": 0.12752395772501007
+        },
+        "family": "skew_normal",
+        "family_valid": true,
+        "idx": 0,
+        "interval_sane": true,
+        "params_ok": true,
+        "reason": null,
+        "recomputed": {
+          "center": 0.335955294939818,
+          "high": 1.4096696896645418,
+          "low": -0.22752395772501008
+        },
+        "reported": {
+          "high": 1.35,
+          "low": -0.1,
+          "most_plausible_value": 0.45
+        },
+        "title": "Model-Calibrated 4th-Down Aggressiveness",
+        "tol_abs": 0.14500000000000002
+      },
+      {
+        "cell": "analytics/offensive",
+        "errors": {
+          "center": 0.0,
+          "high": 0.0006800000000000139,
+          "low": 0.0006800000000000139
+        },
+        "family": "normal",
+        "family_valid": true,
+        "idx": 1,
+        "interval_sane": true,
+        "params_ok": true,
+        "reason": null,
+        "recomputed": {
+          "center": 0.35,
+          "high": 1.10068,
+          "low": -0.40068000000000004
+        },
+        "reported": {
+          "high": 1.1,
+          "low": -0.4,
+          "most_plausible_value": 0.35
+        },
+        "title": "Early-Down Pass Rate and Play-Action Expansion",
+        "tol_abs": 0.15000000000000002
+      },
+      {
+        "cell": "analytics/defensive",
+        "errors": {
+          "center": 0.0,
+          "high": 0.00027999999999994696,
+          "low": 0.00028000000000000247
+        },
+        "family": "normal",
+        "family_valid": true,
+        "idx": 2,
+        "interval_sane": true,
+        "params_ok": true,
+        "reason": null,
+        "recomputed": {
+          "center": 0.2,
+          "high": 0.8997200000000001,
+          "low": -0.49972
+        },
+        "reported": {
+          "high": 0.9,
+          "low": -0.5,
+          "most_plausible_value": 0.2
+        },
+        "title": "Light Boxes and Two-High Structural Default",
+        "tol_abs": 0.13999999999999999
+      },
+      {
+        "cell": "intuition/game_management",
+        "errors": {
+          "center": 0.0,
+          "high": 0.0002716691880155775,
+          "low": 0.0002716691880155775
+        },
+        "family": "student_t",
+        "family_valid": true,
+        "idx": 3,
+        "interval_sane": true,
+        "params_ok": true,
+        "reason": null,
+        "recomputed": {
+          "center": 0.1,
+          "high": 0.7502716691880156,
+          "low": -0.5502716691880156
+        },
+        "reported": {
+          "high": 0.75,
+          "low": -0.55,
+          "most_plausible_value": 0.1
+        },
+        "title": "Pre-Snap Defensive Timeouts at Peak Leverage",
+        "tol_abs": 0.13
+      },
+      {
+        "cell": "intuition/offensive",
+        "errors": {
+          "center": 0.04913271966873742,
+          "high": 0.11460794261311791,
+          "low": 0.20310565373330042
+        },
+        "family": "skew_normal",
+        "family_valid": true,
+        "idx": 4,
+        "interval_sane": true,
+        "params_ok": false,
+        "reason": "recomputed low deviates from reported by 0.2031 (tolerance 0.19 = 0.1 x interval width)",
+        "recomputed": {
+          "center": 0.1991327196687374,
+          "high": 1.085392057386882,
+          "low": -0.49689434626669954
+        },
+        "reported": {
+          "high": 1.2,
+          "low": -0.7,
+          "most_plausible_value": 0.15
+        },
+        "title": "Explosive-Play Sprint Tempo Package",
+        "tol_abs": 0.19
+      },
+      {
+        "cell": "intuition/defensive",
+        "errors": {
+          "center": 0.0,
+          "high": 0.000455774022354527,
+          "low": 0.00045577402235463804
+        },
+        "family": "student_t",
+        "family_valid": true,
+        "idx": 5,
+        "interval_sane": true,
+        "params_ok": true,
+        "reason": null,
+        "recomputed": {
+          "center": 0.05,
+          "high": 0.9995442259776455,
+          "low": -0.8995442259776454
+        },
+        "reported": {
+          "high": 1.0,
+          "low": -0.9,
+          "most_plausible_value": 0.05
+        },
+        "title": "Amoeba Front on Obvious Passing Downs",
+        "tol_abs": 0.19
+      }
+    ]
+  },
+  "family_ok": true,
+  "grid_complete": true,
+  "instance_id": "claude-fable-5__s1",
+  "intervals_ok": true,
+  "json_valid": true,
+  "params_reproduce_ok": false
+}

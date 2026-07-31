@@ -1,0 +1,198 @@
+{
+  "instance_id": "glm-5.2__s1",
+  "model": "glm-5.2",
+  "parse_mode": "fenced",
+  "parsed_json": {
+    "quantity": {
+      "description": "Change in own-team expected single-game scoring margin from adopting the strategy",
+      "support": "unbounded real; positive favors own team",
+      "units": "points"
+    },
+    "strategies": [
+      {
+        "bucket": "analytics",
+        "prior": {
+          "belief_summaries": {
+            "interval_95_high": 3.5,
+            "interval_95_low": 0.3,
+            "most_plausible_value": 1.5,
+            "shape": "right_skewed",
+            "tails": "moderate"
+          },
+          "consistency_check": "most_plausible_value 1.5 lies inside [0.3, 3.5]; skew_normal support is all real numbers, so signed effects are covered. Approximation noted in conversion_note.",
+          "distribution_family": {
+            "justification": "The effect is bounded below near zero (you can't lose much you weren't already losing) but has meaningful upside if the strategy cascades into more scoring drives.",
+            "name": "skew_normal"
+          },
+          "parameters": {
+            "alpha": 5,
+            "conversion_note": "Fitted numerically: with α=5 (strong right skew), the mean ≈ ξ + ω·δ·√(2/π) where δ=α/√(1+α²)=0.981, giving mean≈1.75; mode≈1.5; central 95% mass ≈ [0.2, 3.6], close to the stated interval.",
+            "omega": 1.6,
+            "xi": 0.5
+          }
+        },
+        "rationale": "Public EP and WP models consistently show NFL coaches are far too conservative here; the field-position cost of failing is lower than assumed, and the expected-points gain of converting is substantial.",
+        "recommendation": "Go for it on 4th-and-short (≤4 yards) anywhere between your own 40 and the opponent's 35 in any game script within roughly 14 points. Expand to 4th-and-medium (5–7) in plus territory when trailing.",
+        "title": "Aggressive 4th-Down Conversion in Opponent Territory",
+        "type": "game_management"
+      },
+      {
+        "bucket": "analytics",
+        "prior": {
+          "belief_summaries": {
+            "interval_95_high": 2.5,
+            "interval_95_low": -0.5,
+            "most_plausible_value": 0.8,
+            "shape": "right_skewed",
+            "tails": "moderate"
+          },
+          "consistency_check": "most_plausible_value 0.8 lies inside [-0.5, 2.5]; skew_normal support is all reals. Approximation acknowledged.",
+          "distribution_family": {
+            "justification": "Small chance of a negative effect if pass protection is poor or turnovers spike, but larger upside if the efficiency gains compound across drives.",
+            "name": "skew_normal"
+          },
+          "parameters": {
+            "alpha": 4,
+            "conversion_note": "Fitted numerically: δ=4/√17=0.970; mean≈ξ+ω·0.774≈-0.3+1.006=0.71; mode≈0.8; central 95% ≈ [-0.6, 2.4], close to stated interval.",
+            "omega": 1.3,
+            "xi": -0.3
+          }
+        },
+        "rationale": "Expected-points models show passes outperform runs on 1st and 2nd down in most neutral situations; the run bias persists from outdated risk aversion rather than EV evidence.",
+        "recommendation": "Increase first-down pass rate from the league-average ~55% toward 65–70% in the first and second quarters when the score is within one score, accepting slightly higher negative-play variance.",
+        "title": "Pass-Heavier on Early Downs in Neutral Scripts",
+        "type": "offensive"
+      },
+      {
+        "bucket": "analytics",
+        "prior": {
+          "belief_summaries": {
+            "interval_95_high": 2.0,
+            "interval_95_low": -0.3,
+            "most_plausible_value": 0.6,
+            "shape": "right_skewed",
+            "tails": "light"
+          },
+          "consistency_check": "most_plausible_value 0.6 lies inside [-0.3, 2.0]; skew_normal support covers signed values. Approximate fit.",
+          "distribution_family": {
+            "justification": "Downside is modest (run defense softens slightly) but upside is real if explosive-pass rate drops materially; skew tilts positive.",
+            "name": "skew_normal"
+          },
+          "parameters": {
+            "alpha": 3,
+            "conversion_note": "Fitted numerically: δ=3/√10=0.949; mean≈ξ+ω·0.756≈-0.1+0.756=0.66; mode≈0.6; central 95% ≈ [-0.3, 1.9].",
+            "omega": 1.0,
+            "xi": -0.1
+          }
+        },
+        "rationale": "Research on drive survival and explosive plays shows that preventing 20+ yard gains raises defensive success rate more than marginal run-defense gains cost; offenses struggle with consistency over 10+ play drives.",
+        "recommendation": "Default to two-deep safety looks (Cover-2/6) on 1st and 2nd-and-long, trading run-defense efficiency for explosive-pass prevention and forcing offenses to sustain long drives.",
+        "title": "Two-Deep Safety Shell as Base Coverage on Early Downs",
+        "type": "defensive"
+      },
+      {
+        "bucket": "intuition",
+        "prior": {
+          "belief_summaries": {
+            "interval_95_high": 1.2,
+            "interval_95_low": -0.8,
+            "most_plausible_value": 0.2,
+            "shape": "symmetric",
+            "tails": "moderate"
+          },
+          "consistency_check": "most_plausible_value 0.2 lies inside [−0.8, 1.2]; normal support is all reals.",
+          "distribution_family": {
+            "justification": "The effect is small and roughly symmetric — it helps in a narrow window and rarely costs much, but could backfire if the penalty flips field position in a closer-than-assumed case.",
+            "name": "normal"
+          },
+          "parameters": {
+            "conversion_note": "μ = most_plausible_value = 0.2; σ = (1.2 − (−0.8)) / 3.92 = 2.0 / 3.92 ≈ 0.510.",
+            "mu": 0.2,
+            "sigma": 0.51
+          }
+        },
+        "rationale": "Standard kneel sequences sometimes leave too much clock; a 5-yard penalty that costs no practical field position can remove 8–12 seconds the opponent needs. Analytics is silent because the scenario is too specific for public models.",
+        "recommendation": "When leading by 1–8 points with under 3:00 remaining and the opponent has all timeouts, intentionally incur delay-of-game penalties before kneel-downs on 3rd/4th down to burn additional seconds without losing field position that matters.",
+        "title": "Strategic Delay-of-Game to Compress Opponent Possessions Late",
+        "type": "game_management"
+      },
+      {
+        "bucket": "intuition",
+        "prior": {
+          "belief_summaries": {
+            "interval_95_high": 2.0,
+            "interval_95_low": -1.5,
+            "most_plausible_value": 0.3,
+            "shape": "right_skewed",
+            "tails": "heavy"
+          },
+          "consistency_check": "most_plausible_value 0.3 lies inside [−1.5, 2.0]; student_t support is all reals.",
+          "distribution_family": {
+            "justification": "Symmetric belief with genuinely heavy tails: tempo could produce a large positive effect if defenses fatigue, or a large negative effect if it produces quick three-and-outs that expose your own defense.",
+            "name": "student_t"
+          },
+          "parameters": {
+            "conversion_note": "ν=4 chosen for heavy tails; t_{0.975,4}≈2.776; μ=0.3; σ=(2.0−(−1.5))/(2×2.776)=3.5/5.552≈0.630.",
+            "mu": 0.3,
+            "nu": 4,
+            "sigma": 0.629
+          }
+        },
+        "rationale": "Public analytics are mixed — tempo correlates with both explosive plays and three-and-outs. My intuition is that the communication and substitution stress on defenses is undervalued and creates favorable personnel mismatches the models don't capture.",
+        "recommendation": "Run no-huddle tempo as the default offensive mode for the first three drives of each half, substituting pace for pre-snap motion complexity and forcing defenses to play base personnel.",
+        "title": "No-Huddle Up-Tempo as Base Offense, Not Just Situational",
+        "type": "offensive"
+      },
+      {
+        "bucket": "intuition",
+        "prior": {
+          "belief_summaries": {
+            "interval_95_high": 0.8,
+            "interval_95_low": -1.0,
+            "most_plausible_value": 0.1,
+            "shape": "left_skewed",
+            "tails": "moderate"
+          },
+          "consistency_check": "most_plausible_value 0.1 lies inside [−1.0, 0.8]; skew_normal support is all reals. Approximate fit.",
+          "distribution_family": {
+            "justification": "Left-skewed: there is a real chance this backfires badly if the opponent is content to kneel after the cheap score or if the arithmetic is misjudged, while the upside is capped because it only matters in rare comeback windows.",
+            "name": "skew_normal"
+          },
+          "parameters": {
+            "alpha": -3,
+            "conversion_note": "Fitted numerically with α=−3 (left skew): δ=−0.949; mean≈ξ+ω·(−0.756)≈0.5−0.756=−0.26; mode≈0.1; central 95% ≈ [−1.1, 0.8], close to stated interval.",
+            "omega": 1.0,
+            "xi": 0.5
+          }
+        },
+        "rationale": "Conventional defenses fight for a field-goal stop, but mathematically a touchdown against you is often nearly equivalent to a field goal when you need two scores, and forcing the clock to run is the bigger enemy. Analytics is silent on this specific trade-off in public literature.",
+        "recommendation": "When trailing by 9–16 points with under 5:00 remaining and the opponent is in the red zone, deliberately permit a touchdown (soft coverage, no resistance) rather than forcing a field goal, to preserve clock and maximize your remaining possessions.",
+        "title": "Deliberately Allow Quick Scores When Trailing by 2+ Scores Late",
+        "type": "defensive"
+      }
+    ]
+  },
+  "raw_text": "```json\n{\n  \"quantity\": {\n    \"description\": \"Change in own-team expected single-game scoring margin from adopting the strategy\",\n    \"units\": \"points\",\n    \"support\": \"unbounded real; positive favors own team\"\n  },\n  \"strategies\": [\n    {\n      \"bucket\": \"analytics\",\n      \"type\": \"game_management\",\n      \"title\": \"Aggressive 4th-Down Conversion in Opponent Territory\",\n      \"recommendation\": \"Go for it on 4th-and-short (≤4 yards) anywhere between your own 40 and the opponent's 35 in any game script within roughly 14 points. Expand to 4th-and-medium (5–7) in plus territory when trailing.\",\n      \"rationale\": \"Public EP and WP models consistently show NFL coaches are far too conservative here; the field-position cost of failing is lower than assumed, and the expected-points gain of converting is substantial.\",\n      \"prior\": {\n        \"belief_summaries\": {\n          \"most_plausible_value\": 1.5,\n          \"interval_95_low\": 0.3,\n          \"interval_95_high\": 3.5,\n          \"shape\": \"right_skewed\",\n          \"tails\": \"moderate\"\n        },\n        \"distribution_family\": {\n          \"name\": \"skew_normal\",\n          \"justification\": \"The effect is bounded below near zero (you can't lose much you weren't already losing) but has meaningful upside if the strategy cascades into more scoring drives.\"\n        },\n        \"parameters\": {\n          \"xi\": 0.5,\n          \"omega\": 1.6,\n          \"alpha\": 5,\n          \"conversion_note\": \"Fitted numerically: with α=5 (strong right skew), the mean ≈ ξ + ω·δ·√(2/π) where δ=α/√(1+α²)=0.981, giving mean≈1.75; mode≈1.5; central 95% mass ≈ [0.2, 3.6], close to the stated interval.\"\n        },\n        \"consistency_check\": \"most_plausible_value 1.5 lies inside [0.3, 3.5]; skew_normal support is all real numbers, so signed effects are covered. Approximation noted in conversion_note.\"\n      }\n    },\n    {\n      \"bucket\": \"analytics\",\n      \"type\": \"offensive\",\n      \"title\": \"Pass-Heavier on Early Downs in Neutral Scripts\",\n      \"recommendation\": \"Increase first-down pass rate from the league-average ~55% toward 65–70% in the first and second quarters when the score is within one score, accepting slightly higher negative-play variance.\",\n      \"rationale\": \"Expected-points models show passes outperform runs on 1st and 2nd down in most neutral situations; the run bias persists from outdated risk aversion rather than EV evidence.\",\n      \"prior\": {\n        \"belief_summaries\": {\n          \"most_plausible_value\": 0.8,\n          \"interval_95_low\": -0.5,\n          \"interval_95_high\": 2.5,\n          \"shape\": \"right_skewed\",\n          \"tails\": \"moderate\"\n        },\n        \"distribution_family\": {\n          \"name\": \"skew_normal\",\n          \"justification\": \"Small chance of a negative effect if pass protection is poor or turnovers spike, but larger upside if the efficiency gains compound across drives.\"\n        },\n        \"parameters\": {\n          \"xi\": -0.3,\n          \"omega\": 1.3,\n          \"alpha\": 4,\n          \"conversion_note\": \"Fitted numerically: δ=4/√17=0.970; mean≈ξ+ω·0.774≈-0.3+1.006=0.71; mode≈0.8; central 95% ≈ [-0.6, 2.4], close to stated interval.\"\n        },\n        \"consistency_check\": \"most_plausible_value 0.8 lies inside [-0.5, 2.5]; skew_normal support is all reals. Approximation acknowledged.\"\n      }\n    },\n    {\n      \"bucket\": \"analytics\",\n      \"type\": \"defensive\",\n      \"title\": \"Two-Deep Safety Shell as Base Coverage on Early Downs\",\n      \"recommendation\": \"Default to two-deep safety looks (Cover-2/6) on 1st and 2nd-and-long, trading run-defense efficiency for explosive-pass prevention and forcing offenses to sustain long drives.\",\n      \"rationale\": \"Research on drive survival and explosive plays shows that preventing 20+ yard gains raises defensive success rate more than marginal run-defense gains cost; offenses struggle with consistency over 10+ play drives.\",\n      \"prior\": {\n        \"belief_summaries\": {\n          \"most_plausible_value\": 0.6,\n          \"interval_95_low\": -0.3,\n          \"interval_95_high\": 2.0,\n          \"shape\": \"right_skewed\",\n          \"tails\": \"light\"\n        },\n        \"distribution_family\": {\n          \"name\": \"skew_normal\",\n          \"justification\": \"Downside is modest (run defense softens slightly) but upside is real if explosive-pass rate drops materially; skew tilts positive.\"\n        },\n        \"parameters\": {\n          \"xi\": -0.1,\n          \"omega\": 1.0,\n          \"alpha\": 3,\n          \"conversion_note\": \"Fitted numerically: δ=3/√10=0.949; mean≈ξ+ω·0.756≈-0.1+0.756=0.66; mode≈0.6; central 95% ≈ [-0.3, 1.9].\"\n        },\n        \"consistency_check\": \"most_plausible_value 0.6 lies inside [-0.3, 2.0]; skew_normal support covers signed values. Approximate fit.\"\n      }\n    },\n    {\n      \"bucket\": \"intuition\",\n      \"type\": \"game_management\",\n      \"title\": \"Strategic Delay-of-Game to Compress Opponent Possessions Late\",\n      \"recommendation\": \"When leading by 1–8 points with under 3:00 remaining and the opponent has all timeouts, intentionally incur delay-of-game penalties before kneel-downs on 3rd/4th down to burn additional seconds without losing field position that matters.\",\n      \"rationale\": \"Standard kneel sequences sometimes leave too much clock; a 5-yard penalty that costs no practical field position can remove 8–12 seconds the opponent needs. Analytics is silent because the scenario is too specific for public models.\",\n      \"prior\": {\n        \"belief_summaries\": {\n          \"most_plausible_value\": 0.2,\n          \"interval_95_low\": -0.8,\n          \"interval_95_high\": 1.2,\n          \"shape\": \"symmetric\",\n          \"tails\": \"moderate\"\n        },\n        \"distribution_family\": {\n          \"name\": \"normal\",\n          \"justification\": \"The effect is small and roughly symmetric — it helps in a narrow window and rarely costs much, but could backfire if the penalty flips field position in a closer-than-assumed case.\"\n        },\n        \"parameters\": {\n          \"mu\": 0.2,\n          \"sigma\": 0.510,\n          \"conversion_note\": \"μ = most_plausible_value = 0.2; σ = (1.2 − (−0.8)) / 3.92 = 2.0 / 3.92 ≈ 0.510.\"\n        },\n        \"consistency_check\": \"most_plausible_value 0.2 lies inside [−0.8, 1.2]; normal support is all reals.\"\n      }\n    },\n    {\n      \"bucket\": \"intuition\",\n      \"type\": \"offensive\",\n      \"title\": \"No-Huddle Up-Tempo as Base Offense, Not Just Situational\",\n      \"recommendation\": \"Run no-huddle tempo as the default offensive mode for the first three drives of each half, substituting pace for pre-snap motion complexity and forcing defenses to play base personnel.\",\n      \"rationale\": \"Public analytics are mixed — tempo correlates with both explosive plays and three-and-outs. My intuition is that the communication and substitution stress on defenses is undervalued and creates favorable personnel mismatches the models don't capture.\",\n      \"prior\": {\n        \"belief_summaries\": {\n          \"most_plausible_value\": 0.3,\n          \"interval_95_low\": -1.5,\n          \"interval_95_high\": 2.0,\n          \"shape\": \"right_skewed\",\n          \"tails\": \"heavy\"\n        },\n        \"distribution_family\": {\n          \"name\": \"student_t\",\n          \"justification\": \"Symmetric belief with genuinely heavy tails: tempo could produce a large positive effect if defenses fatigue, or a large negative effect if it produces quick three-and-outs that expose your own defense.\"\n        },\n        \"parameters\": {\n          \"nu\": 4,\n          \"mu\": 0.3,\n          \"sigma\": 0.629,\n          \"conversion_note\": \"ν=4 chosen for heavy tails; t_{0.975,4}≈2.776; μ=0.3; σ=(2.0−(−1.5))/(2×2.776)=3.5/5.552≈0.630.\"\n        },\n        \"consistency_check\": \"most_plausible_value 0.3 lies inside [−1.5, 2.0]; student_t support is all reals.\"\n      }\n    },\n    {\n      \"bucket\": \"intuition\",\n      \"type\": \"defensive\",\n      \"title\": \"Deliberately Allow Quick Scores When Trailing by 2+ Scores Late\",\n      \"recommendation\": \"When trailing by 9–16 points with under 5:00 remaining and the opponent is in the red zone, deliberately permit a touchdown (soft coverage, no resistance) rather than forcing a field goal, to preserve clock and maximize your remaining possessions.\",\n      \"rationale\": \"Conventional defenses fight for a field-goal stop, but mathematically a touchdown against you is often nearly equivalent to a field goal when you need two scores, and forcing the clock to run is the bigger enemy. Analytics is silent on this specific trade-off in public literature.\",\n      \"prior\": {\n        \"belief_summaries\": {\n          \"most_plausible_value\": 0.1,\n          \"interval_95_low\": -1.0,\n          \"interval_95_high\": 0.8,\n          \"shape\": \"left_skewed\",\n          \"tails\": \"moderate\"\n        },\n        \"distribution_family\": {\n          \"name\": \"skew_normal\",\n          \"justification\": \"Left-skewed: there is a real chance this backfires badly if the opponent is content to kneel after the cheap score or if the arithmetic is misjudged, while the upside is capped because it only matters in rare comeback windows.\"\n        },\n        \"parameters\": {\n          \"xi\": 0.5,\n          \"omega\": 1.0,\n          \"alpha\": -3,\n          \"conversion_note\": \"Fitted numerically with α=−3 (left skew): δ=−0.949; mean≈ξ+ω·(−0.756)≈0.5−0.756=−0.26; mode≈0.1; central 95% ≈ [−1.1, 0.8], close to stated interval.\"\n        },\n        \"consistency_check\": \"most_plausible_value 0.1 lies inside [−1.0, 0.8]; skew_normal support is all reals. Approximate fit.\"\n      }\n    }\n  ]\n}\n```",
+  "request_params": {
+    "extra_body": {
+      "thinking": {
+        "type": "enabled"
+      }
+    },
+    "max_tokens": 64000,
+    "model": "glm-5.2",
+    "reasoning_effort": "high",
+    "temperature": 1.0
+  },
+  "sample_idx": 1,
+  "seed": null,
+  "snapshot_id": "glm-5.2",
+  "stop_reason": "stop",
+  "temperature": 1.0,
+  "ts": "2026-07-31T21:57:40Z",
+  "usage": {
+    "input_tokens": 1594,
+    "output_tokens": 4298,
+    "reasoning_tokens": 1787
+  }
+}

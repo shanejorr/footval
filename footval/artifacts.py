@@ -22,6 +22,10 @@ def model_from_instance_id(iid: str) -> str:
     return iid.rsplit("__s", 1)[0]
 
 
+def sample_idx_from_instance_id(iid: str) -> int:
+    return int(iid.rsplit("__s", 1)[1])
+
+
 def _json_default(obj: Any) -> Any:
     # numpy scalars sneak in from scipy/polars computations
     for attr in ("item",):

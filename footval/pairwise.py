@@ -129,6 +129,15 @@ def enumerate_comparisons(cfg: Config, instance_ids: list[str]) -> dict[str, dic
 
 def build_manifest(cfg: Config, store: artifacts.Store) -> dict[str, Any]:
     iids = [i for i in store.instance_ids() if store.response_path(i).exists()]
+    if cfg.pairwise_judged_samples is not None:
+        # Samples past the cutoff are unjudged artifacts (published for the
+        # response viewer); keeping them out of the manifest also keeps extra
+        # generation runs from renumbering pairs under existing verdicts.
+        iids = [
+            i
+            for i in iids
+            if artifacts.sample_idx_from_instance_id(i) < cfg.pairwise_judged_samples
+        ]
     return {
         "seed": cfg.seed,
         "both_orders": cfg.pairwise_both_orders,

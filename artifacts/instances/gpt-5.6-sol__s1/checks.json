@@ -1,0 +1,179 @@
+{
+  "detail": {
+    "grid": {
+      "duplicate_cells": [],
+      "duplicate_titles": [],
+      "issues": [],
+      "missing_cells": [],
+      "n_strategies": 6
+    },
+    "json": {
+      "missing_keys": []
+    },
+    "parse_mode": "direct",
+    "strategies": [
+      {
+        "cell": "analytics/game_management",
+        "errors": {
+          "center": 0.0,
+          "high": 0.0015697711418718452,
+          "low": 0.0015697711418718452
+        },
+        "family": "student_t",
+        "family_valid": true,
+        "idx": 0,
+        "interval_sane": true,
+        "params_ok": true,
+        "reason": null,
+        "recomputed": {
+          "center": 0.37,
+          "high": 1.2115697711418718,
+          "low": -0.4715697711418718
+        },
+        "reported": {
+          "high": 1.21,
+          "low": -0.47,
+          "most_plausible_value": 0.37
+        },
+        "title": "Model-Calibrated Fourth-Down Aggression",
+        "tol_abs": 0.168
+      },
+      {
+        "cell": "analytics/offensive",
+        "errors": {
+          "center": 0.0,
+          "high": 7.599999999996498e-05,
+          "low": 7.60000000000205e-05
+        },
+        "family": "normal",
+        "family_valid": true,
+        "idx": 1,
+        "interval_sane": true,
+        "params_ok": true,
+        "reason": null,
+        "recomputed": {
+          "center": 0.29,
+          "high": 0.969924,
+          "low": -0.389924
+        },
+        "reported": {
+          "high": 0.97,
+          "low": -0.39,
+          "most_plausible_value": 0.29
+        },
+        "title": "Neutral-Down Passing Bias",
+        "tol_abs": 0.13599999999999998
+      },
+      {
+        "cell": "analytics/defensive",
+        "errors": {
+          "center": 0.0,
+          "high": 8.799999999997699e-05,
+          "low": 8.799999999997699e-05
+        },
+        "family": "normal",
+        "family_valid": true,
+        "idx": 2,
+        "interval_sane": true,
+        "params_ok": true,
+        "reason": null,
+        "recomputed": {
+          "center": 0.14,
+          "high": 0.900088,
+          "low": -0.620088
+        },
+        "reported": {
+          "high": 0.9,
+          "low": -0.62,
+          "most_plausible_value": 0.14
+        },
+        "title": "Coverage-First Neutral Downs",
+        "tol_abs": 0.15200000000000002
+      },
+      {
+        "cell": "intuition/game_management",
+        "errors": {
+          "center": 0.0,
+          "high": 0.0005271208174929543,
+          "low": 0.0005271208174929543
+        },
+        "family": "student_t",
+        "family_valid": true,
+        "idx": 3,
+        "interval_sane": true,
+        "params_ok": true,
+        "reason": null,
+        "recomputed": {
+          "center": 0.03,
+          "high": 0.5494728791825071,
+          "low": -0.48947287918250704
+        },
+        "reported": {
+          "high": 0.55,
+          "low": -0.49,
+          "most_plausible_value": 0.03
+        },
+        "title": "Explosive-Prevention Timeout",
+        "tol_abs": 0.10400000000000001
+      },
+      {
+        "cell": "intuition/offensive",
+        "errors": {
+          "center": 0.0,
+          "high": 0.0015768932947253234,
+          "low": 0.0015768932947254344
+        },
+        "family": "student_t",
+        "family_valid": true,
+        "idx": 4,
+        "interval_sane": true,
+        "params_ok": true,
+        "reason": null,
+        "recomputed": {
+          "center": 0.08,
+          "high": 0.8515768932947253,
+          "low": -0.6915768932947254
+        },
+        "reported": {
+          "high": 0.85,
+          "low": -0.69,
+          "most_plausible_value": 0.08
+        },
+        "title": "Paired-Call Quarterback Autonomy",
+        "tol_abs": 0.15400000000000003
+      },
+      {
+        "cell": "intuition/defensive",
+        "errors": {
+          "center": 0.0,
+          "high": 0.0012935051752018811,
+          "low": 0.0012935051752019922
+        },
+        "family": "student_t",
+        "family_valid": true,
+        "idx": 5,
+        "interval_sane": true,
+        "params_ok": true,
+        "reason": null,
+        "recomputed": {
+          "center": 0.05,
+          "high": 1.0087064948247981,
+          "low": -0.908706494824798
+        },
+        "reported": {
+          "high": 1.01,
+          "low": -0.91,
+          "most_plausible_value": 0.05
+        },
+        "title": "Post-Huddle Matchup Swaps",
+        "tol_abs": 0.192
+      }
+    ]
+  },
+  "family_ok": true,
+  "grid_complete": true,
+  "instance_id": "gpt-5.6-sol__s1",
+  "intervals_ok": true,
+  "json_valid": true,
+  "params_reproduce_ok": true
+}
